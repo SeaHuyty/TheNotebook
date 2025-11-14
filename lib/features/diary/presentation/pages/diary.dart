@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../widgets/diary_timeline_widget.dart';
 import '../widgets/diary_entry_content.dart';
+import '../../../../shared/widgets/app_drawer.dart';
 
 class Diary extends StatefulWidget {
   const Diary({super.key});
@@ -21,7 +22,7 @@ class _DiaryState extends State<Diary> {
     {
       'date': DateTime(2025, 11, 1),
       'content': 'Had a wonderful morning walk in the park.',
-      'imageUrl': '/images/image.png',
+      'imageUrl': '/images/image-1.png',
     },
     {
       'date': DateTime(2025, 11, 2),
@@ -31,7 +32,7 @@ class _DiaryState extends State<Diary> {
     {
       'date': DateTime(2025, 11, 3),
       'content': 'Had a wonderful morning walk in the park.',
-      'imageUrl': '/images/image.png',
+      'imageUrl': '/images/image-2.png',
     },
     {
       'date': DateTime(2025, 11, 5),
@@ -39,19 +40,19 @@ class _DiaryState extends State<Diary> {
       'imageUrl': null,
     },
     {
-      'date': DateTime(2025, 11, 7),
+      'date': DateTime(2025, 10, 7),
       'content': 'Today was amazing, built my first diary app!',
-      'imageUrl': '/images/image.png',
+      'imageUrl': '/images/image-3.png',
     },
     {
-      'date': DateTime(2025, 11, 4),
+      'date': DateTime(2025, 10, 4),
       'content': 'November started great with family dinner.',
-      'imageUrl': null,
+      'imageUrl': '/images/image-4.png',
     },
     {
-      'date': DateTime(2025, 11, 6),
+      'date': DateTime(2025, 10, 6),
       'content': 'Rainy day but productive coding session.',
-      'imageUrl': null,
+      'imageUrl': '/images/image-5.png',
     },
   ];
 
@@ -76,7 +77,7 @@ class _DiaryState extends State<Diary> {
   Widget build(BuildContext context) {
     // Sort entries by date (newest first)
     final sortedEntries = List.from(diaryEntries)
-      ..sort((a, b) => b['date'].compareTo(a['date']));
+      ..sort((a, b) => a['date'].compareTo(b['date']));
 
     return Scaffold(
       appBar: AppBar(
@@ -115,26 +116,7 @@ class _DiaryState extends State<Diary> {
           ),
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            Container(
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: const Color.fromARGB(255, 197, 197, 197),
-                  ),
-                ),
-              ),
-              child: Text('Hello Tengyi', style: TextStyle(fontSize: 20)),
-            ),
-            ListTile(title: Text('To-do')),
-            ListTile(title: Text('Wishlist')),
-            ListTile(title: Text('Setting')),
-          ],
-        ),
-      ),
+      drawer: AppDrawer(currentPage: 'diary'),
       body: Stack(
         children: [
           if (isCalendarVisible)
@@ -164,10 +146,17 @@ class _DiaryState extends State<Diary> {
             child: Container(width: 2, color: Colors.grey.shade400),
           ),
           ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false), 
+            behavior: ScrollConfiguration.of(
+              context,
+            ).copyWith(scrollbars: false),
             child: ListView.builder(
               controller: _scrollController,
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 300,
+              ),
               itemCount: sortedEntries.length,
               itemBuilder: (context, index) {
                 final entry = sortedEntries[index];
@@ -181,7 +170,9 @@ class _DiaryState extends State<Diary> {
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 10),
                           child: DiaryEntryContent(
-                            date: DateFormat('MMM, dd, yyyy').format(entry['date']),
+                            date: DateFormat(
+                              'MMM, dd, yyyy',
+                            ).format(entry['date']),
                             content: entry['content'],
                             imageUrl: entry['imageUrl'],
                           ),
@@ -192,8 +183,8 @@ class _DiaryState extends State<Diary> {
                   ],
                 );
               },
-            )
-          )
+            ),
+          ),
         ],
       ),
     );
