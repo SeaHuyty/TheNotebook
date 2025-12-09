@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../features/diary/presentation/pages/diary.dart';
-import '../../features/todo/presentation/pages/todo_page.dart';
+import '../../features/list/presentation/pages/list_page.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentPage;
@@ -21,7 +21,7 @@ class AppDrawer extends StatelessWidget {
                 )
               )
             ),
-            child: Text('Hello Tengyi'),
+            child: Text('Hello Tengyi', style: TextStyle(fontSize: 22),),
           ),
           ListTile(
             title: Text('Diary'),
@@ -38,20 +38,19 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            title: Text('To-do'),
-            selected: currentPage == 'todo',
+            title: Text('List'),
+            selected: currentPage == 'list',
             onTap: () {
-              if (currentPage != 'todo') {
+              if (currentPage != 'list') {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => TodoPage()),
+                  MaterialPageRoute(builder: (context) => ListPage()),
                 );
               } else {
                 Navigator.pop(context);
               }
             },
           ),
-          ListTile(title: Text('Wishlist')),
           ListTile(title: Text('Setting')),
         ],
       ),
