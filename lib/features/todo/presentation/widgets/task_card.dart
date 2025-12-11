@@ -41,106 +41,96 @@ class _TaskCardState extends State<TaskCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: radioToggle,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: radioColor,
-                    border: radioBorder,
-                  ),
-                  child: radioIcon != null
-                      ? Icon(radioIcon, size: 12, color: Colors.white)
-                      : SizedBox.shrink(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: radioToggle,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: radioColor,
+                  border: radioBorder,
                 ),
+                child: radioIcon != null
+                    ? Icon(radioIcon, size: 12, color: Colors.white)
+                    : SizedBox.shrink(),
               ),
-
-              SizedBox(width: 10),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.task.title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  SizedBox(height: 5),
-
-                  Row(
-                    children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.blue, // text color
-                        ),
-                        onPressed: viewToggle,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Icon(buttonIcon, size: 18),
-                            SizedBox(width: 5),
-                            Text(buttonText, style: TextStyle(fontSize: 12)),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(width: 5),
-
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.blue, // text color
-                        ),
-                        onPressed: () {},
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Icon(Icons.add, size: 18),
-                            SizedBox(width: 5),
-                            Text(
-                              "Add Sub-task",
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          if (widget.task.subtasks.isNotEmpty && widget.isExpanded)
-            Column(
-              children: widget.task.subtasks.map((sub) {
-                return TaskCard(
-                  task: sub,
-                  isExpanded: false,
-                  onExpandChanged: (_) {},
-                );
-              }).toList(),
             ),
-        ],
-      ),
+
+            SizedBox(width: 10),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.task.title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                SizedBox(height: 5),
+
+                Row(
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.blue, // text color
+                      ),
+                      onPressed: viewToggle,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(buttonIcon, size: 18),
+                          SizedBox(width: 5),
+                          Text(buttonText, style: TextStyle(fontSize: 12)),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(width: 5),
+
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.blue, // text color
+                      ),
+                      onPressed: () {},
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.add, size: 18),
+                          SizedBox(width: 5),
+                          Text("Add Sub-task", style: TextStyle(fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // if (widget.task.subtasks.isNotEmpty && widget.isExpanded)
+        //   Column(
+        //     children: widget.task.subtasks.map((sub) {
+        //       return TaskCard(
+        //         task: sub,
+        //         isExpanded: false,
+        //         onExpandChanged: (_) {},
+        //       );
+        //     }).toList(),
+        //   ),
+      ],
     );
   }
 }
