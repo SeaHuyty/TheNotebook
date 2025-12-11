@@ -157,6 +157,17 @@ class _DiaryState extends State<Diary> {
               ),
             ),
           ),
+          Positioned(
+            bottom: 30,
+            left: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 122, 171, 255),
+                borderRadius: BorderRadius.circular(20)
+              ),
+              child: IconButton(onPressed: () {}, icon: Icon(Icons.draw_outlined), color: Colors.white,),
+            ),
+          ),
         ],
       ),
     );
