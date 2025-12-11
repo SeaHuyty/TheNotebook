@@ -44,7 +44,7 @@ class AppDrawer extends StatelessWidget {
               if (currentPage != 'list') {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => ListPage()),
+                  MaterialPageRoute(builder: (context) => TodoPage()),
                 );
               } else {
                 Navigator.pop(context);
