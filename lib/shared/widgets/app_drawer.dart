@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../features/diary/presentation/pages/diary.dart';
-import '../../features/list/presentation/pages/list_page.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentPage;
@@ -31,20 +30,6 @@ class AppDrawer extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => Diary()),
-                );
-              } else {
-                Navigator.pop(context);
-              }
-            },
-          ),
-          ListTile(
-            title: Text('List'),
-            selected: currentPage == 'list',
-            onTap: () {
-              if (currentPage != 'list') {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => TodoPage()),
                 );
               } else {
                 Navigator.pop(context);

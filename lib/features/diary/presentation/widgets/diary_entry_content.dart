@@ -43,7 +43,7 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.imageUrl != null) ...[
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.asset(
@@ -52,19 +52,19 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
               width: double.infinity,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return SizedBox(
+                return const SizedBox(
                   height: 100,
                   child: Center(child: Text('Image not found')),
                 );
               },
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
         ],
-        Text(widget.date, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        SizedBox(height: 8),
-        Text(widget.content, style: TextStyle(fontSize: 14)),
-        SizedBox(height: 8),
+        Text(widget.date, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 8),
+        Text(widget.content, style: const TextStyle(fontSize: 14)),
+        const SizedBox(height: 8),
         TaskCard(
           task: tasks[0],
           isExpanded: expanded[0],
