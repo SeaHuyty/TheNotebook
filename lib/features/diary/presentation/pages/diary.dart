@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:minimal_diary/features/diary/data/repositories/diary_repository.dart';
+import 'package:minimal_diary/features/diary/domain/diary.dart';
+import 'package:minimal_diary/features/diary/presentation/pages/create_diary.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -8,14 +10,14 @@ import '../widgets/diary_timeline_widget.dart';
 import '../widgets/diary_entry_content.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 
-class Diary extends StatefulWidget {
-  const Diary({super.key});
+class DiaryPage extends StatefulWidget {
+  const DiaryPage({super.key});
 
   @override
-  State<Diary> createState() => _DiaryState();
+  State<DiaryPage> createState() => _DiaryPageState();
 }
 
-class _DiaryState extends State<Diary> {
+class _DiaryPageState extends State<DiaryPage> {
   // This widget is the root of your application.
   bool isCalendarVisible = false;
   DateTime selectedDate = DateTime.now();
@@ -26,8 +28,8 @@ class _DiaryState extends State<Diary> {
   DiaryRepository repository = DiaryRepository();
 
   // Sort entries by date (newest first)
-  late List sortedEntries = List.from(repository.getDiaryEntries())
-    ..sort((a, b) => a['date'].compareTo(b['date']));
+  late List<Diary> sortedEntries = List.from(repository.getDiaryEntries())
+    ..sort((a, b) => a.date.compareTo(b.date));
 
   @override
   void initState() {
@@ -38,6 +40,13 @@ class _DiaryState extends State<Diary> {
         _scrollController.jumpTo(index: sortedEntries.length - 1);
       }
     });
+  }
+
+  void onCreate() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CreateDiary()),
+    );
   }
 
   @override
@@ -115,9 +124,7 @@ class _DiaryState extends State<Diary> {
                     // Check if the entry is visible AND positioned at the top
                     if (info.visibleFraction > 0 &&
                         info.visibleBounds.top >= 0) {
-                      String entryMonth = DateFormat(
-                        'MMMM',
-                      ).format(entry['date']);
+                      String entryMonth = DateFormat('MMMM').format(entry.date);
                       if (entryMonth != currentMonth && mounted) {
                         setState(() {
                           currentMonth = entryMonth;
@@ -126,7 +133,7 @@ class _DiaryState extends State<Diary> {
                     }
                   },
                   child: DiaryTimelineWidget(
-                    dayNumber: entry['date'].day,
+                    dayNumber: entry.date.day,
                     showLineBelow: !isLastEntry,
                     child: Card(
                       color: Colors.transparent,
@@ -134,11 +141,10 @@ class _DiaryState extends State<Diary> {
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: DiaryEntryContent(
-                          date: DateFormat(
-                            'MMM, dd, yyyy',
-                          ).format(entry['date']),
-                          content: entry['content'],
-                          imageUrl: entry['imageUrl'],
+                          date: DateFormat('MMM, dd, yyyy').format(entry.date),
+                          content: entry.content,
+                          imageUrl: entry.imageUrl,
+                          tasks: entry.tasks,
                         ),
                       ),
                     ),
@@ -156,7 +162,7 @@ class _DiaryState extends State<Diary> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   FloatingActionButton(
-                    onPressed: () {},
+                    onPressed: onCreate,
                     backgroundColor: const Color.fromARGB(255, 122, 171, 255),
                     child: const Icon(Icons.add, color: Colors.white),
                   ),
@@ -184,7 +190,7 @@ class MonthFilter extends StatelessWidget {
   }) : _scrollController = scrollController;
 
   final String currentMonth;
-  final List sortedEntries;
+  final List<Diary> sortedEntries;
   final ItemScrollController _scrollController;
 
   @override
@@ -201,7 +207,7 @@ class MonthFilter extends StatelessWidget {
         ),
         onSelected: (String month) {
           int index = sortedEntries.indexWhere((entry) {
-            String entryMonth = DateFormat('MMMM').format(entry['date']);
+            String entryMonth = DateFormat('MMMM').format(entry.date);
             return entryMonth == month;
           });
 
@@ -215,7 +221,7 @@ class MonthFilter extends StatelessWidget {
         },
         itemBuilder: (BuildContext context) {
           Set<String> uniqueMonths = sortedEntries
-              .map((entry) => DateFormat('MMMM').format(entry['date']))
+              .map((entry) => DateFormat('MMMM').format(entry.date))
               .toSet();
 
           return uniqueMonths.map((String month) {

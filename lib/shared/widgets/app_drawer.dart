@@ -29,7 +29,7 @@ class AppDrawer extends StatelessWidget {
               if (currentPage != 'diary') {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => Diary()),
+                  MaterialPageRoute(builder: (context) => DiaryPage()),
                 );
               } else {
                 Navigator.pop(context);

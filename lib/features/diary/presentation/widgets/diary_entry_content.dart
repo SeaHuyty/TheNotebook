@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:minimal_diary/features/todo/domain/task.dart';
-import 'package:minimal_diary/features/todo/presentation/widgets/task_card.dart';
+import 'package:minimal_diary/features/diary/domain/task.dart';
+import 'package:minimal_diary/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryEntryContent extends StatefulWidget {
   final String date;
   final String content;
   final String? imageUrl;
+  final List<Task>? tasks;
 
   const DiaryEntryContent({
     super.key,
     required this.date,
     required this.content,
+    this.tasks,
     this.imageUrl,
   });
 
@@ -19,22 +21,12 @@ class DiaryEntryContent extends StatefulWidget {
 }
 
 class _DiaryEntryContentState extends State<DiaryEntryContent> {
-  late final List<Task> tasks;
   late final List<bool> expanded;
+
   @override
   void initState() {
     super.initState();
-    tasks = [
-      Task(
-        title: "Complete project proposal",
-        subtasks: [
-          Task(title: "Write introduction"),
-          Task(title: "Make diagrams"),
-          Task(title: "Review with team"),
-        ],
-      ),
-    ];
-    expanded = List<bool>.filled(tasks.length, false);
+    expanded = List<bool>.filled(widget.tasks?.length ?? 0, false);
   }
 
   @override
@@ -61,19 +53,28 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
           ),
           const SizedBox(height: 8),
         ],
-        Text(widget.date, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          widget.date,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         const SizedBox(height: 8),
         Text(widget.content, style: const TextStyle(fontSize: 14)),
         const SizedBox(height: 8),
-        TaskCard(
-          task: tasks[0],
-          isExpanded: expanded[0],
-          onExpandChanged: (val) {
-            setState(() {
-              expanded[0] = val;
-            });
-          },
-        ),
+        if (widget.tasks != null) ...[
+          ...widget.tasks!.asMap().entries.map((entry) {
+            int index = entry.key;
+            Task task = entry.value;
+            return TaskCard(
+              task: task,
+              isExpanded: expanded[index],
+              onExpandChanged: (val) {
+                setState(() {
+                  expanded[index] = val;
+                });
+              },
+            );
+          }),
+        ],
       ],
     );
   }
