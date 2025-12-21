@@ -23,7 +23,7 @@ class OnboardingPage extends StatelessWidget {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => Diary()),
+                  MaterialPageRoute(builder: (context) => DiaryPage()),
                 );
               },
               child: Text('Next'),
