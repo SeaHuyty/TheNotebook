@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:minimal_diary/features/diary/data/repositories/diary_repository.dart';
 import '../../features/diary/presentation/pages/diary.dart';
 
 class AppDrawer extends StatelessWidget {
+  final DiaryRepository? repo;
   final String currentPage;
 
-  const AppDrawer({super.key, required this.currentPage});
+  const AppDrawer({super.key, required this.currentPage, this.repo});
 
   @override
   Widget build(BuildContext context) {
@@ -14,13 +16,9 @@ class AppDrawer extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              border: const Border(
-                bottom: BorderSide(
-                  color: Colors.grey
-                )
-              )
+              border: const Border(bottom: BorderSide(color: Colors.grey)),
             ),
-            child: const Text('Hello Tengyi', style: TextStyle(fontSize: 22),),
+            child: const Text('Hello Tengyi', style: TextStyle(fontSize: 22)),
           ),
           ListTile(
             title: const Text('Diary'),
@@ -29,7 +27,9 @@ class AppDrawer extends StatelessWidget {
               if (currentPage != 'diary') {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const DiaryPage()),
+                  MaterialPageRoute(
+                    builder: (context) => DiaryPage(repo: repo!),
+                  ),
                 );
               } else {
                 Navigator.pop(context);

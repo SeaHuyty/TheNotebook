@@ -11,7 +11,9 @@ import '../widgets/diary_entry_content.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 
 class DiaryPage extends StatefulWidget {
-  const DiaryPage({super.key});
+  final DiaryRepository repo;
+
+  const DiaryPage({super.key, required this.repo});
 
   @override
   State<DiaryPage> createState() => _DiaryPageState();
@@ -25,21 +27,67 @@ class _DiaryPageState extends State<DiaryPage> {
   final ItemScrollController _scrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
-  DiaryRepository repository = DiaryRepository();
 
-  // Sort entries by date (newest first)
-  late List<Diary> sortedEntries = List.from(repository.getDiaryEntries())
-    ..sort((a, b) => a.date.compareTo(b.date));
+  List<Diary> sortedEntries = [];
 
   @override
   void initState() {
     super.initState();
+    loadEntries();
+  }
 
+  Future<void> loadEntries() async {
+    final entries = await widget.repo.getDiaryEntries();
+    setState(() {
+      sortedEntries = List.from(entries)
+        ..sort((a, b) => a.date.compareTo(b.date));
+    });
+
+    // Move the scroll-to-today logic, after data is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.isAttached) {
-        _scrollController.jumpTo(index: sortedEntries.length - 1);
+        // Find the index of today's date or the closest entry
+        int todayIndex = _findTodayOrClosestIndex();
+        _scrollController.jumpTo(index: todayIndex);
       }
     });
+  }
+
+  int _findTodayOrClosestIndex() {
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+
+    // Try to find exact match for today
+    int exactIndex = sortedEntries.indexWhere((entry) {
+      final entryDate = DateTime(
+        entry.date.year,
+        entry.date.month,
+        entry.date.day,
+      );
+      return entryDate.isAtSameMomentAs(todayDate);
+    });
+
+    if (exactIndex != -1) {
+      return exactIndex;
+    }
+
+    // Find the closest date (prefer the most recent entry before or on today)
+    int closestIndex = 0;
+    for (int i = 0; i < sortedEntries.length; i++) {
+      final entryDate = DateTime(
+        sortedEntries[i].date.year,
+        sortedEntries[i].date.month,
+        sortedEntries[i].date.day,
+      );
+      if (entryDate.isBefore(todayDate) ||
+          entryDate.isAtSameMomentAs(todayDate)) {
+        closestIndex = i;
+      } else {
+        break;
+      }
+    }
+
+    return closestIndex;
   }
 
   void onCreate() {
@@ -78,7 +126,7 @@ class _DiaryPageState extends State<DiaryPage> {
           ),
         ],
       ),
-      drawer: AppDrawer(currentPage: 'diary'),
+      drawer: const AppDrawer(currentPage: 'diary'),
       body: Stack(
         children: [
           if (isCalendarVisible)
@@ -105,53 +153,61 @@ class _DiaryPageState extends State<DiaryPage> {
             behavior: ScrollConfiguration.of(
               context,
             ).copyWith(scrollbars: false),
-            child: ScrollablePositionedList.builder(
-              itemScrollController: _scrollController,
-              itemPositionsListener: _itemPositionsListener,
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: 300,
-              ),
-              itemCount: sortedEntries.length,
-              itemBuilder: (context, index) {
-                final entry = sortedEntries[index];
-                final isLastEntry = index == sortedEntries.length - 1;
-                return VisibilityDetector(
-                  key: Key('diary-entry-$index'),
-                  onVisibilityChanged: (VisibilityInfo info) {
-                    // Check if the entry is visible AND positioned at the top
-                    if (info.visibleFraction > 0 &&
-                        info.visibleBounds.top >= 0) {
-                      String entryMonth = DateFormat('MMMM').format(entry.date);
-                      if (entryMonth != currentMonth && mounted) {
-                        setState(() {
-                          currentMonth = entryMonth;
-                        });
-                      }
-                    }
-                  },
-                  child: DiaryTimelineWidget(
-                    dayNumber: entry.date.day,
-                    showLineBelow: !isLastEntry,
-                    child: Card(
-                      color: Colors.transparent,
-                      elevation: 0,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: DiaryEntryContent(
-                          date: DateFormat('MMM, dd, yyyy').format(entry.date),
-                          content: entry.content,
-                          imageUrl: entry.imageUrl,
-                          tasks: entry.tasks,
-                        ),
-                      ),
+            child: sortedEntries.isEmpty
+                ? ScrollablePositionedList.builder(
+                    itemScrollController: _scrollController,
+                    itemPositionsListener: _itemPositionsListener,
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 16,
+                      bottom: 300,
                     ),
-                  ),
-                );
-              },
-            ),
+                    itemCount: sortedEntries.length,
+                    itemBuilder: (context, index) {
+                      final entry = sortedEntries[index];
+                      final isLastEntry = index == sortedEntries.length - 1;
+                      return VisibilityDetector(
+                        key: Key('diary-entry-$index'),
+                        onVisibilityChanged: (VisibilityInfo info) {
+                          // Check if the entry is visible AND positioned at the top
+                          if (info.visibleFraction > 0 &&
+                              info.visibleBounds.top >= 0) {
+                            String entryMonth = DateFormat(
+                              'MMMM',
+                            ).format(entry.date);
+                            if (entryMonth != currentMonth && mounted) {
+                              setState(() {
+                                currentMonth = entryMonth;
+                              });
+                            }
+                          }
+                        },
+                        child: DiaryTimelineWidget(
+                          dayNumber: entry.date.day,
+                          showLineBelow: !isLastEntry,
+                          child: Card(
+                            color: Colors.transparent,
+                            elevation: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              child: DiaryEntryContent(
+                                date: DateFormat(
+                                  'MMM, dd, yyyy',
+                                ).format(entry.date),
+                                content: entry.content,
+                                imageUrl: entry.imageUrl,
+                                tasks: entry.tasks,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : Center(child: Text('Loading Data')),
           ),
           Positioned(
             bottom: 16,
@@ -162,11 +218,13 @@ class _DiaryPageState extends State<DiaryPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   FloatingActionButton(
+                    heroTag: 'uniqueTag1',
                     onPressed: onCreate,
                     backgroundColor: const Color.fromARGB(255, 122, 171, 255),
                     child: const Icon(Icons.add, color: Colors.white),
                   ),
                   FloatingActionButton(
+                    heroTag: 'uniqueTag2',
                     onPressed: () {},
                     backgroundColor: const Color.fromARGB(255, 122, 171, 255),
                     child: const Icon(Icons.draw_outlined, color: Colors.white),
@@ -202,7 +260,7 @@ class MonthFilter extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(currentMonth, style: TextStyle(fontSize: 18)),
-            Icon(Icons.arrow_drop_down, color: Colors.black),
+            const Icon(Icons.arrow_drop_down, color: Colors.black),
           ],
         ),
         onSelected: (String month) {

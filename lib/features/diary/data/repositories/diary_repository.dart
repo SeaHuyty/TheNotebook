@@ -1,10 +1,21 @@
+import 'package:isar/isar.dart';
 import 'package:minimal_diary/features/diary/domain/task.dart';
 import '../../domain/diary.dart';
 
 class DiaryRepository {
-  List<Diary> getDiaryEntries() {
-    return [
-      // November 2025
+  DiaryRepository(this.isar);
+
+  final Isar isar;
+
+  Future<List<Diary>> getDiaryEntries() async {
+    return isar.diarys.where().sortByDate().findAll();
+  } 
+
+  Future<void> seedIfEmpty() async {
+    final count = await isar.diarys.count();
+    if (count > 0) return;
+
+    final sampleEntries = <Diary>[
       Diary(
         date: DateTime(2025, 11, 15),
         content:
@@ -21,11 +32,13 @@ class DiaryRepository {
           ),
         ],
       ),
+
+      // November 2025
       Diary(
         date: DateTime(2025, 11, 8),
         content:
             'Thanksgiving preparations begin. Grateful for all the wonderful people in my life.',
-        imageUrl: '',
+        imageUrl: null,
         tasks: [
           Task(
             title: "Complete project proposal",
@@ -55,7 +68,7 @@ class DiaryRepository {
         date: DateTime(2025, 10, 15),
         content:
             'Went to the farmers market and bought fresh vegetables. Planning to eat healthier.',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 10, 5),
@@ -75,7 +88,7 @@ class DiaryRepository {
         date: DateTime(2025, 9, 12),
         content:
             'Back to school season. Enrolled in a photography class, excited to learn!',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 9, 3),
@@ -95,7 +108,7 @@ class DiaryRepository {
         date: DateTime(2025, 8, 10),
         content:
             'Hot summer day spent at the pool. Sometimes simple pleasures are the best.',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 8, 1),
@@ -115,7 +128,7 @@ class DiaryRepository {
         date: DateTime(2025, 7, 15),
         content:
             'Mid-year reflection: So much growth and learning in just seven months.',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 7, 4),
@@ -134,7 +147,7 @@ class DiaryRepository {
         date: DateTime(2025, 6, 18),
         content:
             'First day of summer! Made a bucket list of things to do before fall.',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 6, 8),
@@ -153,13 +166,13 @@ class DiaryRepository {
       Diary(
         date: DateTime(2025, 5, 20),
         content: 'Spring cleaning done! House feels fresh and organized again.',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 5, 10),
         content:
             'Mom\'s birthday celebration. Made her favorite cake from scratch.',
-        imageUrl: '/images/image-14.png',
+        imageUrl: '/images/image-1.png',
       ),
 
       // April 2025
@@ -167,19 +180,19 @@ class DiaryRepository {
         date: DateTime(2025, 4, 25),
         content:
             'Cherry blossoms are in full bloom. Spring has officially arrived!',
-        imageUrl: '/images/image-15.png',
+        imageUrl: '/images/image-2.png',
       ),
       Diary(
         date: DateTime(2025, 4, 15),
         content:
             'Started a new hobby: painting. My first landscape attempt wasn\'t terrible!',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 4, 5),
         content:
             'Easter brunch with family. Traditional recipes and new memories made.',
-        imageUrl: '/images/image-16.png',
+        imageUrl: '/images/image-3.png',
       ),
 
       // March 2025
@@ -187,19 +200,19 @@ class DiaryRepository {
         date: DateTime(2025, 3, 28),
         content:
             'Spring break trip to the coast. Ocean waves and sea breeze were therapeutic.',
-        imageUrl: '/images/image-17.png',
+        imageUrl: '/images/image-4.png',
       ),
       Diary(
         date: DateTime(2025, 3, 17),
         content:
             'St. Patrick\'s Day celebration! Wore green and enjoyed Irish music downtown.',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 3, 8),
         content:
             'International Women\'s Day. Celebrated amazing women who inspire me daily.',
-        imageUrl: '/images/image-18.png',
+        imageUrl: '/images/image-5.png',
       ),
 
       // February 2025
@@ -207,19 +220,19 @@ class DiaryRepository {
         date: DateTime(2025, 2, 22),
         content:
             'Winter is slowly ending. First signs of spring are appearing in the garden.',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 2, 14),
         content:
             'Valentine\'s Day dinner with my partner. Simple moments are the most precious.',
-        imageUrl: '/images/image-19.png',
+        imageUrl: '/images/image-6.png',
       ),
       Diary(
         date: DateTime(2025, 2, 5),
         content:
             'Snow day! Built a snowman and had hot cocoa by the fireplace.',
-        imageUrl: '/images/image-20.png',
+        imageUrl: '/images/image-7.png',
       ),
 
       // January 2025
@@ -227,25 +240,41 @@ class DiaryRepository {
         date: DateTime(2025, 1, 25),
         content:
             'One month into the year and already seeing progress on my goals. Feeling optimistic!',
-        imageUrl: '',
+        imageUrl: null,
       ),
       Diary(
         date: DateTime(2025, 1, 15),
         content:
             'Started my fitness journey today. Small steps toward a healthier lifestyle.',
-        imageUrl: '/images/image-21.png',
+        imageUrl: '/images/image-8.png',
       ),
       Diary(
         date: DateTime(2025, 1, 1),
         content:
             'New Year, new possibilities! Set meaningful resolutions for 2025.',
-        imageUrl: '/images/image-22.png',
+        imageUrl: '/images/image-9.png',
       ),
       Diary(
         date: DateTime.now(),
         content: 'What are your thoughts?',
-        imageUrl: '',
+        imageUrl: null,
+      ),
+      Diary(
+        date: DateTime(2025, 12, 29),
+        content:
+            'New Year, new possibilities! Set meaningful resolutions for 2025.',
+        imageUrl: '/images/image-9.png',
+      ),
+      Diary(
+        date: DateTime(2025, 12, 29),
+        content:
+            'New Year, new possibilities! Set meaningful resolutions for 2025.',
+        imageUrl: '/images/image-9.png',
       ),
     ];
+
+    await isar.writeTxn(() async {
+      await isar.diarys.putAll(sampleEntries);
+    });
   }
 }

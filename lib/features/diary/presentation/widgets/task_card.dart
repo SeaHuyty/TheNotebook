@@ -60,25 +60,25 @@ class _TaskCardState extends State<TaskCard> {
                 ),
                 child: radioIcon != null
                     ? Icon(radioIcon, size: 12, color: Colors.white)
-                    : SizedBox.shrink(),
+                    : const SizedBox.shrink(),
               ),
             ),
 
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
 
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.task.title,
-                  style: TextStyle(
+                  widget.task.title!,
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
 
                 Row(
                   children: [
@@ -91,20 +91,20 @@ class _TaskCardState extends State<TaskCard> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Icon(buttonIcon, size: 18),
-                          SizedBox(width: 5),
+                          const SizedBox(width: 5),
                           Text(buttonText, style: TextStyle(fontSize: 12)),
                         ],
                       ),
                     ),
 
-                    SizedBox(width: 5),
+                    const SizedBox(width: 5),
 
                     TextButton(
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.blue, // text color
                       ),
                       onPressed: () {},
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Icon(Icons.add, size: 18),
