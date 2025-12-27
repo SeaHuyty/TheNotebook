@@ -1,7 +1,44 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-class CreateDiary extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+class CreateDiary extends StatefulWidget {
   const CreateDiary({super.key});
+
+  @override
+  State<CreateDiary> createState() => _CreateDiaryState();
+}
+
+class _CreateDiaryState extends State<CreateDiary> {
+  // Inputs
+  final TextEditingController contentController = TextEditingController();
+  final ImagePicker picker = ImagePicker();
+  DateTime selectedDate = DateTime.now();
+  File? selectedImage;
+
+  Future<void> selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020, 1, 1),
+      lastDate: DateTime(DateTime.now().year + 5, 12, 31),
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> pickImage() async {
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        selectedImage = File(image.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +50,7 @@ class CreateDiary extends StatelessWidget {
             builder: (context) {
               return IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: Icon(Icons.arrow_back_ios),
+                icon: const Icon(Icons.arrow_back_ios, size: 20),
               );
             },
           ),
@@ -21,11 +58,32 @@ class CreateDiary extends StatelessWidget {
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextButton(onPressed: () {}, child: Text('Save')),
-          )
+            child: TextButton(onPressed: () {}, child: const Text('Save')),
+          ),
         ],
       ),
-      body: Text('Hello'),
+      body: Padding(
+        padding: EdgeInsetsGeometry.all(8),
+        child: Column(
+          children: [
+            TextFormField(
+              controller: contentController,
+              decoration: InputDecoration(hintText: 'Content'),
+            ),
+            TextButton(
+              onPressed: () => selectDate(context),
+              child: Text(selectedDate.toString().split(' ')[0]),
+            ),
+            const SizedBox(height: 10),
+            if (selectedImage != null) Image.file(selectedImage!, height: 200),
+            ElevatedButton.icon(
+              onPressed: pickImage,
+              icon: Icon(Icons.image),
+              label: const Text('Add Image'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,26 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:isar/isar.dart';
+import 'package:minimal_diary/features/diary/data/repositories/diary_repository.dart';
+import 'package:minimal_diary/features/diary/domain/diary.dart';
+import 'package:path_provider/path_provider.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final dir = await getApplicationDocumentsDirectory();
+  final isar = await Isar.open([DiarySchema], directory: dir.path);
+  final repo = DiaryRepository(isar);
+
+  await repo.seedIfEmpty();
+
   runApp(
     DevicePreview(
       enabled: true,
-      builder: (context) => const MyApp(),
+      builder: (context) => MyApp(repo: repo),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final DiaryRepository repo;
+
+  const MyApp({super.key, required this.repo});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'The Notebook',
-      home: OnboardingPage(),
+      home: OnboardingPage(repo: repo),
     );
   }
 }

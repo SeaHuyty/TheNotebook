@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:minimal_diary/features/diary/data/repositories/diary_repository.dart';
 import 'package:minimal_diary/features/diary/presentation/pages/diary.dart';
 
 class OnboardingPage extends StatelessWidget {
-  const OnboardingPage({super.key});
+  final DiaryRepository repo;
+
+  const OnboardingPage({super.key, required this.repo});
 
   // This widget is the root of your application.
   @override
@@ -28,7 +31,7 @@ class OnboardingPage extends StatelessWidget {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => DiaryPage()),
+                  MaterialPageRoute(builder: (context) => DiaryPage(repo: repo)),
                 );
               },
               child: Text(

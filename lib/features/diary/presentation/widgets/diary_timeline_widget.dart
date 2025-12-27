@@ -24,7 +24,7 @@ class DiaryTimelineWidget extends StatelessWidget {
             children: [
               // Circle
               Container(
-                margin: EdgeInsets.only(left: 10),
+                margin: const EdgeInsets.only(left: 10),
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
@@ -35,7 +35,7 @@ class DiaryTimelineWidget extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '$dayNumber',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
               ),
@@ -43,7 +43,7 @@ class DiaryTimelineWidget extends StatelessWidget {
               if (showLineBelow)
                 Expanded(
                   child: Container(
-                    margin: EdgeInsets.only(left: 10),
+                    margin: const EdgeInsets.only(left: 10),
                     width: 1.5,
                     color: Colors.grey.shade400,
                   ),
