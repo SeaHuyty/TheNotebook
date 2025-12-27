@@ -12,31 +12,31 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         children: [
           Container(
-            padding: EdgeInsets.all(15),
+            padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              border: Border(
+              border: const Border(
                 bottom: BorderSide(
                   color: Colors.grey
                 )
               )
             ),
-            child: Text('Hello Tengyi', style: TextStyle(fontSize: 22),),
+            child: const Text('Hello Tengyi', style: TextStyle(fontSize: 22),),
           ),
           ListTile(
-            title: Text('Diary'),
+            title: const Text('Diary'),
             selected: currentPage == 'diary',
             onTap: () {
               if (currentPage != 'diary') {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => DiaryPage()),
+                  MaterialPageRoute(builder: (context) => const DiaryPage()),
                 );
               } else {
                 Navigator.pop(context);
               }
             },
           ),
-          ListTile(title: Text('Setting')),
+          ListTile(title: const Text('Setting')),
         ],
       ),
     );
