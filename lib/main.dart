@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'TheNotebook',
+      title: 'The Notebook',
       home: OnboardingPage(repo: repo),
     );
   }

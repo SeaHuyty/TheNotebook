@@ -23,13 +23,21 @@ class OnboardingPage extends StatelessWidget {
             ),
             SizedBox(height: 30),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 122, 171, 255),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => DiaryPage(repo: repo)),
                 );
               },
-              child: Text('Next'),
+              child: Text(
+                'Next',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              ),
             ),
           ],
         ),
