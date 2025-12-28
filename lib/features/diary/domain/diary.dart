@@ -1,18 +1,14 @@
-import 'package:minimal_diary/features/diary/domain/task.dart';
-import 'package:isar/isar.dart';
+import 'package:the_notebook/features/diary/domain/task.dart';
 
-part 'diary.g.dart';
-
-@collection
 class Diary {
-  Id id = Isar.autoIncrement;
-
+  final int? id;
   final DateTime date;
   final String content;
   final String? imageUrl;
   final List<Task>? tasks;
 
   Diary({
+    this.id,
     required this.date,
     required this.content,
     this.imageUrl,

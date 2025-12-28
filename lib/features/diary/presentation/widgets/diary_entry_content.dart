@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:minimal_diary/features/diary/domain/task.dart';
-import 'package:minimal_diary/features/diary/presentation/widgets/task_card.dart';
+import 'package:the_notebook/features/diary/domain/task.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryEntryContent extends StatefulWidget {
   final String date;

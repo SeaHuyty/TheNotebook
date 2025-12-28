@@ -1,26 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:device_preview/device_preview.dart';
-import 'package:isar/isar.dart';
-import 'package:minimal_diary/features/diary/data/repositories/diary_repository.dart';
-import 'package:minimal_diary/features/diary/domain/diary.dart';
-import 'package:path_provider/path_provider.dart';
+// import 'package:device_preview/device_preview.dart';
+import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final dir = await getApplicationDocumentsDirectory();
-  final isar = await Isar.open([DiarySchema], directory: dir.path);
-  final repo = DiaryRepository(isar);
+  final repo = DiaryRepository();
 
   await repo.seedIfEmpty();
 
-  runApp(
-    DevicePreview(
-      enabled: true,
-      builder: (context) => MyApp(repo: repo),
-    ),
-  );
+  // Develop on Web Browser
+  // runApp(DevicePreview(enabled: true, builder: (context) => MyApp(repo: repo)));
+
+  // Develop on Simuator
+  runApp(MyApp(repo: repo));
 }
 
 class MyApp extends StatelessWidget {

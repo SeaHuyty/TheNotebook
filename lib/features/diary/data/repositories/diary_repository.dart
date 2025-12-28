@@ -1,19 +1,18 @@
-import 'package:isar/isar.dart';
-import 'package:minimal_diary/features/diary/domain/task.dart';
-import '../../domain/diary.dart';
+import 'package:the_notebook/features/diary/domain/task.dart';
+import 'package:the_notebook/features/diary/domain/diary.dart';
 
 class DiaryRepository {
-  DiaryRepository(this.isar);
+  DiaryRepository();
 
-  final Isar isar;
+  final List<Diary> _diaries = [];
 
   Future<List<Diary>> getDiaryEntries() async {
-    return isar.diarys.where().sortByDate().findAll();
-  } 
+    _diaries.sort((a, b) => a.date.compareTo(b.date));
+    return _diaries;
+  }
 
   Future<void> seedIfEmpty() async {
-    final count = await isar.diarys.count();
-    if (count > 0) return;
+    if (_diaries.isNotEmpty) return;
 
     final sampleEntries = <Diary>[
       Diary(
@@ -273,8 +272,6 @@ class DiaryRepository {
       ),
     ];
 
-    await isar.writeTxn(() async {
-      await isar.diarys.putAll(sampleEntries);
-    });
+    _diaries.addAll(sampleEntries);
   }
 }

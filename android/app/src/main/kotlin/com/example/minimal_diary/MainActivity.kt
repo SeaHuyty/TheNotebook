@@ -1,4 +1,4 @@
-package com.example.minimal_diary
+package com.example.the_notebook
 
 import io.flutter.embedding.android.FlutterActivity
 

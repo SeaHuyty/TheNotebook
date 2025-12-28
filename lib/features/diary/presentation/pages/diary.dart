@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:minimal_diary/features/diary/data/repositories/diary_repository.dart';
-import 'package:minimal_diary/features/diary/domain/diary.dart';
-import 'package:minimal_diary/features/diary/presentation/pages/create_diary.dart';
+import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/domain/diary.dart';
+import 'package:the_notebook/features/diary/presentation/pages/create_diary.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';

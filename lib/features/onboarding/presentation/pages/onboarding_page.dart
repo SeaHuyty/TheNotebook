@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:minimal_diary/features/diary/data/repositories/diary_repository.dart';
-import 'package:minimal_diary/features/diary/presentation/pages/diary.dart';
+import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 
 class OnboardingPage extends StatelessWidget {
   final DiaryRepository repo;
@@ -31,7 +31,9 @@ class OnboardingPage extends StatelessWidget {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => DiaryPage(repo: repo)),
+                  MaterialPageRoute(
+                    builder: (context) => DiaryPage(repo: repo),
+                  ),
                 );
               },
               child: Text(
