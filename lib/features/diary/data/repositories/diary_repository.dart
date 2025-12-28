@@ -1,72 +1,22 @@
-import 'package:drift/drift.dart';
-import 'package:the_notebook/core/database/app_database.dart'
-    show AppDatabase, DiariesCompanion, TasksCompanion;
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/data/seed_data.dart';
 
 class DiaryRepository {
-  final AppDatabase database;
+  final List<Diary> _diaries = [];
+  int _nextDiaryId = 1;
+  int _nextTaskId = 1;
 
-  DiaryRepository(this.database);
+  DiaryRepository();
 
   Future<List<Diary>> getDiaryEntries() async {
-    final diaries = await database.select(database.diaries).get();
-    final List<Diary> result = [];
-
-    for (var diary in diaries) {
-      final tasks = await (database.select(
-        database.tasks,
-      )..where((t) => t.diaryId.equals(diary.id))).get();
-
-      final List<Task> taskList = [];
-      for (var task in tasks) {
-        if (task.parentTaskId == null) {
-          final subtasks = await (database.select(
-            database.tasks,
-          )..where((t) => t.parentTaskId.equals(task.id))).get();
-
-          taskList.add(
-            Task(
-              id: task.id,
-              title: task.title,
-              isDone: task.isDone,
-              diaryId: task.diaryId,
-              parentTaskId: task.parentTaskId,
-              subtasks: subtasks
-                  .map(
-                    (s) => Task(
-                      id: s.id,
-                      title: s.title,
-                      isDone: s.isDone,
-                      diaryId: s.diaryId,
-                      parentTaskId: s.parentTaskId,
-                    ),
-                  )
-                  .toList(),
-            ),
-          );
-        }
-      }
-
-      result.add(
-        Diary(
-          id: diary.id,
-          date: diary.date,
-          content: diary.content,
-          imageUrl: diary.imageUrl,
-          tasks: taskList,
-        ),
-      );
-    }
-
+    final result = List<Diary>.from(_diaries);
     result.sort((a, b) => a.date.compareTo(b.date));
     return result;
   }
 
   Future<void> seedIfEmpty() async {
-    final count = await database.select(database.diaries).get();
-    if (count.isNotEmpty) return;
+    if (_diaries.isNotEmpty) return;
 
     for (var entry in sampleDiaries) {
       await insertDiary(entry);
@@ -74,45 +24,50 @@ class DiaryRepository {
   }
 
   Future<int> insertDiary(Diary diary) async {
-    final diaryId = await database
-        .into(database.diaries)
-        .insert(
-          DiariesCompanion.insert(
-            date: diary.date,
-            content: diary.content,
-            imageUrl: Value(diary.imageUrl),
-          ),
-        );
+    final diaryId = _nextDiaryId++;
 
+    final List<Task>? processedTasks;
     if (diary.tasks != null) {
-      for (var task in diary.tasks!) {
-        final taskId = await database
-            .into(database.tasks)
-            .insert(
-              TasksCompanion.insert(
-                title: Value(task.title),
-                isDone: Value(task.isDone ?? false),
-                diaryId: Value(diaryId),
-              ),
-            );
+      processedTasks = diary.tasks!.map((task) {
+        final taskId = _nextTaskId++;
 
+        final List<Task>? processedSubtasks;
         if (task.subtasks != null) {
-          for (var subtask in task.subtasks!) {
-            await database
-                .into(database.tasks)
-                .insert(
-                  TasksCompanion.insert(
-                    title: Value(subtask.title),
-                    isDone: Value(subtask.isDone ?? false),
-                    diaryId: Value(diaryId),
-                    parentTaskId: Value(taskId),
-                  ),
-                );
-          }
+          processedSubtasks = task.subtasks!.map((subtask) {
+            final subtaskId = _nextTaskId++;
+            return Task(
+              id: subtaskId,
+              title: subtask.title,
+              isDone: subtask.isDone ?? false,
+              diaryId: diaryId,
+              parentTaskId: taskId,
+            );
+          }).toList();
+        } else {
+          processedSubtasks = null;
         }
-      }
+
+        return Task(
+          id: taskId,
+          title: task.title,
+          isDone: task.isDone ?? false,
+          diaryId: diaryId,
+          subtasks: processedSubtasks,
+        );
+      }).toList();
+    } else {
+      processedTasks = null;
     }
 
+    final newDiary = Diary(
+      id: diaryId,
+      date: diary.date,
+      content: diary.content,
+      imageUrl: diary.imageUrl,
+      tasks: processedTasks,
+    );
+
+    _diaries.add(newDiary);
     return diaryId;
   }
 }
