@@ -24,8 +24,8 @@ class OnboardingPage extends StatelessWidget {
             SizedBox(height: 30),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 122, 171, 255),
-                foregroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
               onPressed: () {
