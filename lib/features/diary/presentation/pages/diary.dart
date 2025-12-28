@@ -23,7 +23,7 @@ class _DiaryPageState extends State<DiaryPage> {
   // This widget is the root of your application.
   bool isCalendarVisible = false;
   DateTime selectedDate = DateTime.now();
-  String currentMonth = 'Nov';
+  String currentMonth = DateTime.now().month.toString();
   final ItemScrollController _scrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
@@ -154,7 +154,8 @@ class _DiaryPageState extends State<DiaryPage> {
               context,
             ).copyWith(scrollbars: false),
             child: sortedEntries.isEmpty
-                ? ScrollablePositionedList.builder(
+                ? Center(child: Text('Loading Data'))
+                : ScrollablePositionedList.builder(
                     itemScrollController: _scrollController,
                     itemPositionsListener: _itemPositionsListener,
                     padding: const EdgeInsets.only(
@@ -206,8 +207,7 @@ class _DiaryPageState extends State<DiaryPage> {
                         ),
                       );
                     },
-                  )
-                : Center(child: Text('Loading Data')),
+                  ),
           ),
           Positioned(
             bottom: 16,
