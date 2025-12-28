@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:minimal_diary/features/diary/data/repositories/diary_repository.dart';
-import 'package:minimal_diary/features/diary/domain/diary.dart';
-import 'package:minimal_diary/features/diary/presentation/pages/create_diary.dart';
+import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/domain/diary.dart';
+import 'package:the_notebook/features/diary/presentation/pages/create_diary.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -23,7 +23,7 @@ class _DiaryPageState extends State<DiaryPage> {
   // This widget is the root of your application.
   bool isCalendarVisible = false;
   DateTime selectedDate = DateTime.now();
-  String currentMonth = 'Nov';
+  String currentMonth = DateTime.now().month.toString();
   final ItemScrollController _scrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
@@ -154,7 +154,8 @@ class _DiaryPageState extends State<DiaryPage> {
               context,
             ).copyWith(scrollbars: false),
             child: sortedEntries.isEmpty
-                ? ScrollablePositionedList.builder(
+                ? Center(child: Text('Loading Data'))
+                : ScrollablePositionedList.builder(
                     itemScrollController: _scrollController,
                     itemPositionsListener: _itemPositionsListener,
                     padding: const EdgeInsets.only(
@@ -206,8 +207,7 @@ class _DiaryPageState extends State<DiaryPage> {
                         ),
                       );
                     },
-                  )
-                : Center(child: Text('Loading Data')),
+                  ),
           ),
           Positioned(
             bottom: 16,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:minimal_diary/features/diary/domain/task.dart';
+import 'package:the_notebook/features/diary/domain/task.dart';
 
 class TaskCard extends StatefulWidget {
   final Task task;

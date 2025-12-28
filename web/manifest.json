@@ -1,6 +1,6 @@
 {
-    "name": "minimal_diary",
-    "short_name": "minimal_diary",
+    "name": "the_notebook",
+    "short_name": "the_notebook",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

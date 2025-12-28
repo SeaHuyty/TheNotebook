@@ -1,17 +1,17 @@
-
-import 'package:isar/isar.dart';
-
-part 'task.g.dart';
-
-@embedded
 class Task {
+  final int? id;
   final String? title;
-  final bool isDone;
+  final bool? isDone;
   final List<Task>? subtasks;
+  final int? diaryId;
+  final int? parentTaskId;
 
   Task({
+    this.id,
     this.title,
-    this.isDone = false,
+    this.isDone,
     this.subtasks,
+    this.diaryId,
+    this.parentTaskId,
   });
 }
