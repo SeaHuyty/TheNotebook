@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/onboarding/model/notebook.dart';
-import 'package:the_notebook/features/onboarding/presentation/pages/notebook_page.dart';
 
 class NotebookForm extends StatefulWidget {
   const NotebookForm({super.key});
@@ -33,10 +32,9 @@ class _NotebookFormState extends State<NotebookForm> {
 
   @override
   void dispose() {
-    super.dispose();
-
     // Dispose the controlers
     titleController.dispose();
+    super.dispose();
   }
 
   void onCreate() {
@@ -75,7 +73,6 @@ class _NotebookFormState extends State<NotebookForm> {
                 IconButton(onPressed: onClose, icon: Icon(Icons.cancel)),
               ],
             ),
-
             Form(
               key: _formKey,
               child: TextFormField(
@@ -85,26 +82,23 @@ class _NotebookFormState extends State<NotebookForm> {
                 validator: (value) => validateTitle(value),
               ),
             ),
-
-            Expanded(
-              child: DropdownButton<NotebookType>(
-                value: selectedCategory,
-                onChanged: (NotebookType? newValue) {
-                  setState(() {
-                    selectedCategory = newValue!;
-                  });
-                },
-                items: NotebookType.values.map((category) {
-                  return DropdownMenuItem<NotebookType>(
-                    value: category,
-                    child: Row(children: [
-                            ],
-                          ),
-                  );
-                }).toList(),
-              ),
+            DropdownButtonFormField<NotebookType>(
+              initialValue: selectedCategory,
+              onChanged: (NotebookType? newValue) {
+                setState(() {
+                  selectedCategory = newValue!;
+                });
+              },
+              items: NotebookType.values.map((category) {
+                return DropdownMenuItem<NotebookType>(
+                  value: category,
+                  child: Text(
+                    category.name.toUpperCase(),
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                );
+              }).toList(),
             ),
-
             Row(
               spacing: 10,
               children: [
@@ -123,7 +117,6 @@ class _NotebookFormState extends State<NotebookForm> {
                     child: Text("Add", style: TextStyle(fontSize: 16)),
                   ),
                 ),
-
                 Expanded(
                   flex: 1,
                   child: ElevatedButton(

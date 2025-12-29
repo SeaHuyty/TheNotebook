@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/notebook_page.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_page.dart';
 
@@ -27,7 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const NotebookPage())//DiaryPage(repo: widget.repo)),
+        MaterialPageRoute(builder: (context) => NotebookPage(repo: widget.repo))//DiaryPage(repo: widget.repo)),
       );
     }
   }
