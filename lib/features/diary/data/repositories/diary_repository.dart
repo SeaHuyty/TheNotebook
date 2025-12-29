@@ -1,73 +1,84 @@
-import 'package:the_notebook/features/diary/domain/task.dart';
-import 'package:the_notebook/features/diary/domain/diary.dart';
+import 'package:drift/drift.dart';
+import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/features/diary/data/seed_data.dart';
+import 'package:the_notebook/core/database/database.dart';
+import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 
 class DiaryRepository {
-  final List<Diary> _diaries = [];
-  int _nextDiaryId = 1;
-  int _nextTaskId = 1;
+  final AppDatabase _db = AppDatabase();
+  final TaskRepository _taskRepo = TaskRepository();
 
   DiaryRepository();
 
-  Future<List<Diary>> getDiaryEntries() async {
-    final result = List<Diary>.from(_diaries);
+  Future<List<domain.Diary>> getDiaryEntries() async {
+    final diaries = await _db.select(_db.diaries).get();
+    final result = <domain.Diary>[];
+
+    for (var diary in diaries) {
+      final tasks = await _taskRepo.getTasksForDiary(diary.id);
+      result.add(
+        domain.Diary(
+          id: diary.id,
+          date: diary.date,
+          content: diary.content,
+          imageUrl: diary.imageUrl,
+          tasks: tasks,
+        ),
+      );
+    }
+
     result.sort((a, b) => a.date.compareTo(b.date));
     return result;
   }
 
   Future<void> seedIfEmpty() async {
-    if (_diaries.isNotEmpty) return;
+    final existing = await _db.select(_db.diaries).get();
+    if (existing.isNotEmpty) return;
 
     for (var entry in sampleDiaries) {
       await insertDiary(entry);
     }
   }
 
-  Future<int> insertDiary(Diary diary) async {
-    final diaryId = _nextDiaryId++;
-
-    final List<Task>? processedTasks;
-    if (diary.tasks != null) {
-      processedTasks = diary.tasks!.map((task) {
-        final taskId = _nextTaskId++;
-
-        final List<Task>? processedSubtasks;
-        if (task.subtasks != null) {
-          processedSubtasks = task.subtasks!.map((subtask) {
-            final subtaskId = _nextTaskId++;
-            return Task(
-              id: subtaskId,
-              title: subtask.title,
-              isDone: subtask.isDone ?? false,
-              diaryId: diaryId,
-              parentTaskId: taskId,
-            );
-          }).toList();
-        } else {
-          processedSubtasks = null;
-        }
-
-        return Task(
-          id: taskId,
-          title: task.title,
-          isDone: task.isDone ?? false,
-          diaryId: diaryId,
-          subtasks: processedSubtasks,
+  Future<int> insertDiary(domain.Diary diary) async {
+    final diaryId = await _db.into(_db.diaries).insert(
+          DiariesCompanion(
+            date: Value(diary.date),
+            content: Value(diary.content),
+            imageUrl: Value(diary.imageUrl),
+          ),
         );
-      }).toList();
-    } else {
-      processedTasks = null;
+
+    if (diary.tasks != null) {
+      for (var task in diary.tasks!) {
+        final taskId = await _db.into(_db.tasks).insert(
+              TasksCompanion(
+                title: Value(task.title ?? ''),
+                isDone: Value(task.isDone ?? false),
+                diaryId: Value(diaryId),
+              ),
+            );
+
+        if (task.subtasks != null) {
+          for (var subtask in task.subtasks!) {
+            await _db.into(_db.tasks).insert(
+                  TasksCompanion(
+                    title: Value(subtask.title ?? ''),
+                    isDone: Value(subtask.isDone ?? false),
+                    diaryId: Value(diaryId),
+                    parentTaskId: Value(taskId),
+                  ),
+                );
+          }
+        }
+      }
     }
 
-    final newDiary = Diary(
-      id: diaryId,
-      date: diary.date,
-      content: diary.content,
-      imageUrl: diary.imageUrl,
-      tasks: processedTasks,
-    );
-
-    _diaries.add(newDiary);
     return diaryId;
+  }
+
+  void dispose() {
+    _db.close();
+    _taskRepo.dispose();
   }
 }
