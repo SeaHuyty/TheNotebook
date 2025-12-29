@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 
 class OnboardingPage extends StatelessWidget {
-  final DiaryRepository repo;
+  final String title;
+  final String subTitle;
+  final String buttonText;
+  final VoidCallback onPressed;
 
-  const OnboardingPage({super.key, required this.repo});
+  const OnboardingPage({
+    super.key,
+    required this.title,
+    required this.subTitle,
+    required this.buttonText,
+    required this.onPressed,
+  });
 
   // This widget is the root of your application.
   @override
@@ -16,28 +23,21 @@ class OnboardingPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 10,
           children: [
-            Text('Story of your life', style: TextStyle(fontSize: 25)),
+            Text(title, style: TextStyle(fontSize: 25)),
             Text(
-              'All your journeys in one place.',
+              subTitle,
               style: TextStyle(fontSize: 15),
             ),
             SizedBox(height: 30),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                backgroundColor: const Color.fromARGB(255, 122, 171, 255),
+                foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DiaryPage(repo: repo),
-                  ),
-                );
-              },
+              onPressed: onPressed,
               child: Text(
-                'Next',
+                buttonText,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
             ),
