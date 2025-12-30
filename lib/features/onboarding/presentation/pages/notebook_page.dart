@@ -4,7 +4,6 @@ import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/features/onboarding/data/notebook_data.dart';
 import 'package:the_notebook/features/onboarding/model/notebook.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/notebook_form.dart';
-import 'package:the_notebook/features/onboarding/presentation/widgets/notebook_tile.dart';
 import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
 class NotebookPage extends StatefulWidget {
@@ -43,9 +42,14 @@ class _NotebookPageState extends State<NotebookPage> {
         itemCount: notebookList.length,
         itemBuilder: (context, index) {
           final notebook = notebookList[index];
-          return NotebookTile(
-            notebook: notebook,
-            openDiary: () => openDiary(),
+          return Column(
+            children: [
+              NotebookTile(
+                notebook: notebook,
+                openDiary: () => openDiary(),
+              ),
+              SizedBox(height: 15)
+            ],
           );
         },
       );
@@ -83,6 +87,30 @@ class _NotebookPageState extends State<NotebookPage> {
       ),
       drawer: AppDrawer(currentPage: 'notebook'),
       body: Padding(padding: EdgeInsets.all(20), child: content),
+    );
+  }
+}
+
+class NotebookTile extends StatelessWidget {
+  final Notebook notebook;
+  final VoidCallback openDiary;
+
+  const NotebookTile(
+      {super.key, required this.notebook, required this.openDiary});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(5),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.grey.shade400, width: 1.0)),
+      child: ListTile(
+        title:
+            Text(notebook.title, style: TextStyle(fontWeight: FontWeight.bold)),
+        trailing: Icon(notebook.icon, size: 20),
+        onTap: openDiary,
+      ),
     );
   }
 }
