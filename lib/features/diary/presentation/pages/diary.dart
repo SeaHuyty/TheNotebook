@@ -4,11 +4,11 @@ import 'package:the_notebook/features/diary/data/repositories/diary_repository.d
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/create_diary.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/month_filter.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../widgets/diary_timeline_widget.dart';
 import '../widgets/diary_entry_content.dart';
-import '../../../../shared/widgets/app_drawer.dart';
 
 class DiaryPage extends StatefulWidget {
   final DiaryRepository repo;
@@ -90,11 +90,18 @@ class _DiaryPageState extends State<DiaryPage> {
     return closestIndex;
   }
 
-  void onCreate() {
-    Navigator.push(
+  void onCreate() async {
+    final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => CreateDiary()),
+      MaterialPageRoute(
+          builder: (context) => CreateDiary(
+                repo: widget.repo,
+              )),
     );
+
+    if (result == true) {
+      loadEntries();
+    }
   }
 
   @override
@@ -108,16 +115,6 @@ class _DiaryPageState extends State<DiaryPage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         surfaceTintColor: Colors.transparent,
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-              icon: const Icon(Icons.menu_rounded),
-            );
-          },
-        ),
         actions: [
           MonthFilter(
             currentMonth: currentMonth,
@@ -126,7 +123,6 @@ class _DiaryPageState extends State<DiaryPage> {
           ),
         ],
       ),
-      drawer: const AppDrawer(currentPage: 'diary'),
       body: Stack(
         children: [
           if (isCalendarVisible)
@@ -234,58 +230,6 @@ class _DiaryPageState extends State<DiaryPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class MonthFilter extends StatelessWidget {
-  const MonthFilter({
-    super.key,
-    required this.currentMonth,
-    required this.sortedEntries,
-    required ItemScrollController scrollController,
-  }) : _scrollController = scrollController;
-
-  final String currentMonth;
-  final List<Diary> sortedEntries;
-  final ItemScrollController _scrollController;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: PopupMenuButton<String>(
-        icon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(currentMonth, style: TextStyle(fontSize: 18)),
-            const Icon(Icons.arrow_drop_down, color: Colors.black),
-          ],
-        ),
-        onSelected: (String month) {
-          int index = sortedEntries.indexWhere((entry) {
-            String entryMonth = DateFormat('MMMM').format(entry.date);
-            return entryMonth == month;
-          });
-
-          if (index != -1) {
-            _scrollController.scrollTo(
-              index: index,
-              duration: Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-            );
-          }
-        },
-        itemBuilder: (BuildContext context) {
-          Set<String> uniqueMonths = sortedEntries
-              .map((entry) => DateFormat('MMMM').format(entry.date))
-              .toSet();
-
-          return uniqueMonths.map((String month) {
-            return PopupMenuItem(value: month, child: Text(month));
-          }).toList();
-        },
       ),
     );
   }

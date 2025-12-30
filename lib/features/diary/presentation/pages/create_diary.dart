@@ -1,10 +1,12 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
+import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 
 class CreateDiary extends StatefulWidget {
-  const CreateDiary({super.key});
+  final DiaryRepository repo;
+
+  const CreateDiary({super.key, required this.repo});
 
   @override
   State<CreateDiary> createState() => _CreateDiaryState();
@@ -15,7 +17,7 @@ class _CreateDiaryState extends State<CreateDiary> {
   final TextEditingController contentController = TextEditingController();
   final ImagePicker picker = ImagePicker();
   DateTime selectedDate = DateTime.now();
-  File? selectedImage;
+  XFile? selectedImage;
 
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -35,9 +37,16 @@ class _CreateDiaryState extends State<CreateDiary> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        selectedImage = File(image.path);
+        selectedImage = image;
       });
     }
+  }
+
+  void createDiary() {
+    final diary = domain.Diary(date: selectedDate, content: contentController.text, imageUrl: selectedImage!.path);
+
+    widget.repo.insertDiary(diary);
+    Navigator.pop(context, true);
   }
 
   @override
@@ -58,7 +67,7 @@ class _CreateDiaryState extends State<CreateDiary> {
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextButton(onPressed: () {}, child: const Text('Save')),
+            child: TextButton(onPressed: createDiary, child: const Text('Save')),
           ),
         ],
       ),
@@ -75,7 +84,7 @@ class _CreateDiaryState extends State<CreateDiary> {
               child: Text(selectedDate.toString().split(' ')[0]),
             ),
             const SizedBox(height: 10),
-            if (selectedImage != null) Image.file(selectedImage!, height: 200),
+            if (selectedImage != null) Image.network(selectedImage!.path, height: 200),
             ElevatedButton.icon(
               onPressed: pickImage,
               icon: Icon(Icons.image),
