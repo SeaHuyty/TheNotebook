@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/onboarding/presentation/pages/notebook_page.dart';
 import '../../features/diary/presentation/pages/diary.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -21,14 +22,14 @@ class AppDrawer extends StatelessWidget {
             child: const Text('Hello Tengyi', style: TextStyle(fontSize: 22)),
           ),
           ListTile(
-            title: const Text('Diary'),
-            selected: currentPage == 'diary',
+            title: const Text('Notebook'),
+            selected: currentPage == 'notebook',
             onTap: () {
-              if (currentPage != 'diary') {
+              if (currentPage != 'notebook') {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DiaryPage(repo: repo!),
+                    builder: (context) => NotebookPage(repo: repo!),
                   ),
                 );
               } else {

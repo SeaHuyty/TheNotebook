@@ -4,6 +4,7 @@ import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/features/onboarding/data/notebook_data.dart';
 import 'package:the_notebook/features/onboarding/model/notebook.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/notebook_form.dart';
+import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
 class NotebookPage extends StatefulWidget {
   const NotebookPage({super.key, required this.repo});
@@ -15,12 +16,12 @@ class NotebookPage extends StatefulWidget {
 }
 
 class _NotebookPageState extends State<NotebookPage> {
-  void onAddNotebook() async{
+  void onAddNotebook() async {
     final newNotebook = await showModalBottomSheet<Notebook>(
       context: context,
-      builder:(context) => const NotebookForm(),
+      builder: (context) => const NotebookForm(),
     );
-    if(newNotebook != null) {
+    if (newNotebook != null) {
       setState(() {
         notebookList.add(newNotebook);
       });
@@ -28,7 +29,8 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   void openDiary() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => DiaryPage(repo: widget.repo)));
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => DiaryPage(repo: widget.repo)));
   }
 
   @override
@@ -46,7 +48,6 @@ class _NotebookPageState extends State<NotebookPage> {
                 notebook: notebook,
                 openDiary: () => openDiary(),
               ),
-
               SizedBox(height: 15)
             ],
           );
@@ -62,23 +63,30 @@ class _NotebookPageState extends State<NotebookPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 122, 171, 255),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        surfaceTintColor: Colors.transparent,
+        leading: Builder(builder: (context) {
+          return IconButton(
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            icon: const Icon(Icons.menu_rounded),
+          );
+        }),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text("The Notebook", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-
+            Text("The Notebook"),
             IconButton(
               onPressed: onAddNotebook,
-              icon: Icon(Icons.add, color: Colors.white, size: 26),
+              icon: Icon(Icons.add, size: 26),
             ),
           ],
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: content
-      ),
+      drawer: AppDrawer(currentPage: 'notebook'),
+      body: Padding(padding: EdgeInsets.all(20), child: content),
     );
   }
 }
@@ -87,18 +95,19 @@ class NotebookTile extends StatelessWidget {
   final Notebook notebook;
   final VoidCallback openDiary;
 
-  const NotebookTile({super.key, required this.notebook, required this.openDiary});
+  const NotebookTile(
+      {super.key, required this.notebook, required this.openDiary});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(5),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade400, width: 1.0)
-      ),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.grey.shade400, width: 1.0)),
       child: ListTile(
-        title: Text(notebook.title, style: TextStyle(fontWeight: FontWeight.bold)),
+        title:
+            Text(notebook.title, style: TextStyle(fontWeight: FontWeight.bold)),
         trailing: Icon(notebook.icon, size: 20),
         onTap: openDiary,
       ),
