@@ -40,9 +40,15 @@ class _NotebookPageState extends State<NotebookPage> {
         itemCount: notebookList.length,
         itemBuilder: (context, index) {
           final notebook = notebookList[index];
-          return NotebookTile(
-            notebook: notebook,
-            openDiary: () => openDiary(),
+          return Column(
+            children: [
+              NotebookTile(
+                notebook: notebook,
+                openDiary: () => openDiary(),
+              ),
+
+              SizedBox(height: 15)
+            ],
           );
         },
       );
@@ -85,10 +91,17 @@ class NotebookTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(notebook.title),
-      trailing: Icon(Icons.travel_explore),
-      onTap: openDiary,
+    return Container(
+      padding: EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey.shade400, width: 1.0)
+      ),
+      child: ListTile(
+        title: Text(notebook.title, style: TextStyle(fontWeight: FontWeight.bold)),
+        trailing: Icon(notebook.icon, size: 20),
+        onTap: openDiary,
+      ),
     );
   }
 }

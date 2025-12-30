@@ -17,7 +17,7 @@ class _NotebookFormState extends State<NotebookForm> {
     contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+      borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
@@ -64,7 +64,7 @@ class _NotebookFormState extends State<NotebookForm> {
       body: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
-          spacing: 15,
+          spacing: 20,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -75,6 +75,7 @@ class _NotebookFormState extends State<NotebookForm> {
             ),
             Form(
               key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: TextFormField(
                 controller: titleController,
                 maxLength: 20,
@@ -84,11 +85,6 @@ class _NotebookFormState extends State<NotebookForm> {
             ),
             DropdownButtonFormField<NotebookType>(
               initialValue: selectedCategory,
-              onChanged: (NotebookType? newValue) {
-                setState(() {
-                  selectedCategory = newValue!;
-                });
-              },
               items: NotebookType.values.map((category) {
                 return DropdownMenuItem<NotebookType>(
                   value: category,
@@ -98,6 +94,13 @@ class _NotebookFormState extends State<NotebookForm> {
                   ),
                 );
               }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    selectedCategory = value;
+                  });
+                }
+              },
             ),
             Row(
               spacing: 10,
