@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/onboarding/presentation/pages/notebook_page.dart';
+import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
+import 'package:the_notebook/features/notebook/presentation/notebook_page.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_page.dart';
 
 const asset1 = "assets/images/open-book.svg";
@@ -8,9 +9,11 @@ const asset2 = "assets/images/education-note.svg";
 const asset3 = "assets/images/notepad-checklist.svg";
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key, required this.repo});
+  const OnboardingScreen(
+      {super.key, required this.diaryRepo, required this.notebookRepo});
 
-  final DiaryRepository repo;
+  final DiaryRepository diaryRepo;
+  final NotebookRepository notebookRepo;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -32,18 +35,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           context,
           MaterialPageRoute(
               builder: (context) => NotebookPage(
-                  repo: widget.repo)) //DiaryPage(repo: widget.repo)),
-          );
+                  notebookRepo: widget.notebookRepo,
+                  diaryRepo: widget.diaryRepo)));
     }
   }
 
   void onSkipped() {
     Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) => NotebookPage(
-                repo: widget.repo))
-        );
+          context,
+          MaterialPageRoute(
+              builder: (context) => NotebookPage(
+                  notebookRepo: widget.notebookRepo,
+                  diaryRepo: widget.diaryRepo)));
   }
 
   @override
