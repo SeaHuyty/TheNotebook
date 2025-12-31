@@ -4,6 +4,7 @@ import 'package:the_notebook/features/diary/data/repositories/diary_repository.d
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/create_diary.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/month_filter.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -94,7 +95,7 @@ class _DiaryPageState extends State<DiaryPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => CreateDiary(
+          builder: (context) => CreateDiaryPage(
                 repo: widget.repo,
               )),
     );
@@ -183,20 +184,29 @@ class _DiaryPageState extends State<DiaryPage> {
                         child: DiaryTimelineWidget(
                           dayNumber: entry.date.day,
                           showLineBelow: !isLastEntry,
-                          child: Card(
-                            color: Colors.transparent,
-                            elevation: 0,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                              ),
-                              child: DiaryEntryContent(
-                                date: DateFormat(
-                                  'MMM, dd, yyyy',
-                                ).format(entry.date),
-                                content: entry.content,
-                                imageUrl: entry.imageUrl,
-                                tasks: entry.tasks,
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          DiaryDetailPage(diary: entry)));
+                            },
+                            child: Card(
+                              color: Colors.transparent,
+                              elevation: 0,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                child: DiaryEntryContent(
+                                  date: DateFormat(
+                                    'MMM, dd, yyyy',
+                                  ).format(entry.date),
+                                  content: entry.content,
+                                  imageUrl: entry.imageUrl,
+                                  tasks: entry.tasks,
+                                ),
                               ),
                             ),
                           ),
