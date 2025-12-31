@@ -41,7 +41,12 @@ class _NotebookPageState extends State<NotebookPage> {
     if (newNotebook != null) {
       final newId = await widget.notebookRepo.insertNotebook(newNotebook);
       setState(() {
-        notebookList.insert(notebookList.length, Notebook(id: newId, title: newNotebook.title, category: newNotebook.category));
+        notebookList.insert(
+            notebookList.length,
+            Notebook(
+                id: newId,
+                title: newNotebook.title,
+                category: newNotebook.category));
       });
     }
   }
@@ -63,29 +68,34 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   void onDelete(Notebook notebook) async {
-    final index = notebookList.indexOf(notebook);
-    if (index == -1) return;
+    try {
+      final index = notebookList.indexOf(notebook);
+      if (index == -1) return;
 
-    final removedNotebook = notebookList[index];
+      final removedNotebook = notebookList[index];
 
-    setState(() {
-      notebookList.removeAt(index);
-    });
+      setState(() {
+        notebookList.removeAt(index);
+      });
 
-    await widget.notebookRepo.deleteNotebook(notebook.id!);
-    loadNotebooks();
+      await widget.notebookRepo.deleteNotebook(notebook.id!);
 
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Notebook Deleted"),
-      action: SnackBarAction(
-          label: "UNDO",
-          onPressed: () {
-            setState(() {
-              notebookList.insert(index, removedNotebook);
-            });
-          }),
-    ));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Notebook Deleted"),
+        action: SnackBarAction(
+            label: "UNDO",
+            onPressed: () async {
+              await widget.notebookRepo.insertNotebook(removedNotebook);
+              setState(() {
+                notebookList.insert(index, removedNotebook);
+              });
+            }),
+      ));
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete notebook")),
+      );
+    }
   }
 
   void openDiary() {
@@ -171,7 +181,7 @@ class NotebookTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: ValueKey(notebook),
+      key: ValueKey(notebook.id),
       direction: DismissDirection.horizontal,
       background: Container(
         alignment: Alignment.centerLeft,
