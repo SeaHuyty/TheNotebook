@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 enum NotebookType { life, work, travel, leisure }
 
 class Notebook {
+  final int? id;
   final String title;
   final NotebookType category;
 
   Notebook({
+    this.id,
     required this.title,
     required this.category
   });

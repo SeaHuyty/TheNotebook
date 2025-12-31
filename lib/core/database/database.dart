@@ -3,6 +3,12 @@ import './connection/database_connection.dart';
 
 part 'database.g.dart';
 
+class Notebooks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  IntColumn get category => integer()();
+}
+
 class Diaries extends Table {
   IntColumn get id => integer().autoIncrement()();
   DateTimeColumn get date => dateTime()();
@@ -18,7 +24,7 @@ class Tasks extends Table {
   IntColumn get parentTaskId => integer().nullable().references(Tasks, #id)();
 }
 
-@DriftDatabase(tables: [Diaries, Tasks])
+@DriftDatabase(tables: [Notebooks, Diaries, Tasks])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(openConnection());
   

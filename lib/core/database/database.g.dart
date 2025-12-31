@@ -3,6 +3,221 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class $NotebooksTable extends Notebooks
+    with TableInfo<$NotebooksTable, Notebook> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotebooksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<int> category = GeneratedColumn<int>(
+      'category', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, title, category];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notebooks';
+  @override
+  VerificationContext validateIntegrity(Insertable<Notebook> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Notebook map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Notebook(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}category'])!,
+    );
+  }
+
+  @override
+  $NotebooksTable createAlias(String alias) {
+    return $NotebooksTable(attachedDatabase, alias);
+  }
+}
+
+class Notebook extends DataClass implements Insertable<Notebook> {
+  final int id;
+  final String title;
+  final int category;
+  const Notebook(
+      {required this.id, required this.title, required this.category});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    map['category'] = Variable<int>(category);
+    return map;
+  }
+
+  NotebooksCompanion toCompanion(bool nullToAbsent) {
+    return NotebooksCompanion(
+      id: Value(id),
+      title: Value(title),
+      category: Value(category),
+    );
+  }
+
+  factory Notebook.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Notebook(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      category: serializer.fromJson<int>(json['category']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+      'category': serializer.toJson<int>(category),
+    };
+  }
+
+  Notebook copyWith({int? id, String? title, int? category}) => Notebook(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        category: category ?? this.category,
+      );
+  Notebook copyWithCompanion(NotebooksCompanion data) {
+    return Notebook(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      category: data.category.present ? data.category.value : this.category,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Notebook(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('category: $category')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, title, category);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Notebook &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.category == this.category);
+}
+
+class NotebooksCompanion extends UpdateCompanion<Notebook> {
+  final Value<int> id;
+  final Value<String> title;
+  final Value<int> category;
+  const NotebooksCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.category = const Value.absent(),
+  });
+  NotebooksCompanion.insert({
+    this.id = const Value.absent(),
+    required String title,
+    required int category,
+  })  : title = Value(title),
+        category = Value(category);
+  static Insertable<Notebook> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+    Expression<int>? category,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (category != null) 'category': category,
+    });
+  }
+
+  NotebooksCompanion copyWith(
+      {Value<int>? id, Value<String>? title, Value<int>? category}) {
+    return NotebooksCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      category: category ?? this.category,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<int>(category.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotebooksCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('category: $category')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -11,47 +226,29 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
   late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
-    'date',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _contentMeta = const VerificationMeta(
-    'content',
-  );
+      'date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _contentMeta =
+      const VerificationMeta('content');
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'content',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _imageUrlMeta = const VerificationMeta(
-    'imageUrl',
-  );
+      'content', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _imageUrlMeta =
+      const VerificationMeta('imageUrl');
   @override
   late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
-    'image_url',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'image_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [id, date, content, imageUrl];
   @override
@@ -60,10 +257,8 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
   String get actualTableName => $name;
   static const String $name = 'diaries';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<Diary> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<Diary> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -71,25 +266,19 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
     }
     if (data.containsKey('date')) {
       context.handle(
-        _dateMeta,
-        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
-      );
+          _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
     } else if (isInserting) {
       context.missing(_dateMeta);
     }
     if (data.containsKey('content')) {
-      context.handle(
-        _contentMeta,
-        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
-      );
+      context.handle(_contentMeta,
+          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
     if (data.containsKey('image_url')) {
-      context.handle(
-        _imageUrlMeta,
-        imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
-      );
+      context.handle(_imageUrlMeta,
+          imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta));
     }
     return context;
   }
@@ -100,22 +289,14 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
   Diary map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Diary(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      date: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}date'],
-      )!,
-      content: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}content'],
-      )!,
-      imageUrl: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}image_url'],
-      ),
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      date: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      imageUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
     );
   }
 
@@ -130,12 +311,11 @@ class Diary extends DataClass implements Insertable<Diary> {
   final DateTime date;
   final String content;
   final String? imageUrl;
-  const Diary({
-    required this.id,
-    required this.date,
-    required this.content,
-    this.imageUrl,
-  });
+  const Diary(
+      {required this.id,
+      required this.date,
+      required this.content,
+      this.imageUrl});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -159,10 +339,8 @@ class Diary extends DataClass implements Insertable<Diary> {
     );
   }
 
-  factory Diary.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory Diary.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Diary(
       id: serializer.fromJson<int>(json['id']),
@@ -182,17 +360,17 @@ class Diary extends DataClass implements Insertable<Diary> {
     };
   }
 
-  Diary copyWith({
-    int? id,
-    DateTime? date,
-    String? content,
-    Value<String?> imageUrl = const Value.absent(),
-  }) => Diary(
-    id: id ?? this.id,
-    date: date ?? this.date,
-    content: content ?? this.content,
-    imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
-  );
+  Diary copyWith(
+          {int? id,
+          DateTime? date,
+          String? content,
+          Value<String?> imageUrl = const Value.absent()}) =>
+      Diary(
+        id: id ?? this.id,
+        date: date ?? this.date,
+        content: content ?? this.content,
+        imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+      );
   Diary copyWithCompanion(DiariesCompanion data) {
     return Diary(
       id: data.id.present ? data.id.value : this.id,
@@ -241,8 +419,8 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     required DateTime date,
     required String content,
     this.imageUrl = const Value.absent(),
-  }) : date = Value(date),
-       content = Value(content);
+  })  : date = Value(date),
+        content = Value(content);
   static Insertable<Diary> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
@@ -257,12 +435,11 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     });
   }
 
-  DiariesCompanion copyWith({
-    Value<int>? id,
-    Value<DateTime>? date,
-    Value<String>? content,
-    Value<String?>? imageUrl,
-  }) {
+  DiariesCompanion copyWith(
+      {Value<int>? id,
+      Value<DateTime>? date,
+      Value<String>? content,
+      Value<String?>? imageUrl}) {
     return DiariesCompanion(
       id: id ?? this.id,
       date: date ?? this.date,
@@ -309,84 +486,55 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _isDoneMeta = const VerificationMeta('isDone');
   @override
   late final GeneratedColumn<bool> isDone = GeneratedColumn<bool>(
-    'is_done',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_done" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _diaryIdMeta = const VerificationMeta(
-    'diaryId',
-  );
+      'is_done', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_done" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _diaryIdMeta =
+      const VerificationMeta('diaryId');
   @override
   late final GeneratedColumn<int> diaryId = GeneratedColumn<int>(
-    'diary_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES diaries (id)',
-    ),
-  );
-  static const VerificationMeta _parentTaskIdMeta = const VerificationMeta(
-    'parentTaskId',
-  );
+      'diary_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES diaries (id)'));
+  static const VerificationMeta _parentTaskIdMeta =
+      const VerificationMeta('parentTaskId');
   @override
   late final GeneratedColumn<int> parentTaskId = GeneratedColumn<int>(
-    'parent_task_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES tasks (id)',
-    ),
-  );
+      'parent_task_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES tasks (id)'));
   @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    title,
-    isDone,
-    diaryId,
-    parentTaskId,
-  ];
+  List<GeneratedColumn> get $columns =>
+      [id, title, isDone, diaryId, parentTaskId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'tasks';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<Task> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<Task> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -394,32 +542,23 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     }
     if (data.containsKey('title')) {
       context.handle(
-        _titleMeta,
-        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
-      );
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
     if (data.containsKey('is_done')) {
-      context.handle(
-        _isDoneMeta,
-        isDone.isAcceptableOrUnknown(data['is_done']!, _isDoneMeta),
-      );
+      context.handle(_isDoneMeta,
+          isDone.isAcceptableOrUnknown(data['is_done']!, _isDoneMeta));
     }
     if (data.containsKey('diary_id')) {
-      context.handle(
-        _diaryIdMeta,
-        diaryId.isAcceptableOrUnknown(data['diary_id']!, _diaryIdMeta),
-      );
+      context.handle(_diaryIdMeta,
+          diaryId.isAcceptableOrUnknown(data['diary_id']!, _diaryIdMeta));
     }
     if (data.containsKey('parent_task_id')) {
       context.handle(
-        _parentTaskIdMeta,
-        parentTaskId.isAcceptableOrUnknown(
-          data['parent_task_id']!,
           _parentTaskIdMeta,
-        ),
-      );
+          parentTaskId.isAcceptableOrUnknown(
+              data['parent_task_id']!, _parentTaskIdMeta));
     }
     return context;
   }
@@ -430,26 +569,16 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   Task map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Task(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      title: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}title'],
-      )!,
-      isDone: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_done'],
-      )!,
-      diaryId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}diary_id'],
-      ),
-      parentTaskId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}parent_task_id'],
-      ),
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      isDone: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_done'])!,
+      diaryId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}diary_id']),
+      parentTaskId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}parent_task_id']),
     );
   }
 
@@ -465,13 +594,12 @@ class Task extends DataClass implements Insertable<Task> {
   final bool isDone;
   final int? diaryId;
   final int? parentTaskId;
-  const Task({
-    required this.id,
-    required this.title,
-    required this.isDone,
-    this.diaryId,
-    this.parentTaskId,
-  });
+  const Task(
+      {required this.id,
+      required this.title,
+      required this.isDone,
+      this.diaryId,
+      this.parentTaskId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -501,10 +629,8 @@ class Task extends DataClass implements Insertable<Task> {
     );
   }
 
-  factory Task.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory Task.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Task(
       id: serializer.fromJson<int>(json['id']),
@@ -526,19 +652,20 @@ class Task extends DataClass implements Insertable<Task> {
     };
   }
 
-  Task copyWith({
-    int? id,
-    String? title,
-    bool? isDone,
-    Value<int?> diaryId = const Value.absent(),
-    Value<int?> parentTaskId = const Value.absent(),
-  }) => Task(
-    id: id ?? this.id,
-    title: title ?? this.title,
-    isDone: isDone ?? this.isDone,
-    diaryId: diaryId.present ? diaryId.value : this.diaryId,
-    parentTaskId: parentTaskId.present ? parentTaskId.value : this.parentTaskId,
-  );
+  Task copyWith(
+          {int? id,
+          String? title,
+          bool? isDone,
+          Value<int?> diaryId = const Value.absent(),
+          Value<int?> parentTaskId = const Value.absent()}) =>
+      Task(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        isDone: isDone ?? this.isDone,
+        diaryId: diaryId.present ? diaryId.value : this.diaryId,
+        parentTaskId:
+            parentTaskId.present ? parentTaskId.value : this.parentTaskId,
+      );
   Task copyWithCompanion(TasksCompanion data) {
     return Task(
       id: data.id.present ? data.id.value : this.id,
@@ -612,13 +739,12 @@ class TasksCompanion extends UpdateCompanion<Task> {
     });
   }
 
-  TasksCompanion copyWith({
-    Value<int>? id,
-    Value<String>? title,
-    Value<bool>? isDone,
-    Value<int?>? diaryId,
-    Value<int?>? parentTaskId,
-  }) {
+  TasksCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? title,
+      Value<bool>? isDone,
+      Value<int?>? diaryId,
+      Value<int?>? parentTaskId}) {
     return TasksCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
@@ -665,51 +791,175 @@ class TasksCompanion extends UpdateCompanion<Task> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $NotebooksTable notebooks = $NotebooksTable(this);
   late final $DiariesTable diaries = $DiariesTable(this);
   late final $TasksTable tasks = $TasksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [diaries, tasks];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [notebooks, diaries, tasks];
 }
 
-typedef $$DiariesTableCreateCompanionBuilder =
-    DiariesCompanion Function({
-      Value<int> id,
-      required DateTime date,
-      required String content,
-      Value<String?> imageUrl,
-    });
-typedef $$DiariesTableUpdateCompanionBuilder =
-    DiariesCompanion Function({
-      Value<int> id,
-      Value<DateTime> date,
-      Value<String> content,
-      Value<String?> imageUrl,
-    });
+typedef $$NotebooksTableCreateCompanionBuilder = NotebooksCompanion Function({
+  Value<int> id,
+  required String title,
+  required int category,
+});
+typedef $$NotebooksTableUpdateCompanionBuilder = NotebooksCompanion Function({
+  Value<int> id,
+  Value<String> title,
+  Value<int> category,
+});
+
+class $$NotebooksTableFilterComposer
+    extends Composer<_$AppDatabase, $NotebooksTable> {
+  $$NotebooksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
+}
+
+class $$NotebooksTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotebooksTable> {
+  $$NotebooksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+}
+
+class $$NotebooksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotebooksTable> {
+  $$NotebooksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<int> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+}
+
+class $$NotebooksTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $NotebooksTable,
+    Notebook,
+    $$NotebooksTableFilterComposer,
+    $$NotebooksTableOrderingComposer,
+    $$NotebooksTableAnnotationComposer,
+    $$NotebooksTableCreateCompanionBuilder,
+    $$NotebooksTableUpdateCompanionBuilder,
+    (Notebook, BaseReferences<_$AppDatabase, $NotebooksTable, Notebook>),
+    Notebook,
+    PrefetchHooks Function()> {
+  $$NotebooksTableTableManager(_$AppDatabase db, $NotebooksTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotebooksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotebooksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NotebooksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<int> category = const Value.absent(),
+          }) =>
+              NotebooksCompanion(
+            id: id,
+            title: title,
+            category: category,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String title,
+            required int category,
+          }) =>
+              NotebooksCompanion.insert(
+            id: id,
+            title: title,
+            category: category,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$NotebooksTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $NotebooksTable,
+    Notebook,
+    $$NotebooksTableFilterComposer,
+    $$NotebooksTableOrderingComposer,
+    $$NotebooksTableAnnotationComposer,
+    $$NotebooksTableCreateCompanionBuilder,
+    $$NotebooksTableUpdateCompanionBuilder,
+    (Notebook, BaseReferences<_$AppDatabase, $NotebooksTable, Notebook>),
+    Notebook,
+    PrefetchHooks Function()>;
+typedef $$DiariesTableCreateCompanionBuilder = DiariesCompanion Function({
+  Value<int> id,
+  required DateTime date,
+  required String content,
+  Value<String?> imageUrl,
+});
+typedef $$DiariesTableUpdateCompanionBuilder = DiariesCompanion Function({
+  Value<int> id,
+  Value<DateTime> date,
+  Value<String> content,
+  Value<String?> imageUrl,
+});
 
 final class $$DiariesTableReferences
     extends BaseReferences<_$AppDatabase, $DiariesTable, Diary> {
   $$DiariesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static MultiTypedResultKey<$TasksTable, List<Task>> _tasksRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.tasks,
-    aliasName: $_aliasNameGenerator(db.diaries.id, db.tasks.diaryId),
-  );
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.tasks,
+          aliasName: $_aliasNameGenerator(db.diaries.id, db.tasks.diaryId));
 
   $$TasksTableProcessedTableManager get tasksRefs {
-    final manager = $$TasksTableTableManager(
-      $_db,
-      $_db.tasks,
-    ).filter((f) => f.diaryId.id.sqlEquals($_itemColumn<int>('id')!));
+    final manager = $$TasksTableTableManager($_db, $_db.tasks)
+        .filter((f) => f.diaryId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_tasksRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -723,47 +973,35 @@ class $$DiariesTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.date, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.content, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get imageUrl => $composableBuilder(
-    column: $table.imageUrl,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.imageUrl, builder: (column) => ColumnFilters(column));
 
   Expression<bool> tasksRefs(
-    Expression<bool> Function($$TasksTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$TasksTableFilterComposer f) f) {
     final $$TasksTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.tasks,
-      getReferencedColumn: (t) => t.diaryId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TasksTableFilterComposer(
-            $db: $db,
-            $table: $db.tasks,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.diaryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableFilterComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -778,24 +1016,16 @@ class $$DiariesTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.date, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.content, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get imageUrl => $composableBuilder(
-    column: $table.imageUrl,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.imageUrl, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DiariesTableAnnotationComposer
@@ -820,49 +1050,41 @@ class $$DiariesTableAnnotationComposer
       $composableBuilder(column: $table.imageUrl, builder: (column) => column);
 
   Expression<T> tasksRefs<T extends Object>(
-    Expression<T> Function($$TasksTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$TasksTableAnnotationComposer a) f) {
     final $$TasksTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.tasks,
-      getReferencedColumn: (t) => t.diaryId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TasksTableAnnotationComposer(
-            $db: $db,
-            $table: $db.tasks,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.diaryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
 
-class $$DiariesTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $DiariesTable,
-          Diary,
-          $$DiariesTableFilterComposer,
-          $$DiariesTableOrderingComposer,
-          $$DiariesTableAnnotationComposer,
-          $$DiariesTableCreateCompanionBuilder,
-          $$DiariesTableUpdateCompanionBuilder,
-          (Diary, $$DiariesTableReferences),
-          Diary,
-          PrefetchHooks Function({bool tasksRefs})
-        > {
+class $$DiariesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DiariesTable,
+    Diary,
+    $$DiariesTableFilterComposer,
+    $$DiariesTableOrderingComposer,
+    $$DiariesTableAnnotationComposer,
+    $$DiariesTableCreateCompanionBuilder,
+    $$DiariesTableUpdateCompanionBuilder,
+    (Diary, $$DiariesTableReferences),
+    Diary,
+    PrefetchHooks Function({bool tasksRefs})> {
   $$DiariesTableTableManager(_$AppDatabase db, $DiariesTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -871,37 +1093,33 @@ class $$DiariesTableTableManager
               $$DiariesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$DiariesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<DateTime> date = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<String?> imageUrl = const Value.absent(),
-              }) => DiariesCompanion(
-                id: id,
-                date: date,
-                content: content,
-                imageUrl: imageUrl,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required DateTime date,
-                required String content,
-                Value<String?> imageUrl = const Value.absent(),
-              }) => DiariesCompanion.insert(
-                id: id,
-                date: date,
-                content: content,
-                imageUrl: imageUrl,
-              ),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime> date = const Value.absent(),
+            Value<String> content = const Value.absent(),
+            Value<String?> imageUrl = const Value.absent(),
+          }) =>
+              DiariesCompanion(
+            id: id,
+            date: date,
+            content: content,
+            imageUrl: imageUrl,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required DateTime date,
+            required String content,
+            Value<String?> imageUrl = const Value.absent(),
+          }) =>
+              DiariesCompanion.insert(
+            id: id,
+            date: date,
+            content: content,
+            imageUrl: imageUrl,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$DiariesTableReferences(db, table, e),
-                ),
-              )
+              .map((e) =>
+                  (e.readTable(table), $$DiariesTableReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: ({tasksRefs = false}) {
             return PrefetchHooks(
@@ -912,54 +1130,48 @@ class $$DiariesTableTableManager
                 return [
                   if (tasksRefs)
                     await $_getPrefetchedData<Diary, $DiariesTable, Task>(
-                      currentTable: table,
-                      referencedTable: $$DiariesTableReferences._tasksRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$DiariesTableReferences(db, table, p0).tasksRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.diaryId == item.id),
-                      typedResults: items,
-                    ),
+                        currentTable: table,
+                        referencedTable:
+                            $$DiariesTableReferences._tasksRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$DiariesTableReferences(db, table, p0).tasksRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.diaryId == item.id),
+                        typedResults: items)
                 ];
               },
             );
           },
-        ),
-      );
+        ));
 }
 
-typedef $$DiariesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $DiariesTable,
-      Diary,
-      $$DiariesTableFilterComposer,
-      $$DiariesTableOrderingComposer,
-      $$DiariesTableAnnotationComposer,
-      $$DiariesTableCreateCompanionBuilder,
-      $$DiariesTableUpdateCompanionBuilder,
-      (Diary, $$DiariesTableReferences),
-      Diary,
-      PrefetchHooks Function({bool tasksRefs})
-    >;
-typedef $$TasksTableCreateCompanionBuilder =
-    TasksCompanion Function({
-      Value<int> id,
-      required String title,
-      Value<bool> isDone,
-      Value<int?> diaryId,
-      Value<int?> parentTaskId,
-    });
-typedef $$TasksTableUpdateCompanionBuilder =
-    TasksCompanion Function({
-      Value<int> id,
-      Value<String> title,
-      Value<bool> isDone,
-      Value<int?> diaryId,
-      Value<int?> parentTaskId,
-    });
+typedef $$DiariesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DiariesTable,
+    Diary,
+    $$DiariesTableFilterComposer,
+    $$DiariesTableOrderingComposer,
+    $$DiariesTableAnnotationComposer,
+    $$DiariesTableCreateCompanionBuilder,
+    $$DiariesTableUpdateCompanionBuilder,
+    (Diary, $$DiariesTableReferences),
+    Diary,
+    PrefetchHooks Function({bool tasksRefs})>;
+typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
+  Value<int> id,
+  required String title,
+  Value<bool> isDone,
+  Value<int?> diaryId,
+  Value<int?> parentTaskId,
+});
+typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
+  Value<int> id,
+  Value<String> title,
+  Value<bool> isDone,
+  Value<int?> diaryId,
+  Value<int?> parentTaskId,
+});
 
 final class $$TasksTableReferences
     extends BaseReferences<_$AppDatabase, $TasksTable, Task> {
@@ -971,15 +1183,12 @@ final class $$TasksTableReferences
   $$DiariesTableProcessedTableManager? get diaryId {
     final $_column = $_itemColumn<int>('diary_id');
     if ($_column == null) return null;
-    final manager = $$DiariesTableTableManager(
-      $_db,
-      $_db.diaries,
-    ).filter((f) => f.id.sqlEquals($_column));
+    final manager = $$DiariesTableTableManager($_db, $_db.diaries)
+        .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_diaryIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static $TasksTable _parentTaskIdTable(_$AppDatabase db) => db.tasks
@@ -988,15 +1197,12 @@ final class $$TasksTableReferences
   $$TasksTableProcessedTableManager? get parentTaskId {
     final $_column = $_itemColumn<int>('parent_task_id');
     if ($_column == null) return null;
-    final manager = $$TasksTableTableManager(
-      $_db,
-      $_db.tasks,
-    ).filter((f) => f.id.sqlEquals($_column));
+    final manager = $$TasksTableTableManager($_db, $_db.tasks)
+        .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_parentTaskIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 }
 
@@ -1009,63 +1215,51 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.title, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isDone => $composableBuilder(
-    column: $table.isDone,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isDone, builder: (column) => ColumnFilters(column));
 
   $$DiariesTableFilterComposer get diaryId {
     final $$DiariesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.diaryId,
-      referencedTable: $db.diaries,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DiariesTableFilterComposer(
-            $db: $db,
-            $table: $db.diaries,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableFilterComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$TasksTableFilterComposer get parentTaskId {
     final $$TasksTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.parentTaskId,
-      referencedTable: $db.tasks,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TasksTableFilterComposer(
-            $db: $db,
-            $table: $db.tasks,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.parentTaskId,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableFilterComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -1080,63 +1274,51 @@ class $$TasksTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.title, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isDone => $composableBuilder(
-    column: $table.isDone,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isDone, builder: (column) => ColumnOrderings(column));
 
   $$DiariesTableOrderingComposer get diaryId {
     final $$DiariesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.diaryId,
-      referencedTable: $db.diaries,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DiariesTableOrderingComposer(
-            $db: $db,
-            $table: $db.diaries,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableOrderingComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$TasksTableOrderingComposer get parentTaskId {
     final $$TasksTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.parentTaskId,
-      referencedTable: $db.tasks,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TasksTableOrderingComposer(
-            $db: $db,
-            $table: $db.tasks,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.parentTaskId,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableOrderingComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -1161,69 +1343,59 @@ class $$TasksTableAnnotationComposer
 
   $$DiariesTableAnnotationComposer get diaryId {
     final $$DiariesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.diaryId,
-      referencedTable: $db.diaries,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DiariesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.diaries,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$TasksTableAnnotationComposer get parentTaskId {
     final $$TasksTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.parentTaskId,
-      referencedTable: $db.tasks,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TasksTableAnnotationComposer(
-            $db: $db,
-            $table: $db.tasks,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.parentTaskId,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
 
-class $$TasksTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $TasksTable,
-          Task,
-          $$TasksTableFilterComposer,
-          $$TasksTableOrderingComposer,
-          $$TasksTableAnnotationComposer,
-          $$TasksTableCreateCompanionBuilder,
-          $$TasksTableUpdateCompanionBuilder,
-          (Task, $$TasksTableReferences),
-          Task,
-          PrefetchHooks Function({bool diaryId, bool parentTaskId})
-        > {
+class $$TasksTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TasksTable,
+    Task,
+    $$TasksTableFilterComposer,
+    $$TasksTableOrderingComposer,
+    $$TasksTableAnnotationComposer,
+    $$TasksTableCreateCompanionBuilder,
+    $$TasksTableUpdateCompanionBuilder,
+    (Task, $$TasksTableReferences),
+    Task,
+    PrefetchHooks Function({bool diaryId, bool parentTaskId})> {
   $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -1232,47 +1404,44 @@ class $$TasksTableTableManager
               $$TasksTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$TasksTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> title = const Value.absent(),
-                Value<bool> isDone = const Value.absent(),
-                Value<int?> diaryId = const Value.absent(),
-                Value<int?> parentTaskId = const Value.absent(),
-              }) => TasksCompanion(
-                id: id,
-                title: title,
-                isDone: isDone,
-                diaryId: diaryId,
-                parentTaskId: parentTaskId,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String title,
-                Value<bool> isDone = const Value.absent(),
-                Value<int?> diaryId = const Value.absent(),
-                Value<int?> parentTaskId = const Value.absent(),
-              }) => TasksCompanion.insert(
-                id: id,
-                title: title,
-                isDone: isDone,
-                diaryId: diaryId,
-                parentTaskId: parentTaskId,
-              ),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<bool> isDone = const Value.absent(),
+            Value<int?> diaryId = const Value.absent(),
+            Value<int?> parentTaskId = const Value.absent(),
+          }) =>
+              TasksCompanion(
+            id: id,
+            title: title,
+            isDone: isDone,
+            diaryId: diaryId,
+            parentTaskId: parentTaskId,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String title,
+            Value<bool> isDone = const Value.absent(),
+            Value<int?> diaryId = const Value.absent(),
+            Value<int?> parentTaskId = const Value.absent(),
+          }) =>
+              TasksCompanion.insert(
+            id: id,
+            title: title,
+            isDone: isDone,
+            diaryId: diaryId,
+            parentTaskId: parentTaskId,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) =>
-                    (e.readTable(table), $$TasksTableReferences(db, table, e)),
-              )
+              .map((e) =>
+                  (e.readTable(table), $$TasksTableReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: ({diaryId = false, parentTaskId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
+              addJoins: <
+                  T extends TableManagerState<
                       dynamic,
                       dynamic,
                       dynamic,
@@ -1283,65 +1452,55 @@ class $$TasksTableTableManager
                       dynamic,
                       dynamic,
                       dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (diaryId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.diaryId,
-                                referencedTable: $$TasksTableReferences
-                                    ._diaryIdTable(db),
-                                referencedColumn: $$TasksTableReferences
-                                    ._diaryIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-                    if (parentTaskId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.parentTaskId,
-                                referencedTable: $$TasksTableReferences
-                                    ._parentTaskIdTable(db),
-                                referencedColumn: $$TasksTableReferences
-                                    ._parentTaskIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+                      dynamic>>(state) {
+                if (diaryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.diaryId,
+                    referencedTable: $$TasksTableReferences._diaryIdTable(db),
+                    referencedColumn:
+                        $$TasksTableReferences._diaryIdTable(db).id,
+                  ) as T;
+                }
+                if (parentTaskId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.parentTaskId,
+                    referencedTable:
+                        $$TasksTableReferences._parentTaskIdTable(db),
+                    referencedColumn:
+                        $$TasksTableReferences._parentTaskIdTable(db).id,
+                  ) as T;
+                }
 
-                    return state;
-                  },
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
             );
           },
-        ),
-      );
+        ));
 }
 
-typedef $$TasksTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $TasksTable,
-      Task,
-      $$TasksTableFilterComposer,
-      $$TasksTableOrderingComposer,
-      $$TasksTableAnnotationComposer,
-      $$TasksTableCreateCompanionBuilder,
-      $$TasksTableUpdateCompanionBuilder,
-      (Task, $$TasksTableReferences),
-      Task,
-      PrefetchHooks Function({bool diaryId, bool parentTaskId})
-    >;
+typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TasksTable,
+    Task,
+    $$TasksTableFilterComposer,
+    $$TasksTableOrderingComposer,
+    $$TasksTableAnnotationComposer,
+    $$TasksTableCreateCompanionBuilder,
+    $$TasksTableUpdateCompanionBuilder,
+    (Task, $$TasksTableReferences),
+    Task,
+    PrefetchHooks Function({bool diaryId, bool parentTaskId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$NotebooksTableTableManager get notebooks =>
+      $$NotebooksTableTableManager(_db, _db.notebooks);
   $$DiariesTableTableManager get diaries =>
       $$DiariesTableTableManager(_db, _db.diaries);
   $$TasksTableTableManager get tasks =>

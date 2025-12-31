@@ -68,7 +68,7 @@ class OnboardingPage extends StatelessWidget {
                   child: Text(
                     "Skip",
                     style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: Colors.grey.shade600),
                   ))

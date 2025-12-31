@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/onboarding/model/notebook.dart';
+import 'package:the_notebook/features/notebook/model/notebook.dart';
 
 class NotebookTile extends StatelessWidget {
   final Notebook notebook;
