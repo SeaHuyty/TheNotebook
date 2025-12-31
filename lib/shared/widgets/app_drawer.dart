@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/notebook_page.dart';
-import '../../features/diary/presentation/pages/diary.dart';
 
 class AppDrawer extends StatelessWidget {
   final DiaryRepository? repo;

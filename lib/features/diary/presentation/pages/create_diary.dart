@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/build_image.dart';
+import 'package:universal_io/universal_io.dart';
 
-class CreateDiary extends StatefulWidget {
+class CreateDiaryPage extends StatefulWidget {
   final DiaryRepository repo;
 
-  const CreateDiary({super.key, required this.repo});
+  const CreateDiaryPage({super.key, required this.repo});
 
   @override
-  State<CreateDiary> createState() => _CreateDiaryState();
+  State<CreateDiaryPage> createState() => _CreateDiaryPageState();
 }
 
-class _CreateDiaryState extends State<CreateDiary> {
+class _CreateDiaryPageState extends State<CreateDiaryPage> {
   // Inputs
-  final TextEditingController contentController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
   final ImagePicker picker = ImagePicker();
   DateTime selectedDate = DateTime.now();
   XFile? selectedImage;
@@ -42,17 +47,54 @@ class _CreateDiaryState extends State<CreateDiary> {
     }
   }
 
-  void createDiary() {
-    final diary = domain.Diary(date: selectedDate, content: contentController.text, imageUrl: selectedImage!.path);
+  Future<String?> saveImagePermanently(XFile image) async {
+    try {
+      final Directory appDocDir = await getApplicationDocumentsDirectory();
+      final Directory imageDir = Directory('${appDocDir.path}/diary_images');
+      if (!await imageDir.exists()) {
+        await imageDir.create(recursive: true);
+      }
 
-    widget.repo.insertDiary(diary);
-    Navigator.pop(context, true);
+      final String fileName =
+          '${DateTime.now().microsecondsSinceEpoch}${path.extension(image.path)}';
+      final String newPath = '${imageDir.path}/$fileName';
+
+      final File sourceFile = File(image.path);
+      await sourceFile.copy(newPath);
+
+      return newPath;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> createDiary() async {
+    String? imagePath;
+
+    if (selectedImage != null) {
+      imagePath = await saveImagePermanently(selectedImage!);
+
+      // For web testing
+      imagePath ??= selectedImage!.path;
+    }
+
+    final diary = domain.Diary(
+        date: selectedDate,
+        content: descriptionController.text,
+        imageUrl: imagePath);
+
+    await widget.repo.insertDiary(diary);
+    if (mounted) {
+      Navigator.pop(context, true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        surfaceTintColor: Colors.transparent,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Builder(
@@ -67,28 +109,94 @@ class _CreateDiaryState extends State<CreateDiary> {
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextButton(onPressed: createDiary, child: const Text('Save')),
+            child:
+                TextButton(onPressed: createDiary, child: const Text('Save')),
           ),
         ],
       ),
       body: Padding(
-        padding: EdgeInsetsGeometry.all(8),
+        padding: const EdgeInsetsGeometry.symmetric(horizontal: 15),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextFormField(
-              controller: contentController,
-              decoration: InputDecoration(hintText: 'Content'),
+            Text(
+              'Date',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(
+              height: 8,
             ),
             TextButton(
               onPressed: () => selectDate(context),
-              child: Text(selectedDate.toString().split(' ')[0]),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+              ),
+              child: Row(
+                spacing: 10,
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 20,
+                  ),
+                  Text(
+                    selectedDate.toString().split(' ')[0],
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            TextFormField(
+              controller: titleController,
+              style: const TextStyle(fontSize: 24),
+              decoration: InputDecoration(
+                  hintText: 'Title',
+                  border: InputBorder.none),
+            ),
+            const SizedBox(
+              height: 4,
+            ),
+            SizedBox(
+              height: 180,
+              child: TextFormField(
+                controller: descriptionController,
+                maxLines: null,
+                expands: true,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                    hintText: 'What is on your mind?',
+                    border: InputBorder.none),
+              ),
             ),
             const SizedBox(height: 10),
-            if (selectedImage != null) Image.network(selectedImage!.path, height: 200),
-            ElevatedButton.icon(
+            if (selectedImage != null)
+              ClipRRect(
+                  borderRadius: BorderRadiusGeometry.circular(15),
+                  child: ImageWidget(imagePath: selectedImage!.path)),
+            const SizedBox(height: 10),
+            ElevatedButton(
               onPressed: pickImage,
-              icon: Icon(Icons.image),
-              label: const Text('Add Image'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 233, 226, 226),
+                foregroundColor: Colors.black,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadiusGeometry.circular(8)
+                )
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 8,
+                  children: [
+                    Icon(Icons.image_outlined, size: 19,),
+                    Text('Add image', style: TextStyle(fontSize: 17),)
+                  ],
+                ),
+              ),
             ),
           ],
         ),

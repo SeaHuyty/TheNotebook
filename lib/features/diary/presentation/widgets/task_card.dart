@@ -119,17 +119,6 @@ class _TaskCardState extends State<TaskCard> {
             ),
           ],
         ),
-
-        // if (widget.task.subtasks.isNotEmpty && widget.isExpanded)
-        //   Column(
-        //     children: widget.task.subtasks.map((sub) {
-        //       return TaskCard(
-        //         task: sub,
-        //         isExpanded: false,
-        //         onExpandChanged: (_) {},
-        //       );
-        //     }).toList(),
-        //   ),
       ],
     );
   }
