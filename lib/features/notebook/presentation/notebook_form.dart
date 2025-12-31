@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/onboarding/model/notebook.dart';
+import 'package:the_notebook/features/notebook/model/notebook.dart';
 
 class NotebookForm extends StatefulWidget {
-  const NotebookForm({super.key});
+  final Notebook? notebook;
+  final bool isEdited;
+
+  const NotebookForm({super.key, this.notebook, required this.isEdited});
 
   @override
   State<NotebookForm> createState() => _NotebookFormState();
@@ -31,6 +34,16 @@ class _NotebookFormState extends State<NotebookForm> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    if (widget.isEdited) {
+      titleController.text = widget.notebook!.title;
+      selectedCategory = widget.notebook!.category;
+    }
+    
+    super.initState();
+  }
+
+  @override
   void dispose() {
     // Dispose the controlers
     titleController.dispose();
@@ -42,7 +55,7 @@ class _NotebookFormState extends State<NotebookForm> {
 
     final title = titleController.text;
 
-    Notebook newNotebook = Notebook(title: title, category: selectedCategory);
+    Notebook newNotebook = Notebook(id: widget.notebook?.id, title: title, category: selectedCategory);
 
     Navigator.of(context).pop(newNotebook);
   }
@@ -69,7 +82,8 @@ class _NotebookFormState extends State<NotebookForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Add new Notebook", style: TextStyle(fontSize: 20)),
+                Text(widget.isEdited ? "Edit notebook" : "Add new notebook",
+                    style: TextStyle(fontSize: 20)),
                 IconButton(onPressed: onClose, icon: Icon(Icons.cancel)),
               ],
             ),
@@ -117,7 +131,8 @@ class _NotebookFormState extends State<NotebookForm> {
                       ),
                     ),
                     onPressed: onCreate,
-                    child: Text("Add", style: TextStyle(fontSize: 16)),
+                    child: Text(widget.isEdited ? "Update" : "Add",
+                        style: TextStyle(fontSize: 16)),
                   ),
                 ),
                 Expanded(
