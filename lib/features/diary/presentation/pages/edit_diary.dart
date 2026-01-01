@@ -99,7 +99,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     }
 
     final diary = domain.Diary(
-      id: widget.diary.id,
+        id: widget.diary.id,
         date: selectedDate,
         content: descriptionController.text,
         image: domain.DiaryImage(
@@ -121,8 +121,11 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     descriptionController.text = widget.diary.content;
     titleController.text = 'A Productive Title';
     selectedDate = widget.diary.date;
-    selectedImage = XFile(widget.diary.image!.imagePath);
-    isLandscape = widget.diary.image!.isLandscape;
+
+    if (widget.diary.image != null) {
+      selectedImage = XFile(widget.diary.image!.imagePath);
+      isLandscape = widget.diary.image!.isLandscape;
+    }
   }
 
   @override
@@ -150,7 +153,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsetsGeometry.symmetric(horizontal: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -228,7 +231,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                   foregroundColor: Colors.black,
                   shadowColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(8))),
+                      borderRadius: BorderRadius.circular(8))),
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
