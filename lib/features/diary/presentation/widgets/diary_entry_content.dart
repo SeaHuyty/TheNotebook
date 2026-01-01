@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:the_notebook/features/diary/domain/diary_image.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
-import 'package:the_notebook/features/diary/presentation/widgets/build_image.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryEntryContent extends StatefulWidget {
   final String date;
   final String content;
-  final String? imageUrl;
+  final DiaryImage? image;
   final List<Task>? tasks;
 
   const DiaryEntryContent({
@@ -14,7 +15,7 @@ class DiaryEntryContent extends StatefulWidget {
     required this.date,
     required this.content,
     this.tasks,
-    this.imageUrl,
+    this.image,
   });
 
   @override
@@ -35,11 +36,11 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.imageUrl != null) ...[
+        if (widget.image != null) ...[
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: ImageWidget(imagePath: widget.imageUrl!),
+            child: ImageWidget(image: widget.image!,),
           ),
           const SizedBox(height: 8),
         ],

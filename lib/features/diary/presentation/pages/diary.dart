@@ -204,7 +204,7 @@ class _DiaryPageState extends State<DiaryPage> {
                                     'MMM, dd, yyyy',
                                   ).format(entry.date),
                                   content: entry.content,
-                                  imageUrl: entry.imageUrl,
+                                  image: entry.image,
                                   tasks: entry.tasks,
                                 ),
                               ),

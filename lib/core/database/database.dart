@@ -13,7 +13,13 @@ class Diaries extends Table {
   IntColumn get id => integer().autoIncrement()();
   DateTimeColumn get date => dateTime()();
   TextColumn get content => text()();
-  TextColumn get imageUrl => text().nullable()();
+}
+
+class DiaryImages extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get diaryId => integer().nullable().references(Diaries, #id)();
+  TextColumn get imagePath => text()();
+  BoolColumn get isLandscape => boolean().nullable()();
 }
 
 class Tasks extends Table {
@@ -24,7 +30,7 @@ class Tasks extends Table {
   IntColumn get parentTaskId => integer().nullable().references(Tasks, #id)();
 }
 
-@DriftDatabase(tables: [Notebooks, Diaries, Tasks])
+@DriftDatabase(tables: [Notebooks, Diaries, DiaryImages, Tasks])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(openConnection());
   
@@ -33,5 +39,5 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => _instance;
   
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 }
