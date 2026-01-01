@@ -79,9 +79,9 @@ class _DiaryPageState extends State<DiaryPage> {
                       itemBuilder: (context, index) => ListTile(
                             title: Text(availableYears[index].toString()),
                             onTap: () {
+                              Navigator.pop(context);
                               setState(() {
                                 selectedYear = availableYears[index];
-                                Navigator.pop(context);
                               });
                             },
                           )),
@@ -199,9 +199,9 @@ class _DiaryPageState extends State<DiaryPage> {
                     ),
                     itemCount: getFilteredEntries().length,
                     itemBuilder: (context, index) {
-                      final entry = getFilteredEntries()[index];
-                      final isLastEntry =
-                          index == getFilteredEntries().length - 1;
+                      final filteredEntries = getFilteredEntries();
+                      final entry = filteredEntries[index];
+                      final isLastEntry = index == filteredEntries.length - 1;
                       return VisibilityDetector(
                         key: Key('diary-entry-$index'),
                         onVisibilityChanged: (VisibilityInfo info) {

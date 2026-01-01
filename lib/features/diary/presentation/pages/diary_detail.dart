@@ -56,7 +56,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
             onPressed: () {
               Navigator.pop(context, wasEdited);
             },
-            icon: Icon(Icons.arrow_back_ios)),
+            icon: const Icon(Icons.arrow_back_ios)),
         actions: [TextButton(onPressed: onEdit, child: Text('Edit'))],
       ),
       body: Padding(
