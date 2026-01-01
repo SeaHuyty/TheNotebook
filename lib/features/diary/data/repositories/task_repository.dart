@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:the_notebook/features/diary/domain/task.dart' as domain;
 import 'package:the_notebook/core/database/database.dart';
 
@@ -5,6 +6,14 @@ class TaskRepository {
   final AppDatabase _db = AppDatabase();
 
   TaskRepository();
+
+  Future<int> insertTask(domain.Task task, int diaryId) async {
+    return await _db.into(_db.tasks).insert(TasksCompanion.insert(
+      title: task.title ?? '',
+      isDone: Value(task.isDone ?? false),
+      diaryId: Value(diaryId)
+    ));
+  }
 
   Future<List<domain.Task>> getTasksForDiary(int diaryId) async {
     final dbTasks = await (_db.select(_db.tasks)

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/pages/edit_diary.dart';
-import 'package:the_notebook/features/diary/presentation/widgets/build_image.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryDetailPage extends StatefulWidget {
@@ -69,15 +69,15 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
             SizedBox(
               height: 16,
             ),
-            if (widget.diary.imageUrl != null) ...[
+            if (widget.diary.image != null) ...[
               ClipRRect(
                   borderRadius: BorderRadiusGeometry.circular(10),
-                  child: ImageWidget(imagePath: widget.diary.imageUrl!)),
+                  child: ImageWidget(image: widget.diary.image!)),
               SizedBox(
                 height: 16,
               ),
             ],
-            if (widget.diary.tasks != null) ...[
+            if (widget.diary.tasks != null && widget.diary.tasks!.isNotEmpty) ...[
               Text('Task', style: TextStyle(fontSize: 18)),
               SizedBox(
                 height: 16,

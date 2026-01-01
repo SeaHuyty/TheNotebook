@@ -243,14 +243,8 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
       'content', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _imageUrlMeta =
-      const VerificationMeta('imageUrl');
   @override
-  late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
-      'image_url', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  @override
-  List<GeneratedColumn> get $columns => [id, date, content, imageUrl];
+  List<GeneratedColumn> get $columns => [id, date, content];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -276,10 +270,6 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
-    if (data.containsKey('image_url')) {
-      context.handle(_imageUrlMeta,
-          imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta));
-    }
     return context;
   }
 
@@ -295,8 +285,6 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
       content: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
-      imageUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
     );
   }
 
@@ -310,21 +298,13 @@ class Diary extends DataClass implements Insertable<Diary> {
   final int id;
   final DateTime date;
   final String content;
-  final String? imageUrl;
-  const Diary(
-      {required this.id,
-      required this.date,
-      required this.content,
-      this.imageUrl});
+  const Diary({required this.id, required this.date, required this.content});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['date'] = Variable<DateTime>(date);
     map['content'] = Variable<String>(content);
-    if (!nullToAbsent || imageUrl != null) {
-      map['image_url'] = Variable<String>(imageUrl);
-    }
     return map;
   }
 
@@ -333,9 +313,6 @@ class Diary extends DataClass implements Insertable<Diary> {
       id: Value(id),
       date: Value(date),
       content: Value(content),
-      imageUrl: imageUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(imageUrl),
     );
   }
 
@@ -346,7 +323,6 @@ class Diary extends DataClass implements Insertable<Diary> {
       id: serializer.fromJson<int>(json['id']),
       date: serializer.fromJson<DateTime>(json['date']),
       content: serializer.fromJson<String>(json['content']),
-      imageUrl: serializer.fromJson<String?>(json['imageUrl']),
     );
   }
   @override
@@ -356,27 +332,19 @@ class Diary extends DataClass implements Insertable<Diary> {
       'id': serializer.toJson<int>(id),
       'date': serializer.toJson<DateTime>(date),
       'content': serializer.toJson<String>(content),
-      'imageUrl': serializer.toJson<String?>(imageUrl),
     };
   }
 
-  Diary copyWith(
-          {int? id,
-          DateTime? date,
-          String? content,
-          Value<String?> imageUrl = const Value.absent()}) =>
-      Diary(
+  Diary copyWith({int? id, DateTime? date, String? content}) => Diary(
         id: id ?? this.id,
         date: date ?? this.date,
         content: content ?? this.content,
-        imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
       );
   Diary copyWithCompanion(DiariesCompanion data) {
     return Diary(
       id: data.id.present ? data.id.value : this.id,
       date: data.date.present ? data.date.value : this.date,
       content: data.content.present ? data.content.value : this.content,
-      imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
     );
   }
 
@@ -385,66 +353,55 @@ class Diary extends DataClass implements Insertable<Diary> {
     return (StringBuffer('Diary(')
           ..write('id: $id, ')
           ..write('date: $date, ')
-          ..write('content: $content, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('content: $content')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, date, content, imageUrl);
+  int get hashCode => Object.hash(id, date, content);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Diary &&
           other.id == this.id &&
           other.date == this.date &&
-          other.content == this.content &&
-          other.imageUrl == this.imageUrl);
+          other.content == this.content);
 }
 
 class DiariesCompanion extends UpdateCompanion<Diary> {
   final Value<int> id;
   final Value<DateTime> date;
   final Value<String> content;
-  final Value<String?> imageUrl;
   const DiariesCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
     this.content = const Value.absent(),
-    this.imageUrl = const Value.absent(),
   });
   DiariesCompanion.insert({
     this.id = const Value.absent(),
     required DateTime date,
     required String content,
-    this.imageUrl = const Value.absent(),
   })  : date = Value(date),
         content = Value(content);
   static Insertable<Diary> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
     Expression<String>? content,
-    Expression<String>? imageUrl,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (date != null) 'date': date,
       if (content != null) 'content': content,
-      if (imageUrl != null) 'image_url': imageUrl,
     });
   }
 
   DiariesCompanion copyWith(
-      {Value<int>? id,
-      Value<DateTime>? date,
-      Value<String>? content,
-      Value<String?>? imageUrl}) {
+      {Value<int>? id, Value<DateTime>? date, Value<String>? content}) {
     return DiariesCompanion(
       id: id ?? this.id,
       date: date ?? this.date,
       content: content ?? this.content,
-      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 
@@ -460,9 +417,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     if (content.present) {
       map['content'] = Variable<String>(content.value);
     }
-    if (imageUrl.present) {
-      map['image_url'] = Variable<String>(imageUrl.value);
-    }
     return map;
   }
 
@@ -471,8 +425,279 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     return (StringBuffer('DiariesCompanion(')
           ..write('id: $id, ')
           ..write('date: $date, ')
-          ..write('content: $content, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('content: $content')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DiaryImagesTable extends DiaryImages
+    with TableInfo<$DiaryImagesTable, DiaryImage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DiaryImagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _diaryIdMeta =
+      const VerificationMeta('diaryId');
+  @override
+  late final GeneratedColumn<int> diaryId = GeneratedColumn<int>(
+      'diary_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES diaries (id)'));
+  static const VerificationMeta _imagePathMeta =
+      const VerificationMeta('imagePath');
+  @override
+  late final GeneratedColumn<String> imagePath = GeneratedColumn<String>(
+      'image_path', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isLandscapeMeta =
+      const VerificationMeta('isLandscape');
+  @override
+  late final GeneratedColumn<bool> isLandscape = GeneratedColumn<bool>(
+      'is_landscape', aliasedName, true,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_landscape" IN (0, 1))'));
+  @override
+  List<GeneratedColumn> get $columns => [id, diaryId, imagePath, isLandscape];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'diary_images';
+  @override
+  VerificationContext validateIntegrity(Insertable<DiaryImage> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('diary_id')) {
+      context.handle(_diaryIdMeta,
+          diaryId.isAcceptableOrUnknown(data['diary_id']!, _diaryIdMeta));
+    }
+    if (data.containsKey('image_path')) {
+      context.handle(_imagePathMeta,
+          imagePath.isAcceptableOrUnknown(data['image_path']!, _imagePathMeta));
+    } else if (isInserting) {
+      context.missing(_imagePathMeta);
+    }
+    if (data.containsKey('is_landscape')) {
+      context.handle(
+          _isLandscapeMeta,
+          isLandscape.isAcceptableOrUnknown(
+              data['is_landscape']!, _isLandscapeMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DiaryImage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DiaryImage(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      diaryId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}diary_id']),
+      imagePath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}image_path'])!,
+      isLandscape: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_landscape']),
+    );
+  }
+
+  @override
+  $DiaryImagesTable createAlias(String alias) {
+    return $DiaryImagesTable(attachedDatabase, alias);
+  }
+}
+
+class DiaryImage extends DataClass implements Insertable<DiaryImage> {
+  final int id;
+  final int? diaryId;
+  final String imagePath;
+  final bool? isLandscape;
+  const DiaryImage(
+      {required this.id,
+      this.diaryId,
+      required this.imagePath,
+      this.isLandscape});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || diaryId != null) {
+      map['diary_id'] = Variable<int>(diaryId);
+    }
+    map['image_path'] = Variable<String>(imagePath);
+    if (!nullToAbsent || isLandscape != null) {
+      map['is_landscape'] = Variable<bool>(isLandscape);
+    }
+    return map;
+  }
+
+  DiaryImagesCompanion toCompanion(bool nullToAbsent) {
+    return DiaryImagesCompanion(
+      id: Value(id),
+      diaryId: diaryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(diaryId),
+      imagePath: Value(imagePath),
+      isLandscape: isLandscape == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isLandscape),
+    );
+  }
+
+  factory DiaryImage.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DiaryImage(
+      id: serializer.fromJson<int>(json['id']),
+      diaryId: serializer.fromJson<int?>(json['diaryId']),
+      imagePath: serializer.fromJson<String>(json['imagePath']),
+      isLandscape: serializer.fromJson<bool?>(json['isLandscape']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'diaryId': serializer.toJson<int?>(diaryId),
+      'imagePath': serializer.toJson<String>(imagePath),
+      'isLandscape': serializer.toJson<bool?>(isLandscape),
+    };
+  }
+
+  DiaryImage copyWith(
+          {int? id,
+          Value<int?> diaryId = const Value.absent(),
+          String? imagePath,
+          Value<bool?> isLandscape = const Value.absent()}) =>
+      DiaryImage(
+        id: id ?? this.id,
+        diaryId: diaryId.present ? diaryId.value : this.diaryId,
+        imagePath: imagePath ?? this.imagePath,
+        isLandscape: isLandscape.present ? isLandscape.value : this.isLandscape,
+      );
+  DiaryImage copyWithCompanion(DiaryImagesCompanion data) {
+    return DiaryImage(
+      id: data.id.present ? data.id.value : this.id,
+      diaryId: data.diaryId.present ? data.diaryId.value : this.diaryId,
+      imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
+      isLandscape:
+          data.isLandscape.present ? data.isLandscape.value : this.isLandscape,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiaryImage(')
+          ..write('id: $id, ')
+          ..write('diaryId: $diaryId, ')
+          ..write('imagePath: $imagePath, ')
+          ..write('isLandscape: $isLandscape')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, diaryId, imagePath, isLandscape);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DiaryImage &&
+          other.id == this.id &&
+          other.diaryId == this.diaryId &&
+          other.imagePath == this.imagePath &&
+          other.isLandscape == this.isLandscape);
+}
+
+class DiaryImagesCompanion extends UpdateCompanion<DiaryImage> {
+  final Value<int> id;
+  final Value<int?> diaryId;
+  final Value<String> imagePath;
+  final Value<bool?> isLandscape;
+  const DiaryImagesCompanion({
+    this.id = const Value.absent(),
+    this.diaryId = const Value.absent(),
+    this.imagePath = const Value.absent(),
+    this.isLandscape = const Value.absent(),
+  });
+  DiaryImagesCompanion.insert({
+    this.id = const Value.absent(),
+    this.diaryId = const Value.absent(),
+    required String imagePath,
+    this.isLandscape = const Value.absent(),
+  }) : imagePath = Value(imagePath);
+  static Insertable<DiaryImage> custom({
+    Expression<int>? id,
+    Expression<int>? diaryId,
+    Expression<String>? imagePath,
+    Expression<bool>? isLandscape,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (diaryId != null) 'diary_id': diaryId,
+      if (imagePath != null) 'image_path': imagePath,
+      if (isLandscape != null) 'is_landscape': isLandscape,
+    });
+  }
+
+  DiaryImagesCompanion copyWith(
+      {Value<int>? id,
+      Value<int?>? diaryId,
+      Value<String>? imagePath,
+      Value<bool?>? isLandscape}) {
+    return DiaryImagesCompanion(
+      id: id ?? this.id,
+      diaryId: diaryId ?? this.diaryId,
+      imagePath: imagePath ?? this.imagePath,
+      isLandscape: isLandscape ?? this.isLandscape,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (diaryId.present) {
+      map['diary_id'] = Variable<int>(diaryId.value);
+    }
+    if (imagePath.present) {
+      map['image_path'] = Variable<String>(imagePath.value);
+    }
+    if (isLandscape.present) {
+      map['is_landscape'] = Variable<bool>(isLandscape.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiaryImagesCompanion(')
+          ..write('id: $id, ')
+          ..write('diaryId: $diaryId, ')
+          ..write('imagePath: $imagePath, ')
+          ..write('isLandscape: $isLandscape')
           ..write(')'))
         .toString();
   }
@@ -793,13 +1018,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $NotebooksTable notebooks = $NotebooksTable(this);
   late final $DiariesTable diaries = $DiariesTable(this);
+  late final $DiaryImagesTable diaryImages = $DiaryImagesTable(this);
   late final $TasksTable tasks = $TasksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [notebooks, diaries, tasks];
+      [notebooks, diaries, diaryImages, tasks];
 }
 
 typedef $$NotebooksTableCreateCompanionBuilder = NotebooksCompanion Function({
@@ -935,18 +1161,31 @@ typedef $$DiariesTableCreateCompanionBuilder = DiariesCompanion Function({
   Value<int> id,
   required DateTime date,
   required String content,
-  Value<String?> imageUrl,
 });
 typedef $$DiariesTableUpdateCompanionBuilder = DiariesCompanion Function({
   Value<int> id,
   Value<DateTime> date,
   Value<String> content,
-  Value<String?> imageUrl,
 });
 
 final class $$DiariesTableReferences
     extends BaseReferences<_$AppDatabase, $DiariesTable, Diary> {
   $$DiariesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$DiaryImagesTable, List<DiaryImage>>
+      _diaryImagesRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.diaryImages,
+              aliasName:
+                  $_aliasNameGenerator(db.diaries.id, db.diaryImages.diaryId));
+
+  $$DiaryImagesTableProcessedTableManager get diaryImagesRefs {
+    final manager = $$DiaryImagesTableTableManager($_db, $_db.diaryImages)
+        .filter((f) => f.diaryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_diaryImagesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 
   static MultiTypedResultKey<$TasksTable, List<Task>> _tasksRefsTable(
           _$AppDatabase db) =>
@@ -981,8 +1220,26 @@ class $$DiariesTableFilterComposer
   ColumnFilters<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get imageUrl => $composableBuilder(
-      column: $table.imageUrl, builder: (column) => ColumnFilters(column));
+  Expression<bool> diaryImagesRefs(
+      Expression<bool> Function($$DiaryImagesTableFilterComposer f) f) {
+    final $$DiaryImagesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.diaryImages,
+        getReferencedColumn: (t) => t.diaryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiaryImagesTableFilterComposer(
+              $db: $db,
+              $table: $db.diaryImages,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 
   Expression<bool> tasksRefs(
       Expression<bool> Function($$TasksTableFilterComposer f) f) {
@@ -1023,9 +1280,6 @@ class $$DiariesTableOrderingComposer
 
   ColumnOrderings<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get imageUrl => $composableBuilder(
-      column: $table.imageUrl, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DiariesTableAnnotationComposer
@@ -1046,8 +1300,26 @@ class $$DiariesTableAnnotationComposer
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
 
-  GeneratedColumn<String> get imageUrl =>
-      $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+  Expression<T> diaryImagesRefs<T extends Object>(
+      Expression<T> Function($$DiaryImagesTableAnnotationComposer a) f) {
+    final $$DiaryImagesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.diaryImages,
+        getReferencedColumn: (t) => t.diaryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiaryImagesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.diaryImages,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 
   Expression<T> tasksRefs<T extends Object>(
       Expression<T> Function($$TasksTableAnnotationComposer a) f) {
@@ -1082,7 +1354,7 @@ class $$DiariesTableTableManager extends RootTableManager<
     $$DiariesTableUpdateCompanionBuilder,
     (Diary, $$DiariesTableReferences),
     Diary,
-    PrefetchHooks Function({bool tasksRefs})> {
+    PrefetchHooks Function({bool diaryImagesRefs, bool tasksRefs})> {
   $$DiariesTableTableManager(_$AppDatabase db, $DiariesTable table)
       : super(TableManagerState(
           db: db,
@@ -1097,37 +1369,49 @@ class $$DiariesTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<DateTime> date = const Value.absent(),
             Value<String> content = const Value.absent(),
-            Value<String?> imageUrl = const Value.absent(),
           }) =>
               DiariesCompanion(
             id: id,
             date: date,
             content: content,
-            imageUrl: imageUrl,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required DateTime date,
             required String content,
-            Value<String?> imageUrl = const Value.absent(),
           }) =>
               DiariesCompanion.insert(
             id: id,
             date: date,
             content: content,
-            imageUrl: imageUrl,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) =>
                   (e.readTable(table), $$DiariesTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({tasksRefs = false}) {
+          prefetchHooksCallback: (
+              {diaryImagesRefs = false, tasksRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (tasksRefs) db.tasks],
+              explicitlyWatchedTables: [
+                if (diaryImagesRefs) db.diaryImages,
+                if (tasksRefs) db.tasks
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
+                  if (diaryImagesRefs)
+                    await $_getPrefetchedData<Diary, $DiariesTable, DiaryImage>(
+                        currentTable: table,
+                        referencedTable:
+                            $$DiariesTableReferences._diaryImagesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$DiariesTableReferences(db, table, p0)
+                                .diaryImagesRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.diaryId == item.id),
+                        typedResults: items),
                   if (tasksRefs)
                     await $_getPrefetchedData<Diary, $DiariesTable, Task>(
                         currentTable: table,
@@ -1157,7 +1441,260 @@ typedef $$DiariesTableProcessedTableManager = ProcessedTableManager<
     $$DiariesTableUpdateCompanionBuilder,
     (Diary, $$DiariesTableReferences),
     Diary,
-    PrefetchHooks Function({bool tasksRefs})>;
+    PrefetchHooks Function({bool diaryImagesRefs, bool tasksRefs})>;
+typedef $$DiaryImagesTableCreateCompanionBuilder = DiaryImagesCompanion
+    Function({
+  Value<int> id,
+  Value<int?> diaryId,
+  required String imagePath,
+  Value<bool?> isLandscape,
+});
+typedef $$DiaryImagesTableUpdateCompanionBuilder = DiaryImagesCompanion
+    Function({
+  Value<int> id,
+  Value<int?> diaryId,
+  Value<String> imagePath,
+  Value<bool?> isLandscape,
+});
+
+final class $$DiaryImagesTableReferences
+    extends BaseReferences<_$AppDatabase, $DiaryImagesTable, DiaryImage> {
+  $$DiaryImagesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DiariesTable _diaryIdTable(_$AppDatabase db) => db.diaries
+      .createAlias($_aliasNameGenerator(db.diaryImages.diaryId, db.diaries.id));
+
+  $$DiariesTableProcessedTableManager? get diaryId {
+    final $_column = $_itemColumn<int>('diary_id');
+    if ($_column == null) return null;
+    final manager = $$DiariesTableTableManager($_db, $_db.diaries)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_diaryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$DiaryImagesTableFilterComposer
+    extends Composer<_$AppDatabase, $DiaryImagesTable> {
+  $$DiaryImagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get imagePath => $composableBuilder(
+      column: $table.imagePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isLandscape => $composableBuilder(
+      column: $table.isLandscape, builder: (column) => ColumnFilters(column));
+
+  $$DiariesTableFilterComposer get diaryId {
+    final $$DiariesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableFilterComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DiaryImagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DiaryImagesTable> {
+  $$DiaryImagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get imagePath => $composableBuilder(
+      column: $table.imagePath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isLandscape => $composableBuilder(
+      column: $table.isLandscape, builder: (column) => ColumnOrderings(column));
+
+  $$DiariesTableOrderingComposer get diaryId {
+    final $$DiariesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableOrderingComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DiaryImagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DiaryImagesTable> {
+  $$DiaryImagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get imagePath =>
+      $composableBuilder(column: $table.imagePath, builder: (column) => column);
+
+  GeneratedColumn<bool> get isLandscape => $composableBuilder(
+      column: $table.isLandscape, builder: (column) => column);
+
+  $$DiariesTableAnnotationComposer get diaryId {
+    final $$DiariesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DiaryImagesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DiaryImagesTable,
+    DiaryImage,
+    $$DiaryImagesTableFilterComposer,
+    $$DiaryImagesTableOrderingComposer,
+    $$DiaryImagesTableAnnotationComposer,
+    $$DiaryImagesTableCreateCompanionBuilder,
+    $$DiaryImagesTableUpdateCompanionBuilder,
+    (DiaryImage, $$DiaryImagesTableReferences),
+    DiaryImage,
+    PrefetchHooks Function({bool diaryId})> {
+  $$DiaryImagesTableTableManager(_$AppDatabase db, $DiaryImagesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DiaryImagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DiaryImagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DiaryImagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int?> diaryId = const Value.absent(),
+            Value<String> imagePath = const Value.absent(),
+            Value<bool?> isLandscape = const Value.absent(),
+          }) =>
+              DiaryImagesCompanion(
+            id: id,
+            diaryId: diaryId,
+            imagePath: imagePath,
+            isLandscape: isLandscape,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int?> diaryId = const Value.absent(),
+            required String imagePath,
+            Value<bool?> isLandscape = const Value.absent(),
+          }) =>
+              DiaryImagesCompanion.insert(
+            id: id,
+            diaryId: diaryId,
+            imagePath: imagePath,
+            isLandscape: isLandscape,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$DiaryImagesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({diaryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (diaryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.diaryId,
+                    referencedTable:
+                        $$DiaryImagesTableReferences._diaryIdTable(db),
+                    referencedColumn:
+                        $$DiaryImagesTableReferences._diaryIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$DiaryImagesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DiaryImagesTable,
+    DiaryImage,
+    $$DiaryImagesTableFilterComposer,
+    $$DiaryImagesTableOrderingComposer,
+    $$DiaryImagesTableAnnotationComposer,
+    $$DiaryImagesTableCreateCompanionBuilder,
+    $$DiaryImagesTableUpdateCompanionBuilder,
+    (DiaryImage, $$DiaryImagesTableReferences),
+    DiaryImage,
+    PrefetchHooks Function({bool diaryId})>;
 typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   Value<int> id,
   required String title,
@@ -1503,6 +2040,8 @@ class $AppDatabaseManager {
       $$NotebooksTableTableManager(_db, _db.notebooks);
   $$DiariesTableTableManager get diaries =>
       $$DiariesTableTableManager(_db, _db.diaries);
+  $$DiaryImagesTableTableManager get diaryImages =>
+      $$DiaryImagesTableTableManager(_db, _db.diaryImages);
   $$TasksTableTableManager get tasks =>
       $$TasksTableTableManager(_db, _db.tasks);
 }

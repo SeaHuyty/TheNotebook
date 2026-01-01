@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
+import 'dart:ui' as ui;
 import 'package:path_provider/path_provider.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
+import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/presentation/widgets/build_image.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:universal_io/universal_io.dart';
 
 class CreateDiaryPage extends StatefulWidget {
@@ -23,6 +25,7 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
   final ImagePicker picker = ImagePicker();
   DateTime selectedDate = DateTime.now();
   XFile? selectedImage;
+  bool? isLandscape;
 
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -41,8 +44,17 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
   Future<void> pickImage() async {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      final bytes = await image.readAsBytes();
+
+      // Correct way to decode image
+      final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+      final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      final decodedImage = frameInfo.image;
+      final orientation = decodedImage.width > decodedImage.height;
+
       setState(() {
         selectedImage = image;
+        isLandscape = orientation;
       });
     }
   }
@@ -79,9 +91,7 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
     }
 
     final diary = domain.Diary(
-        date: selectedDate,
-        content: descriptionController.text,
-        imageUrl: imagePath);
+        date: selectedDate, content: descriptionController.text, image: domain.DiaryImage(imagePath: imagePath!, isLandscape: isLandscape!));
 
     await widget.repo.insertDiary(diary);
     if (mounted) {
@@ -151,9 +161,8 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
             TextFormField(
               controller: titleController,
               style: const TextStyle(fontSize: 24),
-              decoration: InputDecoration(
-                  hintText: 'Title',
-                  border: InputBorder.none),
+              decoration:
+                  InputDecoration(hintText: 'Title', border: InputBorder.none),
             ),
             const SizedBox(
               height: 4,
@@ -171,29 +180,39 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
               ),
             ),
             const SizedBox(height: 10),
-            if (selectedImage != null)
-              ClipRRect(
-                  borderRadius: BorderRadiusGeometry.circular(15),
-                  child: ImageWidget(imagePath: selectedImage!.path)),
+            if (selectedImage != null && isLandscape != null)
+              Center(
+                child: ClipRRect(
+                    borderRadius: BorderRadiusGeometry.circular(15),
+                    child: ImageWidget(
+                        image: domain.DiaryImage(
+                      imagePath: selectedImage!.path,
+                      isLandscape: isLandscape!,
+                    ))),
+              ),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: pickImage,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 233, 226, 226),
-                foregroundColor: Colors.black,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadiusGeometry.circular(8)
-                )
-              ),
+                  backgroundColor: const Color.fromARGB(255, 233, 226, 226),
+                  foregroundColor: Colors.black,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadiusGeometry.circular(8))),
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 8,
                   children: [
-                    Icon(Icons.image_outlined, size: 19,),
-                    Text('Add image', style: TextStyle(fontSize: 17),)
+                    Icon(
+                      Icons.image_outlined,
+                      size: 19,
+                    ),
+                    Text(
+                      'Add image',
+                      style: TextStyle(fontSize: 17),
+                    )
                   ],
                 ),
               ),
