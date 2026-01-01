@@ -68,30 +68,21 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   void onDelete(Notebook notebook) async {
+    final index = notebookList.indexOf(notebook);
+    if (index == -1) return;
+
+    final removedNotebook = notebookList[index];
+
+    setState(() {
+      notebookList.removeAt(index);
+    });
+    
     try {
-      final index = notebookList.indexOf(notebook);
-      if (index == -1) return;
-
-      final removedNotebook = notebookList[index];
-
-      setState(() {
-        notebookList.removeAt(index);
-      });
-
       await widget.notebookRepo.deleteNotebook(notebook.id!);
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Notebook Deleted"),
-        action: SnackBarAction(
-            label: "UNDO",
-            onPressed: () async {
-              await widget.notebookRepo.insertNotebook(removedNotebook);
-              setState(() {
-                notebookList.insert(index, removedNotebook);
-              });
-            }),
-      ));
     } catch (error) {
+      setState(() {
+        notebookList.insert(index, removedNotebook);
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to delete notebook")),
       );
@@ -193,6 +184,26 @@ class NotebookTile extends StatelessWidget {
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.red),
       ),
+      confirmDismiss: (direction) async {
+        final bool? confirm = await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text("Delete Notebook"),
+                content: const Text(
+                    "Are you sure you want to delete this notebook? This action cannot be undone"),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text("Cancel")),
+                  TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text("Okay")),
+                ],
+              );
+            });
+        return confirm;
+      },
       onDismissed: (direction) => onDismissed(),
       child: Container(
         padding: EdgeInsets.all(5),
