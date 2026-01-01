@@ -31,6 +31,14 @@ class DiaryImageRepository {
         isLandscape: image.isLandscape!);
   }
 
+  Future<void> deleteImageByDiaryId(int diaryId) async {
+    // .go() - Execute the delete
+    
+    await (_db.delete(_db.diaryImages)
+          ..where((tbl) => tbl.diaryId.equals(diaryId)))
+        .go();
+  }
+
   void dispose() {
     _db.close();
   }

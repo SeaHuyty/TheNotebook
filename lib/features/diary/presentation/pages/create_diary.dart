@@ -144,13 +144,13 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
               child: Row(
                 spacing: 10,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.calendar_today_outlined,
                     size: 20,
                   ),
                   Text(
                     selectedDate.toString().split(' ')[0],
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
@@ -205,13 +205,13 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 8,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.image_outlined,
                       size: 19,
                     ),
                     Text(
-                      'Add image',
-                      style: TextStyle(fontSize: 17),
+                      selectedImage != null ? 'Change image' : 'Add image',
+                      style: const TextStyle(fontSize: 17),
                     )
                   ],
                 ),

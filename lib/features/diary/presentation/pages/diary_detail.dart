@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/pages/edit_diary.dart';
@@ -7,8 +8,9 @@ import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart'
 
 class DiaryDetailPage extends StatefulWidget {
   final Diary diary;
+  final DiaryRepository repo;
 
-  const DiaryDetailPage({super.key, required this.diary});
+  const DiaryDetailPage({super.key, required this.diary, required this.repo});
 
   @override
   State<DiaryDetailPage> createState() => _DiaryDetailPageState();
@@ -23,11 +25,29 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     expanded = List<bool>.filled(widget.diary.tasks?.length ?? 0, false);
   }
 
-  void onEdit() {
-    Navigator.push(
+  void onEdit() async {
+    final result = await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => EditDiaryPage(diary: widget.diary)));
+            builder: (context) =>
+                EditDiaryPage(diary: widget.diary, repo: widget.repo)));
+
+    if (result == true) {
+      final updatedDiary = await widget.repo.getDiaryById(widget.diary.id!);
+
+      // Replace this page with updated diary data
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DiaryDetailPage(
+              diary: updatedDiary!,
+              repo: widget.repo,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -45,41 +65,42 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
               spacing: 10,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.calendar_today_outlined,
                   size: 20,
                 ),
                 Text(widget.diary.date.toString())
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 16,
             ),
-            Text(
+            const Text(
               'A Productive Title',
               style: TextStyle(fontSize: 24),
             ),
-            SizedBox(
+            const SizedBox(
               height: 16,
             ),
             Text(
               widget.diary.content,
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
-            SizedBox(
+            const SizedBox(
               height: 16,
             ),
             if (widget.diary.image != null) ...[
               ClipRRect(
                   borderRadius: BorderRadiusGeometry.circular(10),
                   child: ImageWidget(image: widget.diary.image!)),
-              SizedBox(
+              const SizedBox(
                 height: 16,
               ),
             ],
-            if (widget.diary.tasks != null && widget.diary.tasks!.isNotEmpty) ...[
-              Text('Task', style: TextStyle(fontSize: 18)),
-              SizedBox(
+            if (widget.diary.tasks != null &&
+                widget.diary.tasks!.isNotEmpty) ...[
+              const Text('Task', style: TextStyle(fontSize: 18)),
+              const SizedBox(
                 height: 16,
               ),
               ...widget.diary.tasks!.asMap().entries.map((entry) {

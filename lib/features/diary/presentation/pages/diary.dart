@@ -190,7 +190,7 @@ class _DiaryPageState extends State<DiaryPage> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                          DiaryDetailPage(diary: entry)));
+                                          DiaryDetailPage(diary: entry, repo: widget.repo)));
                             },
                             child: Card(
                               color: Colors.transparent,

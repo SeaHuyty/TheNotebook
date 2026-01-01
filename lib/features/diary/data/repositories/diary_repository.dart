@@ -77,6 +77,46 @@ class DiaryRepository {
     return diaryId;
   }
 
+  Future<void> updateDiary(domain.Diary diary,
+      {bool contentChanged = false,
+      bool dateChanged = false,
+      bool imageChanged = false}) async {
+    if (contentChanged || dateChanged) {
+      await (_db.update(_db.diaries)..where((d) => d.id.equals(diary.id!)))
+          .write(DiariesCompanion(
+        content: contentChanged ? Value(diary.content) : Value.absent(),
+        date: dateChanged ? Value(diary.date) : Value.absent(),
+      ));
+    }
+
+    if (imageChanged) {
+      await _imageRepo.deleteImageByDiaryId(diary.id!);
+
+      if (diary.image != null) {
+        await _imageRepo.insertImage(diary.image!, diary.id!);
+      }
+    }
+  }
+
+  Future<domain.Diary?> getDiaryById(int diaryId) async {
+    final tasks = await _taskRepo.getTasksForDiary(diaryId);
+    final image = await _imageRepo.getImageByDiaryId(diaryId);
+
+    final query = _db.select(_db.diaries)
+      ..where((tbl) => tbl.id.equals(diaryId));
+
+    final diary = await query.getSingleOrNull();
+    if (diary == null) return null;
+
+    return domain.Diary(
+      id: diary.id,
+      date: diary.date,
+      content: diary.content,
+      image: image,
+      tasks: tasks,
+    );
+  }
+
   void dispose() {
     _db.close();
     _taskRepo.dispose();
