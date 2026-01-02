@@ -35,11 +35,8 @@ class Notebook {
     if (primary == null) {
       return Colors.transparent;
     }
-    return secondaryColor.entries
-        .firstWhere(
-          (entry) => entry.key.toARGB32() == primary.toARGB32(),
-          orElse: () => MapEntry(Colors.transparent, Colors.grey.shade200),
-        )
-        .value;
+    final normalized = Color(primary.toARGB32());
+
+    return secondaryColor[normalized] ?? Colors.transparent;
   }
 }

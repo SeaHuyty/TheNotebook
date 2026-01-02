@@ -7,11 +7,6 @@ import 'package:the_notebook/features/notebook/presentation/notebook_form.dart';
 import 'package:the_notebook/features/notebook/widgets/notebook_tile.dart';
 import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
-const home = "assets/images/home.png";
-const work = "assets/images/work.png";
-const travel = "assets/images/travel.png";
-const movie = "assets/images/movie.png";
-
 class NotebookPage extends StatefulWidget {
   const NotebookPage(
       {super.key, required this.notebookRepo, required this.diaryRepo});
