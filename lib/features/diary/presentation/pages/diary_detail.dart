@@ -18,10 +18,13 @@ class DiaryDetailPage extends StatefulWidget {
 
 class _DiaryDetailPageState extends State<DiaryDetailPage> {
   late final List<bool> expanded;
+  late Diary currentDiary;
+  bool wasEdited = false;
 
   @override
   void initState() {
     super.initState();
+    currentDiary = widget.diary;
     expanded = List<bool>.filled(widget.diary.tasks?.length ?? 0, false);
   }
 
@@ -36,16 +39,11 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
       final updatedDiary = await widget.repo.getDiaryById(widget.diary.id!);
 
       // Replace this page with updated diary data
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DiaryDetailPage(
-              diary: updatedDiary!,
-              repo: widget.repo,
-            ),
-          ),
-        );
+      if (mounted && updatedDiary != null) {
+        setState(() {
+          currentDiary = updatedDiary;
+          wasEdited = true;
+        });
       }
     }
   }
@@ -54,10 +52,15 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context, wasEdited);
+            },
+            icon: const Icon(Icons.arrow_back_ios)),
         actions: [TextButton(onPressed: onEdit, child: Text('Edit'))],
       ),
       body: Padding(
-        padding: EdgeInsetsGeometry.all(15),
+        padding: const EdgeInsets.all(15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -69,7 +72,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                   Icons.calendar_today_outlined,
                   size: 20,
                 ),
-                Text(widget.diary.date.toString())
+                Text(currentDiary.date.toString())
               ],
             ),
             const SizedBox(
@@ -83,27 +86,27 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
               height: 16,
             ),
             Text(
-              widget.diary.content,
+              currentDiary.content,
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(
               height: 16,
             ),
-            if (widget.diary.image != null) ...[
+            if (currentDiary.image != null) ...[
               ClipRRect(
-                  borderRadius: BorderRadiusGeometry.circular(10),
-                  child: ImageWidget(image: widget.diary.image!)),
+                  borderRadius: BorderRadius.circular(10),
+                  child: ImageWidget(image: currentDiary.image!)),
               const SizedBox(
                 height: 16,
               ),
             ],
-            if (widget.diary.tasks != null &&
-                widget.diary.tasks!.isNotEmpty) ...[
+            if (currentDiary.tasks != null &&
+                currentDiary.tasks!.isNotEmpty) ...[
               const Text('Task', style: TextStyle(fontSize: 18)),
               const SizedBox(
                 height: 16,
               ),
-              ...widget.diary.tasks!.asMap().entries.map((entry) {
+              ...currentDiary.tasks!.asMap().entries.map((entry) {
                 int index = entry.key;
                 Task task = entry.value;
                 return TaskCard(
