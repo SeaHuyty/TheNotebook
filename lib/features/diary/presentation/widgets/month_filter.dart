@@ -4,6 +4,10 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 
 class MonthFilter extends StatelessWidget {
+  final String currentMonth;
+  final List<Diary> sortedEntries;
+  final ItemScrollController _scrollController;
+  
   const MonthFilter({
     super.key,
     required this.currentMonth,
@@ -11,9 +15,6 @@ class MonthFilter extends StatelessWidget {
     required ItemScrollController scrollController,
   }) : _scrollController = scrollController;
 
-  final String currentMonth;
-  final List<Diary> sortedEntries;
-  final ItemScrollController _scrollController;
 
   @override
   Widget build(BuildContext context) {

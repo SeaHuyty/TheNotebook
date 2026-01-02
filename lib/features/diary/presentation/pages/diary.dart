@@ -21,13 +21,15 @@ class DiaryPage extends StatefulWidget {
 }
 
 class _DiaryPageState extends State<DiaryPage> {
-  // This widget is the root of your application.
   bool isCalendarVisible = false;
   DateTime selectedDate = DateTime.now();
   String currentMonth = DateTime.now().month.toString();
   final ItemScrollController _scrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
+
+  int selectedYear = DateTime.now().year;
+  List<int> availableYears = [];
 
   List<Diary> sortedEntries = [];
 
@@ -42,6 +44,12 @@ class _DiaryPageState extends State<DiaryPage> {
     setState(() {
       sortedEntries = List.from(entries)
         ..sort((a, b) => a.date.compareTo(b.date));
+
+      availableYears = sortedEntries
+          .map((entry) => entry.date.year)
+          .toSet()
+          .toList()
+        ..sort((a, b) => b.compareTo(a));
     });
 
     // Move the scroll-to-today logic, after data is loaded
@@ -52,6 +60,34 @@ class _DiaryPageState extends State<DiaryPage> {
         _scrollController.jumpTo(index: todayIndex);
       }
     });
+  }
+
+  List<Diary> getFilteredEntries() {
+    return sortedEntries
+        .where((entry) => entry.date.year == selectedYear)
+        .toList();
+  }
+
+  void showYearFilter() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) => Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                      itemCount: availableYears.length,
+                      itemBuilder: (context, index) => ListTile(
+                            title: Text(availableYears[index].toString()),
+                            onTap: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                selectedYear = availableYears[index];
+                              });
+                            },
+                          )),
+                )
+              ],
+            ));
   }
 
   int _findTodayOrClosestIndex() {
@@ -161,10 +197,11 @@ class _DiaryPageState extends State<DiaryPage> {
                       top: 16,
                       bottom: 300,
                     ),
-                    itemCount: sortedEntries.length,
+                    itemCount: getFilteredEntries().length,
                     itemBuilder: (context, index) {
-                      final entry = sortedEntries[index];
-                      final isLastEntry = index == sortedEntries.length - 1;
+                      final filteredEntries = getFilteredEntries();
+                      final entry = filteredEntries[index];
+                      final isLastEntry = index == filteredEntries.length - 1;
                       return VisibilityDetector(
                         key: Key('diary-entry-$index'),
                         onVisibilityChanged: (VisibilityInfo info) {
@@ -185,12 +222,16 @@ class _DiaryPageState extends State<DiaryPage> {
                           dayNumber: entry.date.day,
                           showLineBelow: !isLastEntry,
                           child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
+                            onTap: () async {
+                              final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) =>
-                                          DiaryDetailPage(diary: entry, repo: widget.repo)));
+                                      builder: (context) => DiaryDetailPage(
+                                          diary: entry, repo: widget.repo)));
+
+                              if (result == true) {
+                                loadEntries();
+                              }
                             },
                             child: Card(
                               color: Colors.transparent,
@@ -217,23 +258,39 @@ class _DiaryPageState extends State<DiaryPage> {
           ),
           Positioned(
             bottom: 16,
-            left: 16,
-            right: 16,
+            left: 20,
+            right: 20,
             child: SafeArea(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  FloatingActionButton(
-                    heroTag: 'uniqueTag1',
-                    onPressed: onCreate,
-                    backgroundColor: const Color.fromARGB(255, 122, 171, 255),
-                    child: const Icon(Icons.add, color: Colors.white),
+                  SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: FloatingActionButton(
+                      heroTag: 'filter',
+                      onPressed: showYearFilter,
+                      backgroundColor: const Color.fromARGB(255, 122, 171, 255),
+                      child: const Icon(
+                        Icons.tune,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   ),
-                  FloatingActionButton(
-                    heroTag: 'uniqueTag2',
-                    onPressed: () {},
-                    backgroundColor: const Color.fromARGB(255, 122, 171, 255),
-                    child: const Icon(Icons.draw_outlined, color: Colors.white),
+                  SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: FloatingActionButton(
+                      heroTag: 'create',
+                      onPressed: onCreate,
+                      backgroundColor: const Color.fromARGB(255, 122, 171, 255),
+                      child: const Icon(
+                        Icons.draw_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   ),
                 ],
               ),
