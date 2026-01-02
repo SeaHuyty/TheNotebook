@@ -40,10 +40,12 @@ class NotebookTile extends StatelessWidget {
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: Text("Cancel")),
+                      child: Text("Cancel",
+                          style: TextStyle(color: Colors.black))),
                   TextButton(
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: Text("Okay")),
+                      child:
+                          Text("Delete", style: TextStyle(color: Colors.red))),
                 ],
               );
             });

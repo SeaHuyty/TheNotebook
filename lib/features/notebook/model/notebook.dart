@@ -27,7 +27,7 @@ class Notebook {
     Colors.orangeAccent: Color(0xFFF4BA6F),
     Colors.purpleAccent: Color(0xFFE07EF9),
     Colors.redAccent: Color(0xFFFF8D8D),
-    Colors.yellowAccent: Color(0xFFFFFF81),
+    Colors.yellow[300]!: Color(0xFFFFFF81),
     Colors.pinkAccent: Color(0xFFF67BA4),
   };
 
@@ -35,8 +35,14 @@ class Notebook {
     if (primary == null) {
       return Colors.transparent;
     }
-    final normalized = Color(primary.toARGB32());
+    final primaryValue = primary.toARGB32();
 
-    return secondaryColor[normalized] ?? Colors.transparent;
+    for (final entry in secondaryColor.entries) {
+      if (entry.key.toARGB32() == primaryValue) {
+        return entry.value;
+      }
+    }
+
+    return Colors.transparent;
   }
 }

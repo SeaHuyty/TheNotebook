@@ -26,7 +26,7 @@ class _NotebookFormState extends State<NotebookForm> {
     Colors.orangeAccent,
     Colors.purpleAccent,
     Colors.redAccent,
-    Colors.yellowAccent,
+    Colors.yellow[300]!,
     Colors.pinkAccent,
   ];
 
