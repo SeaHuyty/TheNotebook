@@ -7,9 +7,12 @@ class OnboardingPage extends StatelessWidget {
   final String buttonText;
   final String assetName;
   final double width;
+  final bool backButton;
   final VoidCallback onPressed;
   final bool isLastPage;
   final VoidCallback onSkipped;
+  final VoidCallback? onBackPressed;
+  final Widget? pageIndicator;
 
   const OnboardingPage(
       {super.key,
@@ -17,12 +20,14 @@ class OnboardingPage extends StatelessWidget {
       required this.subTitle,
       required this.buttonText,
       required this.assetName,
+      required this.backButton,
       this.width = 180,
       required this.onPressed,
       required this.isLastPage,
-      required this.onSkipped});
+      required this.onSkipped,
+      this.onBackPressed,
+      this.pageIndicator});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,39 +44,90 @@ class OnboardingPage extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                  fontSize: 30,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF292524)),
             ),
             Text(subTitle,
                 style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 17,
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade600),
+                    color: Colors.black),
                 textAlign: TextAlign.center),
             SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 122, 171, 255),
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              ),
-              onPressed: onPressed,
-              child: Text(
-                buttonText,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-              ),
+            if (pageIndicator != null) ...[
+              pageIndicator!,
+              SizedBox(height: 20),
+            ],
+            Row(
+              spacing: 15,
+              children: [
+                if (backButton)
+                  OutlinedButton(
+                      onPressed: onBackPressed ?? () {},
+                      style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.black,
+                          side: const BorderSide(color: Colors.black45),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 18),
+                          overlayColor: Colors.grey),
+                      child: Row(
+                        spacing: 6,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.arrow_back_ios),
+                          Text(
+                            'Back',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      )),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF292524),
+                      foregroundColor: Colors.white,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                    ),
+                    onPressed: onPressed,
+                    child: buttonText.contains('Next')
+                        ? Row(
+                            spacing: 6,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                buttonText,
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.w500),
+                              ),
+                              Icon(Icons.arrow_forward_ios),
+                            ],
+                          )
+                        : Text(
+                            buttonText,
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w500),
+                          ),
+                  ),
+                ),
+              ],
             ),
-            if (!isLastPage)
+            if (!isLastPage) ...[
+              const SizedBox(
+                height: 20,
+              ),
               TextButton(
                   onPressed: onSkipped,
                   child: Text(
                     "Skip",
                     style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w500,
                         color: Colors.grey.shade600),
                   ))
+            ]
           ],
         ),
       ),
