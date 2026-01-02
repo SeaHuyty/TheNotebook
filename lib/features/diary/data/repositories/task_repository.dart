@@ -55,6 +55,12 @@ class TaskRepository {
         .toList();
   }
 
+  Future<void> deleteTasksByDiaryId(int diaryId) async {
+    await (_db.delete(_db.tasks)
+          ..where((tbl) => tbl.diaryId.equals(diaryId)))
+        .go();
+  }
+
   void dispose() {
     _db.close();
   }

@@ -3,9 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/create_diary.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
-import 'package:the_notebook/features/diary/presentation/widgets/month_filter.dart';
+// import 'package:the_notebook/features/diary/presentation/widgets/month_filter.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../widgets/diary_timeline_widget.dart';
@@ -21,16 +20,15 @@ class DiaryPage extends StatefulWidget {
 }
 
 class _DiaryPageState extends State<DiaryPage> {
-  bool isCalendarVisible = false;
-  DateTime selectedDate = DateTime.now();
-  String currentMonth = DateTime.now().month.toString();
+  bool isMonthSelectorExpanded = false;
+  String currentMonth = DateFormat('MMMM').format(DateTime.now());
   final ItemScrollController _scrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
 
   int selectedYear = DateTime.now().year;
   List<int> availableYears = [];
-
+  Set<String> availableMonths = {};
   List<Diary> sortedEntries = [];
 
   @override
@@ -40,16 +38,15 @@ class _DiaryPageState extends State<DiaryPage> {
   }
 
   Future<void> loadEntries() async {
-    final entries = await widget.repo.getDiaryEntries();
-    setState(() {
-      sortedEntries = List.from(entries)
-        ..sort((a, b) => a.date.compareTo(b.date));
+    final entries = await widget.repo.getDiaryEntriesByYear(selectedYear);
+    final years = await widget.repo.getAvailableYears();
 
-      availableYears = sortedEntries
-          .map((entry) => entry.date.year)
-          .toSet()
-          .toList()
-        ..sort((a, b) => b.compareTo(a));
+    setState(() {
+      sortedEntries = entries;
+      availableYears = years;
+      availableMonths = sortedEntries
+          .map((entry) => DateFormat('MMMM').format(entry.date))
+          .toSet();
     });
 
     // Move the scroll-to-today logic, after data is loaded
@@ -60,12 +57,6 @@ class _DiaryPageState extends State<DiaryPage> {
         _scrollController.jumpTo(index: todayIndex);
       }
     });
-  }
-
-  List<Diary> getFilteredEntries() {
-    return sortedEntries
-        .where((entry) => entry.date.year == selectedYear)
-        .toList();
   }
 
   void showYearFilter() {
@@ -82,7 +73,9 @@ class _DiaryPageState extends State<DiaryPage> {
                               Navigator.pop(context);
                               setState(() {
                                 selectedYear = availableYears[index];
+                                isMonthSelectorExpanded = false;
                               });
+                              loadEntries();
                             },
                           )),
                 )
@@ -153,35 +146,24 @@ class _DiaryPageState extends State<DiaryPage> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         surfaceTintColor: Colors.transparent,
         actions: [
-          MonthFilter(
-            currentMonth: currentMonth,
-            sortedEntries: sortedEntries,
-            scrollController: _scrollController,
-          ),
+          TextButton(
+              onPressed: () {
+                setState(() {
+                  isMonthSelectorExpanded = !isMonthSelectorExpanded;
+                });
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(currentMonth,
+                      style: TextStyle(fontSize: 18, color: Colors.black)),
+                  const Icon(Icons.arrow_drop_down, color: Colors.black),
+                ],
+              )),
         ],
       ),
       body: Stack(
         children: [
-          if (isCalendarVisible)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Material(
-                elevation: 3,
-                child: TableCalendar(
-                  focusedDay: DateTime.now(),
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.now(),
-                  calendarFormat: CalendarFormat.month,
-                  availableCalendarFormats: const {
-                    CalendarFormat.month: 'Month',
-                  },
-                  availableGestures: AvailableGestures.all,
-                  pageJumpingEnabled: true,
-                ),
-              ),
-            ),
           ScrollConfiguration(
             behavior: ScrollConfiguration.of(
               context,
@@ -197,11 +179,10 @@ class _DiaryPageState extends State<DiaryPage> {
                       top: 16,
                       bottom: 300,
                     ),
-                    itemCount: getFilteredEntries().length,
+                    itemCount: sortedEntries.length,
                     itemBuilder: (context, index) {
-                      final filteredEntries = getFilteredEntries();
-                      final entry = filteredEntries[index];
-                      final isLastEntry = index == filteredEntries.length - 1;
+                      final entry = sortedEntries[index];
+                      final isLastEntry = index == sortedEntries.length - 1;
                       return VisibilityDetector(
                         key: Key('diary-entry-$index'),
                         onVisibilityChanged: (VisibilityInfo info) {
@@ -296,6 +277,57 @@ class _DiaryPageState extends State<DiaryPage> {
               ),
             ),
           ),
+          if (isMonthSelectorExpanded)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: AnimatedSlide(
+                duration: Duration(milliseconds: 300),
+                offset: isMonthSelectorExpanded ? Offset(0, 0) : Offset(0, -1),
+                child: Container(
+                    height: 60,
+                    decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
+                    child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: availableMonths.length,
+                        itemBuilder: (context, index) {
+                          final months = availableMonths.toList();
+                          final month = months[index];
+                          final isSelected = month == currentMonth;
+                
+                          return Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 6),
+                            child: ChoiceChip(
+                                label: Text(month.substring(0, 3)),
+                                showCheckmark: false,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+
+                                selected: isSelected,
+                                onSelected: (isSelected) {
+                                  int index = sortedEntries.indexWhere((entry) {
+                                    String entryMonth =
+                                        DateFormat('MMMM').format(entry.date);
+                                    return entryMonth == month;
+                                  });
+                
+                                  if (index != -1) {
+                                    _scrollController.scrollTo(
+                                      index: index,
+                                      duration: Duration(milliseconds: 500),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  }
+                
+                                  setState(() {
+                                    currentMonth = month;
+                                    isMonthSelectorExpanded = false;
+                                  });
+                                }),
+                          );
+                        })),
+              ),
+            ),
         ],
       ),
     );
