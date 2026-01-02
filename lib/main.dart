@@ -10,7 +10,6 @@ void main() async {
   final diaryRepo = DiaryRepository();
   final notebookRepo = NotebookRepository();
 
-  await notebookRepo.seedIfEmpty();
   await diaryRepo.seedIfEmpty();
 
   // Develop on Web Browser

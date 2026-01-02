@@ -23,14 +23,18 @@ class $NotebooksTable extends Notebooks
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
       'title', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _categoryMeta =
-      const VerificationMeta('category');
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
   @override
-  late final GeneratedColumn<int> category = GeneratedColumn<int>(
-      'category', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+      'icon', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
   @override
-  List<GeneratedColumn> get $columns => [id, title, category];
+  late final GeneratedColumn<int> color = GeneratedColumn<int>(
+      'color', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, title, icon, color];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -50,11 +54,15 @@ class $NotebooksTable extends Notebooks
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
-    if (data.containsKey('category')) {
-      context.handle(_categoryMeta,
-          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    if (data.containsKey('icon')) {
+      context.handle(
+          _iconMeta, icon.isAcceptableOrUnknown(data['icon']!, _iconMeta));
     } else if (isInserting) {
-      context.missing(_categoryMeta);
+      context.missing(_iconMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
     }
     return context;
   }
@@ -69,8 +77,10 @@ class $NotebooksTable extends Notebooks
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      category: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}category'])!,
+      icon: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}icon'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}color']),
     );
   }
 
@@ -83,15 +93,19 @@ class $NotebooksTable extends Notebooks
 class Notebook extends DataClass implements Insertable<Notebook> {
   final int id;
   final String title;
-  final int category;
+  final String icon;
+  final int? color;
   const Notebook(
-      {required this.id, required this.title, required this.category});
+      {required this.id, required this.title, required this.icon, this.color});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['title'] = Variable<String>(title);
-    map['category'] = Variable<int>(category);
+    map['icon'] = Variable<String>(icon);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<int>(color);
+    }
     return map;
   }
 
@@ -99,7 +113,9 @@ class Notebook extends DataClass implements Insertable<Notebook> {
     return NotebooksCompanion(
       id: Value(id),
       title: Value(title),
-      category: Value(category),
+      icon: Value(icon),
+      color:
+          color == null && nullToAbsent ? const Value.absent() : Value(color),
     );
   }
 
@@ -109,7 +125,8 @@ class Notebook extends DataClass implements Insertable<Notebook> {
     return Notebook(
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
-      category: serializer.fromJson<int>(json['category']),
+      icon: serializer.fromJson<String>(json['icon']),
+      color: serializer.fromJson<int?>(json['color']),
     );
   }
   @override
@@ -118,20 +135,28 @@ class Notebook extends DataClass implements Insertable<Notebook> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
-      'category': serializer.toJson<int>(category),
+      'icon': serializer.toJson<String>(icon),
+      'color': serializer.toJson<int?>(color),
     };
   }
 
-  Notebook copyWith({int? id, String? title, int? category}) => Notebook(
+  Notebook copyWith(
+          {int? id,
+          String? title,
+          String? icon,
+          Value<int?> color = const Value.absent()}) =>
+      Notebook(
         id: id ?? this.id,
         title: title ?? this.title,
-        category: category ?? this.category,
+        icon: icon ?? this.icon,
+        color: color.present ? color.value : this.color,
       );
   Notebook copyWithCompanion(NotebooksCompanion data) {
     return Notebook(
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
-      category: data.category.present ? data.category.value : this.category,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      color: data.color.present ? data.color.value : this.color,
     );
   }
 
@@ -140,55 +165,66 @@ class Notebook extends DataClass implements Insertable<Notebook> {
     return (StringBuffer('Notebook(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('category: $category')
+          ..write('icon: $icon, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, category);
+  int get hashCode => Object.hash(id, title, icon, color);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Notebook &&
           other.id == this.id &&
           other.title == this.title &&
-          other.category == this.category);
+          other.icon == this.icon &&
+          other.color == this.color);
 }
 
 class NotebooksCompanion extends UpdateCompanion<Notebook> {
   final Value<int> id;
   final Value<String> title;
-  final Value<int> category;
+  final Value<String> icon;
+  final Value<int?> color;
   const NotebooksCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
-    this.category = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.color = const Value.absent(),
   });
   NotebooksCompanion.insert({
     this.id = const Value.absent(),
     required String title,
-    required int category,
+    required String icon,
+    this.color = const Value.absent(),
   })  : title = Value(title),
-        category = Value(category);
+        icon = Value(icon);
   static Insertable<Notebook> custom({
     Expression<int>? id,
     Expression<String>? title,
-    Expression<int>? category,
+    Expression<String>? icon,
+    Expression<int>? color,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
-      if (category != null) 'category': category,
+      if (icon != null) 'icon': icon,
+      if (color != null) 'color': color,
     });
   }
 
   NotebooksCompanion copyWith(
-      {Value<int>? id, Value<String>? title, Value<int>? category}) {
+      {Value<int>? id,
+      Value<String>? title,
+      Value<String>? icon,
+      Value<int?>? color}) {
     return NotebooksCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
-      category: category ?? this.category,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
     );
   }
 
@@ -201,8 +237,11 @@ class NotebooksCompanion extends UpdateCompanion<Notebook> {
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
-    if (category.present) {
-      map['category'] = Variable<int>(category.value);
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<int>(color.value);
     }
     return map;
   }
@@ -212,7 +251,8 @@ class NotebooksCompanion extends UpdateCompanion<Notebook> {
     return (StringBuffer('NotebooksCompanion(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('category: $category')
+          ..write('icon: $icon, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
@@ -1031,12 +1071,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$NotebooksTableCreateCompanionBuilder = NotebooksCompanion Function({
   Value<int> id,
   required String title,
-  required int category,
+  required String icon,
+  Value<int?> color,
 });
 typedef $$NotebooksTableUpdateCompanionBuilder = NotebooksCompanion Function({
   Value<int> id,
   Value<String> title,
-  Value<int> category,
+  Value<String> icon,
+  Value<int?> color,
 });
 
 class $$NotebooksTableFilterComposer
@@ -1054,8 +1096,11 @@ class $$NotebooksTableFilterComposer
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get category => $composableBuilder(
-      column: $table.category, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
 }
 
 class $$NotebooksTableOrderingComposer
@@ -1073,8 +1118,11 @@ class $$NotebooksTableOrderingComposer
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get category => $composableBuilder(
-      column: $table.category, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
 }
 
 class $$NotebooksTableAnnotationComposer
@@ -1092,8 +1140,11 @@ class $$NotebooksTableAnnotationComposer
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
-  GeneratedColumn<int> get category =>
-      $composableBuilder(column: $table.category, builder: (column) => column);
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<int> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
 }
 
 class $$NotebooksTableTableManager extends RootTableManager<
@@ -1121,22 +1172,26 @@ class $$NotebooksTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> title = const Value.absent(),
-            Value<int> category = const Value.absent(),
+            Value<String> icon = const Value.absent(),
+            Value<int?> color = const Value.absent(),
           }) =>
               NotebooksCompanion(
             id: id,
             title: title,
-            category: category,
+            icon: icon,
+            color: color,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String title,
-            required int category,
+            required String icon,
+            Value<int?> color = const Value.absent(),
           }) =>
               NotebooksCompanion.insert(
             id: id,
             title: title,
-            category: category,
+            icon: icon,
+            color: color,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

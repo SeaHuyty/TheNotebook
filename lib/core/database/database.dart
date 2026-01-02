@@ -6,7 +6,8 @@ part 'database.g.dart';
 class Notebooks extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text()();
-  IntColumn get category => integer()();
+  TextColumn get icon => text()();
+  IntColumn get color => integer().nullable()(); 
 }
 
 class Diaries extends Table {

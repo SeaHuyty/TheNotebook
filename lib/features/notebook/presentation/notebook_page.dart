@@ -4,7 +4,13 @@ import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
 import 'package:the_notebook/features/notebook/model/notebook.dart';
 import 'package:the_notebook/features/notebook/presentation/notebook_form.dart';
+import 'package:the_notebook/features/notebook/widgets/notebook_tile.dart';
 import 'package:the_notebook/shared/widgets/app_drawer.dart';
+
+const home = "assets/images/home.png";
+const work = "assets/images/work.png";
+const travel = "assets/images/travel.png";
+const movie = "assets/images/movie.png";
 
 class NotebookPage extends StatefulWidget {
   const NotebookPage(
@@ -36,6 +42,7 @@ class _NotebookPageState extends State<NotebookPage> {
   void onAddNotebook() async {
     final newNotebook = await showModalBottomSheet<Notebook>(
       context: context,
+      isScrollControlled: true,
       builder: (context) => const NotebookForm(isEdited: false),
     );
     if (newNotebook != null) {
@@ -46,7 +53,8 @@ class _NotebookPageState extends State<NotebookPage> {
             Notebook(
                 id: newId,
                 title: newNotebook.title,
-                category: newNotebook.category));
+                icon: newNotebook.icon,
+                color: newNotebook.color));
       });
     }
   }
@@ -54,6 +62,7 @@ class _NotebookPageState extends State<NotebookPage> {
   void onEdit(Notebook notebook) async {
     final updated = await showModalBottomSheet<Notebook>(
       context: context,
+      isScrollControlled: true,
       builder: (context) => NotebookForm(notebook: notebook, isEdited: true),
     );
     if (updated != null && updated.id != null) {
@@ -71,18 +80,12 @@ class _NotebookPageState extends State<NotebookPage> {
     final index = notebookList.indexOf(notebook);
     if (index == -1) return;
 
-    final removedNotebook = notebookList[index];
-
-    setState(() {
-      notebookList.removeAt(index);
-    });
-    
     try {
       await widget.notebookRepo.deleteNotebook(notebook.id!);
-    } catch (error) {
       setState(() {
-        notebookList.insert(index, removedNotebook);
+        notebookList.removeAt(index);
       });
+    } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to delete notebook")),
       );
@@ -152,72 +155,6 @@ class _NotebookPageState extends State<NotebookPage> {
       ),
       drawer: AppDrawer(currentPage: 'notebook'),
       body: Padding(padding: EdgeInsets.all(20), child: content),
-    );
-  }
-}
-
-class NotebookTile extends StatelessWidget {
-  final Notebook notebook;
-  final VoidCallback openDiary;
-  final VoidCallback onDismissed;
-  final VoidCallback onEdit;
-
-  const NotebookTile(
-      {super.key,
-      required this.notebook,
-      required this.openDiary,
-      required this.onDismissed,
-      required this.onEdit});
-
-  @override
-  Widget build(BuildContext context) {
-    return Dismissible(
-      key: ValueKey(notebook.id),
-      direction: DismissDirection.horizontal,
-      background: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 20),
-        child: const Icon(Icons.delete, color: Colors.red),
-      ),
-      secondaryBackground: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.red),
-      ),
-      confirmDismiss: (direction) async {
-        final bool? confirm = await showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text("Delete Notebook"),
-                content: const Text(
-                    "Are you sure you want to delete this notebook? This action cannot be undone"),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: Text("Cancel")),
-                  TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: Text("Okay")),
-                ],
-              );
-            });
-        return confirm;
-      },
-      onDismissed: (direction) => onDismissed(),
-      child: Container(
-        padding: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.grey.shade400, width: 1.0)),
-        child: ListTile(
-          title: Text(notebook.title,
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          trailing: Icon(notebook.icon, size: 20),
-          onTap: openDiary,
-          onLongPress: onEdit,
-        ),
-      ),
     );
   }
 }

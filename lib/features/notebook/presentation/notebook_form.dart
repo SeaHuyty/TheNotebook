@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/notebook/model/notebook.dart';
+import 'package:the_notebook/features/notebook/widgets/color_block.dart';
+import 'package:the_notebook/features/notebook/widgets/form_button.dart';
+import 'package:the_notebook/features/notebook/widgets/icon_picker.dart';
 
 class NotebookForm extends StatefulWidget {
   final Notebook? notebook;
@@ -13,7 +16,29 @@ class NotebookForm extends StatefulWidget {
 
 class _NotebookFormState extends State<NotebookForm> {
   final titleController = TextEditingController();
-  NotebookType selectedCategory = NotebookType.life;
+  String selectedIcon = home;
+  Color selectedColor = Colors.transparent;
+
+  final availableColors = [
+    Colors.transparent,
+    Colors.lightBlueAccent,
+    Colors.lightGreenAccent,
+    Colors.orangeAccent,
+    Colors.purpleAccent,
+    Colors.redAccent,
+    Colors.yellowAccent,
+    Colors.pinkAccent,
+  ];
+
+  final availableIcons = [
+    home,
+    work,
+    travel,
+    movie,
+    food,
+    gym,
+    journal,
+  ];
 
   InputDecoration inputDecoration = InputDecoration(
     hintText: "Enter title",
@@ -37,9 +62,9 @@ class _NotebookFormState extends State<NotebookForm> {
   void initState() {
     if (widget.isEdited) {
       titleController.text = widget.notebook!.title;
-      selectedCategory = widget.notebook!.category;
+      selectedIcon = widget.notebook!.icon;
+      selectedColor = widget.notebook!.color ?? Colors.transparent;
     }
-    
     super.initState();
   }
 
@@ -55,7 +80,11 @@ class _NotebookFormState extends State<NotebookForm> {
 
     final title = titleController.text;
 
-    Notebook newNotebook = Notebook(id: widget.notebook?.id, title: title, category: selectedCategory);
+    Notebook newNotebook = Notebook(
+        id: widget.notebook?.id,
+        title: title,
+        icon: selectedIcon,
+        color: selectedColor);
 
     Navigator.of(context).pop(newNotebook);
   }
@@ -71,19 +100,32 @@ class _NotebookFormState extends State<NotebookForm> {
     return null;
   }
 
+  void onIconChange(icon) {
+    setState(() {
+      selectedIcon = icon;
+    });
+  }
+
+  void onColorChanged(color) {
+    setState(() {
+      selectedColor = color;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 20,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(widget.isEdited ? "Edit notebook" : "Add new notebook",
-                    style: TextStyle(fontSize: 20)),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 IconButton(onPressed: onClose, icon: Icon(Icons.cancel)),
               ],
             ),
@@ -92,62 +134,38 @@ class _NotebookFormState extends State<NotebookForm> {
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: TextFormField(
                 controller: titleController,
-                maxLength: 20,
+                maxLength: 25,
                 decoration: inputDecoration,
                 validator: (value) => validateTitle(value),
               ),
             ),
-            DropdownButtonFormField<NotebookType>(
-              initialValue: selectedCategory,
-              items: NotebookType.values.map((category) {
-                return DropdownMenuItem<NotebookType>(
-                  value: category,
-                  child: Text(
-                    category.name.toUpperCase(),
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedCategory = value;
-                  });
-                }
-              },
-            ),
+            Text("Icons", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+            IconPicker(
+                selectedIcon: selectedIcon,
+                availableIcons: availableIcons,
+                onIconChange: onIconChange),
+            Text("Colors", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+            ColorBlock(
+                selectedColor: selectedColor,
+                availableColors: availableColors,
+                onColorChange: onColorChanged),
             Row(
               spacing: 10,
               children: [
                 Expanded(
                   flex: 2,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      foregroundColor: Colors.white,
-                      backgroundColor: const Color.fromARGB(255, 122, 171, 255),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: onCreate,
-                    child: Text(widget.isEdited ? "Update" : "Add",
-                        style: TextStyle(fontSize: 16)),
-                  ),
+                  child: FormButton(
+                      textColor: Colors.white,
+                      buttonText: widget.isEdited ? "Update" : "Add",
+                      buttonColor: const Color.fromARGB(255, 122, 171, 255),
+                      onPressed: onCreate),
                 ),
                 Expanded(
                   flex: 1,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: onClose,
-                    child: Text("Cancel", style: TextStyle(fontSize: 16)),
-                  ),
+                  child: FormButton(
+                      textColor: Colors.black,
+                      buttonText: "Cancel",
+                      onPressed: onClose),
                 ),
               ],
             ),
