@@ -1,27 +1,12 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/painting.dart';
 import 'package:the_notebook/core/database/database.dart';
-import 'package:the_notebook/features/notebook/data/seed_notebook_data.dart';
 import 'package:the_notebook/features/notebook/model/notebook.dart' as domain;
 
 class NotebookRepository {
   final AppDatabase _db = AppDatabase();
 
   NotebookRepository();
-
-  // Convert int to enum
-  domain.NotebookType _intToCategory(int i) => domain.NotebookType.values[i];
-
-  // Convert enum to int
-  int _categoryToInt(domain.NotebookType category) => category.index;
-
-  Future<void> seedIfEmpty() async {
-    final existing = await _db.select(_db.notebooks).get();
-    if (existing.isNotEmpty) return;
-
-    for (var entry in notebookList) {
-      await insertNotebook(entry);
-    }
-  }
 
   Future<List<domain.Notebook>> getNotebooks() async {
     final notebooks = await _db.select(_db.notebooks).get();
@@ -31,7 +16,8 @@ class NotebookRepository {
           (n) => domain.Notebook(
             id: n.id,
             title: n.title,
-            category: _intToCategory(n.category),
+            icon: n.icon,
+            color: n.color != null ? Color(n.color!) : null,
           ),
         )
         .toList();
@@ -41,26 +27,25 @@ class NotebookRepository {
     return _db.into(_db.notebooks).insert(
           NotebooksCompanion(
             title: Value(notebook.title),
-            category: Value(_categoryToInt(notebook.category)),
+            icon: Value(notebook.icon),
+            color: Value(notebook.color?.toARGB32()),
           ),
         );
   }
 
   Future<void> updateNotebook(domain.Notebook notebook) {
-    return (_db.update(_db.notebooks)
-          ..where((n) => n.id.equals(notebook.id!)))
+    return (_db.update(_db.notebooks)..where((n) => n.id.equals(notebook.id!)))
         .write(
       NotebooksCompanion(
         title: Value(notebook.title),
-        category: Value(_categoryToInt(notebook.category)),
+        icon: Value(notebook.icon),
+        color: Value(notebook.color?.toARGB32()),
       ),
     );
   }
 
   Future<void> deleteNotebook(int id) {
-    return (_db.delete(_db.notebooks)
-          ..where((n) => n.id.equals(id)))
-        .go();
+    return (_db.delete(_db.notebooks)..where((n) => n.id.equals(id))).go();
   }
 
   void dispose() {
