@@ -161,6 +161,17 @@ class DiaryRepository {
     return years;
   }
 
+  Future<bool> deleteDiary(int diaryId) async {
+    try {
+      await _taskRepo.deleteTasksByDiaryId(diaryId);
+      await _imageRepo.deleteImageByDiaryId(diaryId);
+      await (_db.delete(_db.diaries)..where((d) => d.id.equals(diaryId))).go();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   void dispose() {
     _db.close();
     _taskRepo.dispose();

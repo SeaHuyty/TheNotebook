@@ -48,6 +48,34 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     }
   }
 
+  void onDelete() async {
+    final result = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text('Delete diary'),
+              content: Text('Are you sure? This can not be undone'),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, false);
+                    },
+                    child: Text('Cancel')),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                    child: Text('Delete')),
+              ],
+            ));
+
+    if (result) {
+      final success = await widget.repo.deleteDiary(currentDiary.id!);
+      if (success && mounted) {
+        Navigator.pop(context, true);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,7 +85,32 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
               Navigator.pop(context, wasEdited);
             },
             icon: const Icon(Icons.arrow_back_ios)),
-        actions: [TextButton(onPressed: onEdit, child: Text('Edit'))],
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: PopupMenuButton<String>(
+              icon: Icon(Icons.more_horiz),
+              onSelected: (value) {
+                if (value == 'edit') onEdit();
+                if (value == 'delete') onDelete();
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      spacing: 10,
+                      children: [Icon(Icons.edit), Text('Edit')],
+                    )),
+                PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      spacing: 10,
+                      children: [Icon(Icons.delete), Text('Delete')],
+                    )),
+              ],
+            ),
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(15),
