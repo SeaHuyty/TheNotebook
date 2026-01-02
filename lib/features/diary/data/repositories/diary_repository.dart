@@ -117,6 +117,50 @@ class DiaryRepository {
     );
   }
 
+  Future<List<domain.Diary>> getDiaryEntriesByYear(int year) async {
+    final startOfYear = DateTime(year, 1, 1);
+    final endOfYear = DateTime(year, 12, 31, 23, 59, 59);
+
+    final query = _db.select(_db.diaries)
+      ..where((tbl) =>
+          tbl.date.isBiggerOrEqualValue(startOfYear) &
+          tbl.date.isSmallerOrEqualValue(endOfYear));
+
+    final result = await query.get();
+    final diaries = <domain.Diary>[];
+
+    for (var diary in result) {
+      final tasks = await _taskRepo.getTasksForDiary(diary.id);
+      final image = await _imageRepo.getImageByDiaryId(diary.id);
+
+      diaries.add(
+        domain.Diary(
+            id: diary.id,
+            date: diary.date,
+            content: diary.content,
+            image: image,
+            tasks: tasks),
+      );
+    }
+
+    diaries.sort((a, b) => a.date.compareTo(b.date));
+    return diaries;
+  }
+
+  Future<List<int>> getAvailableYears() async {
+    final query = _db.selectOnly(_db.diaries)..addColumns([_db.diaries.date]);
+
+    final results = await query.get();
+
+    final years = results
+        .map((row) => row.read(_db.diaries.date)!.year)
+        .toSet()
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    return years;
+  }
+
   void dispose() {
     _db.close();
     _taskRepo.dispose();

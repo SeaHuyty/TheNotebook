@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/create_diary.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/month_filter.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -21,8 +20,7 @@ class DiaryPage extends StatefulWidget {
 }
 
 class _DiaryPageState extends State<DiaryPage> {
-  bool isCalendarVisible = false;
-  DateTime selectedDate = DateTime.now();
+  bool isLoading = true;
   String currentMonth = DateTime.now().month.toString();
   final ItemScrollController _scrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
@@ -40,16 +38,12 @@ class _DiaryPageState extends State<DiaryPage> {
   }
 
   Future<void> loadEntries() async {
-    final entries = await widget.repo.getDiaryEntries();
-    setState(() {
-      sortedEntries = List.from(entries)
-        ..sort((a, b) => a.date.compareTo(b.date));
+    final entries = await widget.repo.getDiaryEntriesByYear(selectedYear);
+    final years = await widget.repo.getAvailableYears();
 
-      availableYears = sortedEntries
-          .map((entry) => entry.date.year)
-          .toSet()
-          .toList()
-        ..sort((a, b) => b.compareTo(a));
+    setState(() {
+      sortedEntries = entries;
+      availableYears = years;
     });
 
     // Move the scroll-to-today logic, after data is loaded
@@ -60,12 +54,6 @@ class _DiaryPageState extends State<DiaryPage> {
         _scrollController.jumpTo(index: todayIndex);
       }
     });
-  }
-
-  List<Diary> getFilteredEntries() {
-    return sortedEntries
-        .where((entry) => entry.date.year == selectedYear)
-        .toList();
   }
 
   void showYearFilter() {
@@ -83,6 +71,7 @@ class _DiaryPageState extends State<DiaryPage> {
                               setState(() {
                                 selectedYear = availableYears[index];
                               });
+                              loadEntries();
                             },
                           )),
                 )
@@ -162,26 +151,6 @@ class _DiaryPageState extends State<DiaryPage> {
       ),
       body: Stack(
         children: [
-          if (isCalendarVisible)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Material(
-                elevation: 3,
-                child: TableCalendar(
-                  focusedDay: DateTime.now(),
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.now(),
-                  calendarFormat: CalendarFormat.month,
-                  availableCalendarFormats: const {
-                    CalendarFormat.month: 'Month',
-                  },
-                  availableGestures: AvailableGestures.all,
-                  pageJumpingEnabled: true,
-                ),
-              ),
-            ),
           ScrollConfiguration(
             behavior: ScrollConfiguration.of(
               context,
@@ -197,11 +166,10 @@ class _DiaryPageState extends State<DiaryPage> {
                       top: 16,
                       bottom: 300,
                     ),
-                    itemCount: getFilteredEntries().length,
+                    itemCount: sortedEntries.length,
                     itemBuilder: (context, index) {
-                      final filteredEntries = getFilteredEntries();
-                      final entry = filteredEntries[index];
-                      final isLastEntry = index == filteredEntries.length - 1;
+                      final entry = sortedEntries[index];
+                      final isLastEntry = index == sortedEntries.length - 1;
                       return VisibilityDetector(
                         key: Key('diary-entry-$index'),
                         onVisibilityChanged: (VisibilityInfo info) {
