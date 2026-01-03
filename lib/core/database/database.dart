@@ -14,6 +14,7 @@ class Diaries extends Table {
   IntColumn get id => integer().autoIncrement()();
   DateTimeColumn get date => dateTime()();
   TextColumn get content => text()();
+  IntColumn get notebookId => integer().references(Notebooks, #id)();
 }
 
 class DiaryImages extends Table {
@@ -40,5 +41,5 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => _instance;
   
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 }

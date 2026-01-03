@@ -154,6 +154,12 @@ Run the build runner:
 dart run build_runner build
 ```
 
+Or if you want to delete conflicting outputs first::
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
 This generates `database.g.dart` with all the boilerplate code.
 
 ---

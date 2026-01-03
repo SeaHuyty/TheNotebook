@@ -11,8 +11,9 @@ import 'package:universal_io/universal_io.dart';
 
 class CreateDiaryPage extends StatefulWidget {
   final DiaryRepository repo;
+  final int notebookId;
 
-  const CreateDiaryPage({super.key, required this.repo});
+  const CreateDiaryPage({super.key, required this.repo, required this.notebookId});
 
   @override
   State<CreateDiaryPage> createState() => _CreateDiaryPageState();
@@ -90,7 +91,7 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
       imagePath ??= selectedImage!.path;
     }
 
-    final diary = domain.Diary(
+    final diary = domain.Diary(notebookId: widget.notebookId,
         date: selectedDate, content: descriptionController.text, image: domain.DiaryImage(imagePath: imagePath!, isLandscape: isLandscape!));
 
     await widget.repo.insertDiary(diary);
