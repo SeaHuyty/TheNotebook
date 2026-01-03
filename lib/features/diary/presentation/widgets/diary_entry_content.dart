@@ -31,6 +31,52 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
     expanded = List<bool>.filled(widget.tasks?.length ?? 0, false);
   }
 
+  void onToggleParentTask(int index) {
+    final task = widget.tasks![index];
+    final bool newState = !task.isCompleted;
+
+    setState(() {
+      widget.tasks![index] = Task(
+        id: task.id,
+        title: task.title,
+        isCompleted: newState,
+        subtasks: task.subtasks
+            ?.map((sub) => Task(
+                  id: sub.id,
+                  title: sub.title,
+                  isCompleted: newState,
+                  parentTaskId: task.id,
+                ))
+            .toList(),
+      );
+    });
+  }
+
+  void onToggleSubtask(int parentIndex, int subIndex) {
+    final parent = widget.tasks![parentIndex];
+    final subtasks = [...parent.subtasks!];
+
+    subtasks[subIndex] = Task(
+      id: subtasks[subIndex].id,
+      title: subtasks[subIndex].title,
+      isCompleted: !subtasks[subIndex].isCompleted,
+      parentTaskId: parent.id,
+    );
+
+    final allCompleted = subtasks.every((t) => t.isCompleted);
+
+    setState(() {
+      widget.tasks![parentIndex] = Task(
+        id: parent.id,
+        title: parent.title,
+        isCompleted: allCompleted,
+        subtasks: subtasks,
+      );
+    });
+  }
+
+  void onDelete() {}
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -40,7 +86,9 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: ImageWidget(image: widget.image!,),
+            child: ImageWidget(
+              image: widget.image!,
+            ),
           ),
           const SizedBox(height: 8),
         ],
@@ -57,12 +105,15 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
             Task task = entry.value;
             return TaskCard(
               task: task,
+              onToggleParentTask: () => onToggleParentTask(index),
+              onToggleSubtask: (subIndex) => onToggleSubtask(index, subIndex),
               isExpanded: expanded[index],
               onExpandChanged: (val) {
                 setState(() {
                   expanded[index] = val;
                 });
               },
+              onDelete: onDelete,
             );
           }),
         ],

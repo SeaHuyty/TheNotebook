@@ -9,8 +9,8 @@ class TaskRepository {
 
   Future<int> insertTask(domain.Task task, int diaryId) async {
     return await _db.into(_db.tasks).insert(TasksCompanion.insert(
-      title: task.title ?? '',
-      isDone: Value(task.isDone ?? false),
+      title: task.title,
+      isCompleted: Value(task.isCompleted),
       diaryId: Value(diaryId)
     ));
   }
@@ -28,7 +28,7 @@ class TaskRepository {
         domain.Task(
           id: task.id,
           title: task.title,
-          isDone: task.isDone,
+          isCompleted: task.isCompleted,
           diaryId: task.diaryId,
           subtasks: subtasks.isEmpty ? null : subtasks,
         ),
@@ -47,7 +47,7 @@ class TaskRepository {
           (st) => domain.Task(
             id: st.id,
             title: st.title,
-            isDone: st.isDone,
+            isCompleted: st.isCompleted,
             diaryId: st.diaryId,
             parentTaskId: st.parentTaskId,
           ),

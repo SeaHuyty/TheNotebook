@@ -3,16 +3,20 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'dart:ui' as ui;
 import 'package:path_provider/path_provider.dart';
+import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:universal_io/universal_io.dart';
 
 class CreateDiaryPage extends StatefulWidget {
-  final DiaryRepository repo;
+  final DiaryRepository diaryRepository;
+  final TaskRepository taskRepository;
 
-  const CreateDiaryPage({super.key, required this.repo});
+  const CreateDiaryPage(
+      {super.key, required this.diaryRepository, required this.taskRepository});
 
   @override
   State<CreateDiaryPage> createState() => _CreateDiaryPageState();
@@ -22,10 +26,15 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
   // Inputs
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
+  final TextEditingController taskController = TextEditingController();
+  final TextEditingController subtaskController = TextEditingController();
   final ImagePicker picker = ImagePicker();
   DateTime selectedDate = DateTime.now();
   XFile? selectedImage;
   bool? isLandscape;
+
+  Task? mainTask;
+  List<Task> subtasks = [];
 
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -81,6 +90,20 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
   }
 
   Future<void> createDiary() async {
+    if (mainTask == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please add a main task first.')),
+      );
+      return;
+    }
+
+    // Assign subtasks to main task
+    mainTask = Task(
+      title: mainTask!.title,
+      isCompleted: false,
+      subtasks: subtasks,
+    );
+
     String? imagePath;
 
     if (selectedImage != null) {
@@ -91,9 +114,21 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
     }
 
     final diary = domain.Diary(
-        date: selectedDate, content: descriptionController.text, image: domain.DiaryImage(imagePath: imagePath!, isLandscape: isLandscape!));
+        date: selectedDate,
+        content: descriptionController.text,
+        tasks: [mainTask!],
+        image: selectedImage != null && imagePath != null && isLandscape != null
+            ? domain.DiaryImage(
+                imagePath: imagePath,
+                isLandscape: isLandscape!,
+              )
+            : null);
 
-    await widget.repo.insertDiary(diary);
+    final diaryId = await widget.diaryRepository.insertDiary(diary);
+
+    for (var sub in subtasks) {
+      await widget.taskRepository.insertTask(sub, diaryId);
+    }
     if (mounted) {
       Navigator.pop(context, true);
     }
@@ -179,6 +214,65 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
                     border: InputBorder.none),
               ),
             ),
+            const SizedBox(height: 10),
+            Text(
+              "Task",
+              style: TextStyle(fontSize: 20),
+            ),
+            if (mainTask == null) ...[
+              TextField(
+                controller: taskController,
+                decoration: InputDecoration(
+                  hintText: 'Enter main task title',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      if (taskController.text.isEmpty) return;
+                      setState(() {
+                        mainTask = Task(
+                            title: taskController.text, isCompleted: false);
+                        taskController.clear();
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ],
+
+            // Subtask Input
+            if (mainTask != null) ...[
+              const SizedBox(height: 16),
+              Text('Main Task: ${mainTask!.title}',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: subtaskController,
+                decoration: InputDecoration(
+                  hintText: 'Add a subtask',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      if (subtaskController.text.isEmpty) return;
+                      setState(() {
+                        subtasks.add(Task(
+                            title: subtaskController.text, isCompleted: false));
+                        subtaskController.clear();
+                      });
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (subtasks.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Subtasks:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    ...subtasks.map((s) => Text('- ${s.title}')),
+                  ],
+                ),
+            ],
             const SizedBox(height: 10),
             if (selectedImage != null && isLandscape != null)
               Center(

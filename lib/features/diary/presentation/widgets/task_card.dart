@@ -1,43 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 
-class TaskCard extends StatefulWidget {
+class TaskCard extends StatelessWidget {
   final Task task;
+  final VoidCallback onToggleParentTask;
+  final Function onToggleSubtask;
   final bool isExpanded;
   final ValueChanged<bool> onExpandChanged;
+  final VoidCallback onDelete;
 
-  const TaskCard({
-    super.key,
-    required this.task,
-    required this.isExpanded,
-    required this.onExpandChanged,
-  });
+  const TaskCard(
+      {super.key,
+      required this.task,
+      required this.onToggleParentTask,
+      required this.onToggleSubtask,
+      required this.isExpanded,
+      required this.onExpandChanged,
+      required this.onDelete});
 
-  @override
-  State<TaskCard> createState() => _TaskCardState();
-}
+  Color get radioColor =>
+      task.isCompleted ? Colors.green[500]! : Colors.transparent;
 
-class _TaskCardState extends State<TaskCard> {
-  bool isChecked = false;
-
-  String get buttonText => widget.isExpanded ? "Collapse" : "Expand";
-  IconData get buttonIcon =>
-      widget.isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down;
-
-  Color get radioColor => isChecked ? Colors.green[500]! : Colors.transparent;
-  IconData? get radioIcon => isChecked ? Icons.check : null;
   Border? get radioBorder =>
-      isChecked ? null : Border.all(color: Colors.grey, width: 2);
+      task.isCompleted ? null : Border.all(color: Colors.grey, width: 2);
 
-  void viewToggle() {
-    widget.onExpandChanged(!widget.isExpanded);
-  }
-
-  void radioToggle() {
-    setState(() {
-      isChecked = !isChecked;
-    });
-  }
+  IconData? get radioIcon => task.isCompleted ? Icons.check : null;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +35,7 @@ class _TaskCardState extends State<TaskCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onTap: radioToggle,
+              onTap: onToggleParentTask,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: 18,
@@ -63,60 +50,25 @@ class _TaskCardState extends State<TaskCard> {
                     : const SizedBox.shrink(),
               ),
             ),
-
             const SizedBox(width: 10),
-
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Text(task.title),
+            Row(
               children: [
-                Text(
-                  widget.task.title!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 5),
-
-                Row(
-                  children: [
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.blue, // text color
-                      ),
-                      onPressed: viewToggle,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(buttonIcon, size: 18),
-                          const SizedBox(width: 5),
-                          Text(buttonText, style: TextStyle(fontSize: 12)),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(width: 5),
-
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.blue, // text color
-                      ),
-                      onPressed: () {},
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(Icons.add, size: 18),
-                          SizedBox(width: 5),
-                          Text("Add Sub-task", style: TextStyle(fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                IconButton(
+                    onPressed: () => onExpandChanged(!isExpanded),
+                    icon: AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(Icons.expand_circle_down_outlined),
+                    )),
+                IconButton(
+                    onPressed: onDelete,
+                    icon: Icon(
+                      Icons.remove_circle_outline,
+                      color: Colors.red,
+                    ))
               ],
-            ),
+            )
           ],
         ),
       ],
