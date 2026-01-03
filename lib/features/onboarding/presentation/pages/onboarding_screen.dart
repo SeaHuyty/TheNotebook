@@ -27,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void nextPage() {
     if (_currentPage < _totalPage - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
       );
     } else {
@@ -42,11 +42,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void onSkipped() {
     Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => NotebookPage(
-                  notebookRepo: widget.notebookRepo,
-                  diaryRepo: widget.diaryRepo)));
+        context,
+        MaterialPageRoute(
+            builder: (context) => NotebookPage(
+                notebookRepo: widget.notebookRepo,
+                diaryRepo: widget.diaryRepo)));
+  }
+
+  Widget buildPageIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(_totalPage, (index) {
+        final bool isActive = index == _currentPage;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: EdgeInsets.symmetric(horizontal: 10),
+          width: isActive ? 44 : 12, // Wider rectangle when active
+          height: 12,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6), // Small rounded corners
+            color: isActive
+                ? const Color(0xFF292524)
+                : Colors.grey,
+          ),
+        );
+      }),
+    );
   }
 
   @override
@@ -66,56 +87,53 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
                 children: [
                   OnboardingPage(
-                    title: "Let's get started",
+                    title: "Welcome to TheNotebook",
                     subTitle:
-                        "The Notebook - A flexible space for your thoughts, tasks, and everything in between",
+                        "A flexible space for your thoughts, tasks, and everything in between",
                     buttonText: "Next",
                     assetName: asset1,
                     onPressed: nextPage,
                     isLastPage: false,
                     onSkipped: onSkipped,
+                    backButton: false,
+                    pageIndicator: buildPageIndicator(),
                   ),
                   OnboardingPage(
-                    title: "Customize",
-                    subTitle: "Add photos, tasks, and reminders everyday",
+                    title: "Create Custom Notebooks",
+                    subTitle:
+                        "Organize your life with notebooks tailored to your needs. All your life journey in one place",
                     buttonText: "Next",
                     assetName: asset2,
                     onPressed: nextPage,
                     isLastPage: false,
                     onSkipped: onSkipped,
+                    backButton: true,
+                    onBackPressed: () {
+                      _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut);
+                    },
+                    pageIndicator: buildPageIndicator(),
                   ),
                   OnboardingPage(
-                    title: "Story of your life",
-                    subTitle: "All your journeys in one place",
+                    title: "Stay Organized, Your Way",
+                    subTitle:
+                        "Track tasks, journal your thoughts, or do both in one seamless experience.",
                     buttonText: "Get Started",
                     assetName: asset3,
                     onPressed: nextPage,
                     isLastPage: true,
                     onSkipped: onSkipped,
+                    backButton: true,
+                    onBackPressed: () {
+                      _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut);
+                    },
+                    pageIndicator: buildPageIndicator(),
                   ),
                 ],
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_totalPage, (index) {
-                final bool isActive = index == _currentPage;
-                return AnimatedScale(
-                  duration: const Duration(microseconds: 300),
-                  scale: isActive ? 1.5 : 1.0,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10),
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isActive
-                          ? Color(0xFF292524)
-                          : Colors.grey,
-                    ),
-                  ),
-                );
-              }),
             ),
             SizedBox(height: 30)
           ],
