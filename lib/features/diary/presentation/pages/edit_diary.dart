@@ -30,6 +30,9 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
   // Inputs
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
+  final Map<int, TextEditingController> taskControllers = {};
+  final Map<int, TextEditingController> subtaskControllers = {};
+
   final ImagePicker picker = ImagePicker();
   late DateTime selectedDate;
   XFile? selectedImage;
@@ -149,10 +152,38 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     selectedDate = widget.diary.date;
     tasks = widget.diary.tasks ?? [];
 
+    for (final task in tasks) {
+      if (task.id == null) continue;
+
+      taskControllers[task.id!] = TextEditingController(text: task.title);
+
+      for (final subtask in task.subtasks ?? []) {
+        if (subtask.id == null) continue;
+
+        subtaskControllers[subtask.id!] =
+            TextEditingController(text: subtask.title);
+      }
+    }
+
     if (widget.diary.image != null) {
       selectedImage = XFile(widget.diary.image!.imagePath);
       isLandscape = widget.diary.image!.isLandscape;
     }
+  }
+
+  @override
+  void dispose() {
+    // Dispose the controlers
+    titleController.dispose();
+    descriptionController.dispose();
+
+    for (final c in taskControllers.values) {
+      c.dispose();
+    }
+    for (final c in subtaskControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -253,9 +284,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                     child: Column(
                       children: [
                         TextField(
-                          controller: TextEditingController(text: task.title)
-                            ..selection = TextSelection.fromPosition(
-                                TextPosition(offset: task.title.length)),
+                          controller: taskControllers[task.id]!,
                           decoration: const InputDecoration(
                             labelText: 'Task title',
                             border: OutlineInputBorder(),
@@ -282,30 +311,29 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                             return Padding(
                               padding: const EdgeInsets.only(left: 16, top: 4),
                               child: TextField(
-                                controller:
-                                    TextEditingController(text: subtask.title)
-                                      ..selection = TextSelection.fromPosition(
-                                          TextPosition(
-                                              offset: subtask.title.length)),
+                                controller: subtaskControllers[subtask.id]!,
                                 decoration: const InputDecoration(
                                   labelText: 'Subtask title',
                                   border: OutlineInputBorder(),
                                   isDense: true,
                                 ),
                                 onChanged: (value) {
-                                  final updatedSubtasks = [...task.subtasks!];
-                                  updatedSubtasks[subIndex] = Task(
-                                    id: subtask.id,
-                                    title: value,
-                                    isCompleted: subtask.isCompleted,
-                                    parentTaskId: subtask.parentTaskId,
-                                  );
-                                  tasks[index] = Task(
-                                    id: task.id,
-                                    title: task.title,
-                                    isCompleted: task.isCompleted,
-                                    subtasks: updatedSubtasks,
-                                  );
+                                  setState(() {
+                                    final updatedSubtasks = [...task.subtasks!];
+                                    updatedSubtasks[subIndex] = Task(
+                                      id: subtask.id,
+                                      title: value,
+                                      isCompleted: subtask.isCompleted,
+                                      parentTaskId: subtask.parentTaskId,
+                                    );
+                                    tasks[index] = Task(
+                                      id: task.id,
+                                      title: task.title,
+                                      isCompleted: task.isCompleted,
+                                      parentTaskId: task.parentTaskId,
+                                      subtasks: updatedSubtasks,
+                                    );
+                                  });
                                 },
                               ),
                             );

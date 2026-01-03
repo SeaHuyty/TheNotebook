@@ -81,6 +81,7 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
         id: parent.id,
         title: parent.title,
         isCompleted: allCompleted,
+        parentTaskId: parent.parentTaskId,
         subtasks: subtasks,
       );
     });

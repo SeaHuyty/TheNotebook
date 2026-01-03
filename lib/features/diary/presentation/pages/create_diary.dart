@@ -40,6 +40,16 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
   Task? mainTask;
   List<Task> subtasks = [];
 
+  @override
+  void dispose() {
+    // Dispose the controlers
+    titleController.dispose();
+    descriptionController.dispose();
+    taskController.dispose();
+    subtaskController.dispose();
+    super.dispose();
+  }
+
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
