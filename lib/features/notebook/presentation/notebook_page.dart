@@ -86,19 +86,22 @@ class _NotebookPageState extends State<NotebookPage> {
         notebookList.removeAt(index);
       });
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to delete notebook")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to delete notebook")),
+        );
+      }
     }
   }
 
-  void openDiary() {
+  void openDiary(int notebookId) {
     Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => DiaryPage(
                   diaryRepository: widget.diaryRepo,
                   taskRepository: widget.taskRepo,
+                  notebookId: notebookId
                 )));
   }
 
@@ -115,7 +118,7 @@ class _NotebookPageState extends State<NotebookPage> {
             children: [
               NotebookTile(
                 notebook: notebook,
-                openDiary: () => openDiary(),
+                openDiary: () => openDiary(notebook.id!),
                 onDismissed: () => onDelete(notebook),
                 onEdit: () => onEdit(notebook),
               ),

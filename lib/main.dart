@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:the_notebook/core/database/seed/seed_index.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
@@ -11,8 +12,9 @@ void main() async {
   final diaryRepo = DiaryRepository();
   final notebookRepo = NotebookRepository();
   final taskRepo = TaskRepository();
+  final seedRepo = SeedIndex();
 
-  await diaryRepo.seedIfEmpty();
+  await seedRepo.seedIfEmpty();
 
   // Develop on Web Browser
   runApp(DevicePreview(

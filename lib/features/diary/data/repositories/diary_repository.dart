@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
-import 'package:the_notebook/features/diary/data/seed/seed_data.dart';
 import 'package:the_notebook/core/database/database.dart';
 import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_image_repository.dart';
@@ -21,6 +20,7 @@ class DiaryRepository {
       final image = await _imageRepo.getImageByDiaryId(diary.id);
       result.add(
         domain.Diary(
+          notebookId: diary.notebookId,
           id: diary.id,
           date: diary.date,
           content: diary.content,
@@ -34,18 +34,10 @@ class DiaryRepository {
     return result;
   }
 
-  Future<void> seedIfEmpty() async {
-    final existing = await _db.select(_db.diaries).get();
-    if (existing.isNotEmpty) return;
-
-    for (var entry in sampleDiaries) {
-      await insertDiary(entry);
-    }
-  }
-
   Future<int> insertDiary(domain.Diary diary) async {
     final diaryId = await _db.into(_db.diaries).insert(
           DiariesCompanion(
+            notebookId: Value(diary.notebookId),
             date: Value(diary.date),
             content: Value(diary.content),
           ),
@@ -110,6 +102,7 @@ class DiaryRepository {
 
     return domain.Diary(
       id: diary.id,
+      notebookId: diary.notebookId,
       date: diary.date,
       content: diary.content,
       image: image,
@@ -136,6 +129,7 @@ class DiaryRepository {
       diaries.add(
         domain.Diary(
             id: diary.id,
+            notebookId: diary.notebookId,
             date: diary.date,
             content: diary.content,
             image: image,

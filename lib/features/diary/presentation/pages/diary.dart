@@ -14,9 +14,13 @@ import '../widgets/diary_entry_content.dart';
 class DiaryPage extends StatefulWidget {
   final DiaryRepository diaryRepository;
   final TaskRepository taskRepository;
+  final int notebookId;
 
   const DiaryPage(
-      {super.key, required this.diaryRepository, required this.taskRepository});
+      {super.key,
+      required this.diaryRepository,
+      required this.taskRepository,
+      required this.notebookId});
 
   @override
   State<DiaryPage> createState() => _DiaryPageState();
@@ -131,6 +135,7 @@ class _DiaryPageState extends State<DiaryPage> {
           builder: (context) => CreateDiaryPage(
                 diaryRepository: widget.diaryRepository,
                 taskRepository: widget.taskRepository,
+                notebookId: widget.notebookId,
               )),
     );
 

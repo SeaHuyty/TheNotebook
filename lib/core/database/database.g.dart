@@ -283,8 +283,17 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
       'content', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _notebookIdMeta =
+      const VerificationMeta('notebookId');
   @override
-  List<GeneratedColumn> get $columns => [id, date, content];
+  late final GeneratedColumn<int> notebookId = GeneratedColumn<int>(
+      'notebook_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES notebooks (id)'));
+  @override
+  List<GeneratedColumn> get $columns => [id, date, content, notebookId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -310,6 +319,14 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
+    if (data.containsKey('notebook_id')) {
+      context.handle(
+          _notebookIdMeta,
+          notebookId.isAcceptableOrUnknown(
+              data['notebook_id']!, _notebookIdMeta));
+    } else if (isInserting) {
+      context.missing(_notebookIdMeta);
+    }
     return context;
   }
 
@@ -325,6 +342,8 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
       content: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      notebookId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}notebook_id'])!,
     );
   }
 
@@ -338,13 +357,19 @@ class Diary extends DataClass implements Insertable<Diary> {
   final int id;
   final DateTime date;
   final String content;
-  const Diary({required this.id, required this.date, required this.content});
+  final int notebookId;
+  const Diary(
+      {required this.id,
+      required this.date,
+      required this.content,
+      required this.notebookId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['date'] = Variable<DateTime>(date);
     map['content'] = Variable<String>(content);
+    map['notebook_id'] = Variable<int>(notebookId);
     return map;
   }
 
@@ -353,6 +378,7 @@ class Diary extends DataClass implements Insertable<Diary> {
       id: Value(id),
       date: Value(date),
       content: Value(content),
+      notebookId: Value(notebookId),
     );
   }
 
@@ -363,6 +389,7 @@ class Diary extends DataClass implements Insertable<Diary> {
       id: serializer.fromJson<int>(json['id']),
       date: serializer.fromJson<DateTime>(json['date']),
       content: serializer.fromJson<String>(json['content']),
+      notebookId: serializer.fromJson<int>(json['notebookId']),
     );
   }
   @override
@@ -372,19 +399,24 @@ class Diary extends DataClass implements Insertable<Diary> {
       'id': serializer.toJson<int>(id),
       'date': serializer.toJson<DateTime>(date),
       'content': serializer.toJson<String>(content),
+      'notebookId': serializer.toJson<int>(notebookId),
     };
   }
 
-  Diary copyWith({int? id, DateTime? date, String? content}) => Diary(
+  Diary copyWith({int? id, DateTime? date, String? content, int? notebookId}) =>
+      Diary(
         id: id ?? this.id,
         date: date ?? this.date,
         content: content ?? this.content,
+        notebookId: notebookId ?? this.notebookId,
       );
   Diary copyWithCompanion(DiariesCompanion data) {
     return Diary(
       id: data.id.present ? data.id.value : this.id,
       date: data.date.present ? data.date.value : this.date,
       content: data.content.present ? data.content.value : this.content,
+      notebookId:
+          data.notebookId.present ? data.notebookId.value : this.notebookId,
     );
   }
 
@@ -393,55 +425,67 @@ class Diary extends DataClass implements Insertable<Diary> {
     return (StringBuffer('Diary(')
           ..write('id: $id, ')
           ..write('date: $date, ')
-          ..write('content: $content')
+          ..write('content: $content, ')
+          ..write('notebookId: $notebookId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, date, content);
+  int get hashCode => Object.hash(id, date, content, notebookId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Diary &&
           other.id == this.id &&
           other.date == this.date &&
-          other.content == this.content);
+          other.content == this.content &&
+          other.notebookId == this.notebookId);
 }
 
 class DiariesCompanion extends UpdateCompanion<Diary> {
   final Value<int> id;
   final Value<DateTime> date;
   final Value<String> content;
+  final Value<int> notebookId;
   const DiariesCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
     this.content = const Value.absent(),
+    this.notebookId = const Value.absent(),
   });
   DiariesCompanion.insert({
     this.id = const Value.absent(),
     required DateTime date,
     required String content,
+    required int notebookId,
   })  : date = Value(date),
-        content = Value(content);
+        content = Value(content),
+        notebookId = Value(notebookId);
   static Insertable<Diary> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
     Expression<String>? content,
+    Expression<int>? notebookId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (date != null) 'date': date,
       if (content != null) 'content': content,
+      if (notebookId != null) 'notebook_id': notebookId,
     });
   }
 
   DiariesCompanion copyWith(
-      {Value<int>? id, Value<DateTime>? date, Value<String>? content}) {
+      {Value<int>? id,
+      Value<DateTime>? date,
+      Value<String>? content,
+      Value<int>? notebookId}) {
     return DiariesCompanion(
       id: id ?? this.id,
       date: date ?? this.date,
       content: content ?? this.content,
+      notebookId: notebookId ?? this.notebookId,
     );
   }
 
@@ -457,6 +501,9 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     if (content.present) {
       map['content'] = Variable<String>(content.value);
     }
+    if (notebookId.present) {
+      map['notebook_id'] = Variable<int>(notebookId.value);
+    }
     return map;
   }
 
@@ -465,7 +512,8 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     return (StringBuffer('DiariesCompanion(')
           ..write('id: $id, ')
           ..write('date: $date, ')
-          ..write('content: $content')
+          ..write('content: $content, ')
+          ..write('notebookId: $notebookId')
           ..write(')'))
         .toString();
   }
@@ -1086,6 +1134,26 @@ typedef $$NotebooksTableUpdateCompanionBuilder = NotebooksCompanion Function({
   Value<int?> color,
 });
 
+final class $$NotebooksTableReferences
+    extends BaseReferences<_$AppDatabase, $NotebooksTable, Notebook> {
+  $$NotebooksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$DiariesTable, List<Diary>> _diariesRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.diaries,
+          aliasName:
+              $_aliasNameGenerator(db.notebooks.id, db.diaries.notebookId));
+
+  $$DiariesTableProcessedTableManager get diariesRefs {
+    final manager = $$DiariesTableTableManager($_db, $_db.diaries)
+        .filter((f) => f.notebookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_diariesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
 class $$NotebooksTableFilterComposer
     extends Composer<_$AppDatabase, $NotebooksTable> {
   $$NotebooksTableFilterComposer({
@@ -1106,6 +1174,27 @@ class $$NotebooksTableFilterComposer
 
   ColumnFilters<int> get color => $composableBuilder(
       column: $table.color, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> diariesRefs(
+      Expression<bool> Function($$DiariesTableFilterComposer f) f) {
+    final $$DiariesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.notebookId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableFilterComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$NotebooksTableOrderingComposer
@@ -1150,6 +1239,27 @@ class $$NotebooksTableAnnotationComposer
 
   GeneratedColumn<int> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
+
+  Expression<T> diariesRefs<T extends Object>(
+      Expression<T> Function($$DiariesTableAnnotationComposer a) f) {
+    final $$DiariesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.notebookId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$NotebooksTableTableManager extends RootTableManager<
@@ -1161,9 +1271,9 @@ class $$NotebooksTableTableManager extends RootTableManager<
     $$NotebooksTableAnnotationComposer,
     $$NotebooksTableCreateCompanionBuilder,
     $$NotebooksTableUpdateCompanionBuilder,
-    (Notebook, BaseReferences<_$AppDatabase, $NotebooksTable, Notebook>),
+    (Notebook, $$NotebooksTableReferences),
     Notebook,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool diariesRefs})> {
   $$NotebooksTableTableManager(_$AppDatabase db, $NotebooksTable table)
       : super(TableManagerState(
           db: db,
@@ -1199,9 +1309,34 @@ class $$NotebooksTableTableManager extends RootTableManager<
             color: color,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$NotebooksTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({diariesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (diariesRefs) db.diaries],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (diariesRefs)
+                    await $_getPrefetchedData<Notebook, $NotebooksTable, Diary>(
+                        currentTable: table,
+                        referencedTable:
+                            $$NotebooksTableReferences._diariesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$NotebooksTableReferences(db, table, p0)
+                                .diariesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.notebookId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -1214,23 +1349,40 @@ typedef $$NotebooksTableProcessedTableManager = ProcessedTableManager<
     $$NotebooksTableAnnotationComposer,
     $$NotebooksTableCreateCompanionBuilder,
     $$NotebooksTableUpdateCompanionBuilder,
-    (Notebook, BaseReferences<_$AppDatabase, $NotebooksTable, Notebook>),
+    (Notebook, $$NotebooksTableReferences),
     Notebook,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool diariesRefs})>;
 typedef $$DiariesTableCreateCompanionBuilder = DiariesCompanion Function({
   Value<int> id,
   required DateTime date,
   required String content,
+  required int notebookId,
 });
 typedef $$DiariesTableUpdateCompanionBuilder = DiariesCompanion Function({
   Value<int> id,
   Value<DateTime> date,
   Value<String> content,
+  Value<int> notebookId,
 });
 
 final class $$DiariesTableReferences
     extends BaseReferences<_$AppDatabase, $DiariesTable, Diary> {
   $$DiariesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $NotebooksTable _notebookIdTable(_$AppDatabase db) =>
+      db.notebooks.createAlias(
+          $_aliasNameGenerator(db.diaries.notebookId, db.notebooks.id));
+
+  $$NotebooksTableProcessedTableManager get notebookId {
+    final $_column = $_itemColumn<int>('notebook_id')!;
+
+    final manager = $$NotebooksTableTableManager($_db, $_db.notebooks)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_notebookIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
 
   static MultiTypedResultKey<$DiaryImagesTable, List<DiaryImage>>
       _diaryImagesRefsTable(_$AppDatabase db) =>
@@ -1279,6 +1431,26 @@ class $$DiariesTableFilterComposer
 
   ColumnFilters<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnFilters(column));
+
+  $$NotebooksTableFilterComposer get notebookId {
+    final $$NotebooksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.notebookId,
+        referencedTable: $db.notebooks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$NotebooksTableFilterComposer(
+              $db: $db,
+              $table: $db.notebooks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<bool> diaryImagesRefs(
       Expression<bool> Function($$DiaryImagesTableFilterComposer f) f) {
@@ -1340,6 +1512,26 @@ class $$DiariesTableOrderingComposer
 
   ColumnOrderings<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnOrderings(column));
+
+  $$NotebooksTableOrderingComposer get notebookId {
+    final $$NotebooksTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.notebookId,
+        referencedTable: $db.notebooks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$NotebooksTableOrderingComposer(
+              $db: $db,
+              $table: $db.notebooks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$DiariesTableAnnotationComposer
@@ -1359,6 +1551,26 @@ class $$DiariesTableAnnotationComposer
 
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
+
+  $$NotebooksTableAnnotationComposer get notebookId {
+    final $$NotebooksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.notebookId,
+        referencedTable: $db.notebooks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$NotebooksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.notebooks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<T> diaryImagesRefs<T extends Object>(
       Expression<T> Function($$DiaryImagesTableAnnotationComposer a) f) {
@@ -1414,7 +1626,8 @@ class $$DiariesTableTableManager extends RootTableManager<
     $$DiariesTableUpdateCompanionBuilder,
     (Diary, $$DiariesTableReferences),
     Diary,
-    PrefetchHooks Function({bool diaryImagesRefs, bool tasksRefs})> {
+    PrefetchHooks Function(
+        {bool notebookId, bool diaryImagesRefs, bool tasksRefs})> {
   $$DiariesTableTableManager(_$AppDatabase db, $DiariesTable table)
       : super(TableManagerState(
           db: db,
@@ -1429,35 +1642,66 @@ class $$DiariesTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<DateTime> date = const Value.absent(),
             Value<String> content = const Value.absent(),
+            Value<int> notebookId = const Value.absent(),
           }) =>
               DiariesCompanion(
             id: id,
             date: date,
             content: content,
+            notebookId: notebookId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required DateTime date,
             required String content,
+            required int notebookId,
           }) =>
               DiariesCompanion.insert(
             id: id,
             date: date,
             content: content,
+            notebookId: notebookId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) =>
                   (e.readTable(table), $$DiariesTableReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: (
-              {diaryImagesRefs = false, tasksRefs = false}) {
+              {notebookId = false,
+              diaryImagesRefs = false,
+              tasksRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (diaryImagesRefs) db.diaryImages,
                 if (tasksRefs) db.tasks
               ],
-              addJoins: null,
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (notebookId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.notebookId,
+                    referencedTable:
+                        $$DiariesTableReferences._notebookIdTable(db),
+                    referencedColumn:
+                        $$DiariesTableReferences._notebookIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (diaryImagesRefs)
@@ -1501,7 +1745,8 @@ typedef $$DiariesTableProcessedTableManager = ProcessedTableManager<
     $$DiariesTableUpdateCompanionBuilder,
     (Diary, $$DiariesTableReferences),
     Diary,
-    PrefetchHooks Function({bool diaryImagesRefs, bool tasksRefs})>;
+    PrefetchHooks Function(
+        {bool notebookId, bool diaryImagesRefs, bool tasksRefs})>;
 typedef $$DiaryImagesTableCreateCompanionBuilder = DiaryImagesCompanion
     Function({
   Value<int> id,
