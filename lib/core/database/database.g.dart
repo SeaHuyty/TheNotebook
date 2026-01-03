@@ -810,14 +810,15 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
       'title', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _isDoneMeta = const VerificationMeta('isDone');
+  static const VerificationMeta _isCompletedMeta =
+      const VerificationMeta('isCompleted');
   @override
-  late final GeneratedColumn<bool> isDone = GeneratedColumn<bool>(
-      'is_done', aliasedName, false,
+  late final GeneratedColumn<bool> isCompleted = GeneratedColumn<bool>(
+      'is_completed', aliasedName, false,
       type: DriftSqlType.bool,
       requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('CHECK ("is_done" IN (0, 1))'),
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_completed" IN (0, 1))'),
       defaultValue: const Constant(false));
   static const VerificationMeta _diaryIdMeta =
       const VerificationMeta('diaryId');
@@ -839,7 +840,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           GeneratedColumn.constraintIsAlways('REFERENCES tasks (id)'));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, title, isDone, diaryId, parentTaskId];
+      [id, title, isCompleted, diaryId, parentTaskId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -859,9 +860,11 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
-    if (data.containsKey('is_done')) {
-      context.handle(_isDoneMeta,
-          isDone.isAcceptableOrUnknown(data['is_done']!, _isDoneMeta));
+    if (data.containsKey('is_completed')) {
+      context.handle(
+          _isCompletedMeta,
+          isCompleted.isAcceptableOrUnknown(
+              data['is_completed']!, _isCompletedMeta));
     }
     if (data.containsKey('diary_id')) {
       context.handle(_diaryIdMeta,
@@ -886,8 +889,8 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      isDone: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}is_done'])!,
+      isCompleted: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_completed'])!,
       diaryId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}diary_id']),
       parentTaskId: attachedDatabase.typeMapping
@@ -904,13 +907,13 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
 class Task extends DataClass implements Insertable<Task> {
   final int id;
   final String title;
-  final bool isDone;
+  final bool isCompleted;
   final int? diaryId;
   final int? parentTaskId;
   const Task(
       {required this.id,
       required this.title,
-      required this.isDone,
+      required this.isCompleted,
       this.diaryId,
       this.parentTaskId});
   @override
@@ -918,7 +921,7 @@ class Task extends DataClass implements Insertable<Task> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['title'] = Variable<String>(title);
-    map['is_done'] = Variable<bool>(isDone);
+    map['is_completed'] = Variable<bool>(isCompleted);
     if (!nullToAbsent || diaryId != null) {
       map['diary_id'] = Variable<int>(diaryId);
     }
@@ -932,7 +935,7 @@ class Task extends DataClass implements Insertable<Task> {
     return TasksCompanion(
       id: Value(id),
       title: Value(title),
-      isDone: Value(isDone),
+      isCompleted: Value(isCompleted),
       diaryId: diaryId == null && nullToAbsent
           ? const Value.absent()
           : Value(diaryId),
@@ -948,7 +951,7 @@ class Task extends DataClass implements Insertable<Task> {
     return Task(
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
-      isDone: serializer.fromJson<bool>(json['isDone']),
+      isCompleted: serializer.fromJson<bool>(json['isCompleted']),
       diaryId: serializer.fromJson<int?>(json['diaryId']),
       parentTaskId: serializer.fromJson<int?>(json['parentTaskId']),
     );
@@ -959,7 +962,7 @@ class Task extends DataClass implements Insertable<Task> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
-      'isDone': serializer.toJson<bool>(isDone),
+      'isCompleted': serializer.toJson<bool>(isCompleted),
       'diaryId': serializer.toJson<int?>(diaryId),
       'parentTaskId': serializer.toJson<int?>(parentTaskId),
     };
@@ -968,13 +971,13 @@ class Task extends DataClass implements Insertable<Task> {
   Task copyWith(
           {int? id,
           String? title,
-          bool? isDone,
+          bool? isCompleted,
           Value<int?> diaryId = const Value.absent(),
           Value<int?> parentTaskId = const Value.absent()}) =>
       Task(
         id: id ?? this.id,
         title: title ?? this.title,
-        isDone: isDone ?? this.isDone,
+        isCompleted: isCompleted ?? this.isCompleted,
         diaryId: diaryId.present ? diaryId.value : this.diaryId,
         parentTaskId:
             parentTaskId.present ? parentTaskId.value : this.parentTaskId,
@@ -983,7 +986,8 @@ class Task extends DataClass implements Insertable<Task> {
     return Task(
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
-      isDone: data.isDone.present ? data.isDone.value : this.isDone,
+      isCompleted:
+          data.isCompleted.present ? data.isCompleted.value : this.isCompleted,
       diaryId: data.diaryId.present ? data.diaryId.value : this.diaryId,
       parentTaskId: data.parentTaskId.present
           ? data.parentTaskId.value
@@ -996,7 +1000,7 @@ class Task extends DataClass implements Insertable<Task> {
     return (StringBuffer('Task(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('isDone: $isDone, ')
+          ..write('isCompleted: $isCompleted, ')
           ..write('diaryId: $diaryId, ')
           ..write('parentTaskId: $parentTaskId')
           ..write(')'))
@@ -1004,14 +1008,15 @@ class Task extends DataClass implements Insertable<Task> {
   }
 
   @override
-  int get hashCode => Object.hash(id, title, isDone, diaryId, parentTaskId);
+  int get hashCode =>
+      Object.hash(id, title, isCompleted, diaryId, parentTaskId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Task &&
           other.id == this.id &&
           other.title == this.title &&
-          other.isDone == this.isDone &&
+          other.isCompleted == this.isCompleted &&
           other.diaryId == this.diaryId &&
           other.parentTaskId == this.parentTaskId);
 }
@@ -1019,34 +1024,34 @@ class Task extends DataClass implements Insertable<Task> {
 class TasksCompanion extends UpdateCompanion<Task> {
   final Value<int> id;
   final Value<String> title;
-  final Value<bool> isDone;
+  final Value<bool> isCompleted;
   final Value<int?> diaryId;
   final Value<int?> parentTaskId;
   const TasksCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
-    this.isDone = const Value.absent(),
+    this.isCompleted = const Value.absent(),
     this.diaryId = const Value.absent(),
     this.parentTaskId = const Value.absent(),
   });
   TasksCompanion.insert({
     this.id = const Value.absent(),
     required String title,
-    this.isDone = const Value.absent(),
+    this.isCompleted = const Value.absent(),
     this.diaryId = const Value.absent(),
     this.parentTaskId = const Value.absent(),
   }) : title = Value(title);
   static Insertable<Task> custom({
     Expression<int>? id,
     Expression<String>? title,
-    Expression<bool>? isDone,
+    Expression<bool>? isCompleted,
     Expression<int>? diaryId,
     Expression<int>? parentTaskId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
-      if (isDone != null) 'is_done': isDone,
+      if (isCompleted != null) 'is_completed': isCompleted,
       if (diaryId != null) 'diary_id': diaryId,
       if (parentTaskId != null) 'parent_task_id': parentTaskId,
     });
@@ -1055,13 +1060,13 @@ class TasksCompanion extends UpdateCompanion<Task> {
   TasksCompanion copyWith(
       {Value<int>? id,
       Value<String>? title,
-      Value<bool>? isDone,
+      Value<bool>? isCompleted,
       Value<int?>? diaryId,
       Value<int?>? parentTaskId}) {
     return TasksCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
-      isDone: isDone ?? this.isDone,
+      isCompleted: isCompleted ?? this.isCompleted,
       diaryId: diaryId ?? this.diaryId,
       parentTaskId: parentTaskId ?? this.parentTaskId,
     );
@@ -1076,8 +1081,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
-    if (isDone.present) {
-      map['is_done'] = Variable<bool>(isDone.value);
+    if (isCompleted.present) {
+      map['is_completed'] = Variable<bool>(isCompleted.value);
     }
     if (diaryId.present) {
       map['diary_id'] = Variable<int>(diaryId.value);
@@ -1093,7 +1098,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     return (StringBuffer('TasksCompanion(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('isDone: $isDone, ')
+          ..write('isCompleted: $isCompleted, ')
           ..write('diaryId: $diaryId, ')
           ..write('parentTaskId: $parentTaskId')
           ..write(')'))
@@ -1998,14 +2003,14 @@ typedef $$DiaryImagesTableProcessedTableManager = ProcessedTableManager<
 typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   Value<int> id,
   required String title,
-  Value<bool> isDone,
+  Value<bool> isCompleted,
   Value<int?> diaryId,
   Value<int?> parentTaskId,
 });
 typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
   Value<int> id,
   Value<String> title,
-  Value<bool> isDone,
+  Value<bool> isCompleted,
   Value<int?> diaryId,
   Value<int?> parentTaskId,
 });
@@ -2057,8 +2062,8 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<bool> get isDone => $composableBuilder(
-      column: $table.isDone, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => ColumnFilters(column));
 
   $$DiariesTableFilterComposer get diaryId {
     final $$DiariesTableFilterComposer composer = $composerBuilder(
@@ -2116,8 +2121,8 @@ class $$TasksTableOrderingComposer
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<bool> get isDone => $composableBuilder(
-      column: $table.isDone, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => ColumnOrderings(column));
 
   $$DiariesTableOrderingComposer get diaryId {
     final $$DiariesTableOrderingComposer composer = $composerBuilder(
@@ -2175,8 +2180,8 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
-  GeneratedColumn<bool> get isDone =>
-      $composableBuilder(column: $table.isDone, builder: (column) => column);
+  GeneratedColumn<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => column);
 
   $$DiariesTableAnnotationComposer get diaryId {
     final $$DiariesTableAnnotationComposer composer = $composerBuilder(
@@ -2244,28 +2249,28 @@ class $$TasksTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> title = const Value.absent(),
-            Value<bool> isDone = const Value.absent(),
+            Value<bool> isCompleted = const Value.absent(),
             Value<int?> diaryId = const Value.absent(),
             Value<int?> parentTaskId = const Value.absent(),
           }) =>
               TasksCompanion(
             id: id,
             title: title,
-            isDone: isDone,
+            isCompleted: isCompleted,
             diaryId: diaryId,
             parentTaskId: parentTaskId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String title,
-            Value<bool> isDone = const Value.absent(),
+            Value<bool> isCompleted = const Value.absent(),
             Value<int?> diaryId = const Value.absent(),
             Value<int?> parentTaskId = const Value.absent(),
           }) =>
               TasksCompanion.insert(
             id: id,
             title: title,
-            isDone: isDone,
+            isCompleted: isCompleted,
             diaryId: diaryId,
             parentTaskId: parentTaskId,
           ),

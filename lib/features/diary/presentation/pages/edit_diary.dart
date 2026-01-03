@@ -4,16 +4,23 @@ import 'package:path/path.dart' as path;
 import 'dart:ui' as ui;
 import 'package:path_provider/path_provider.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
+import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:universal_io/universal_io.dart';
 
 class EditDiaryPage extends StatefulWidget {
   final domain.Diary diary;
-  final DiaryRepository repo;
+  final DiaryRepository diaryRepository;
+  final TaskRepository taskRepository;
 
-  const EditDiaryPage({super.key, required this.diary, required this.repo});
+  const EditDiaryPage(
+      {super.key,
+      required this.diary,
+      required this.diaryRepository,
+      required this.taskRepository});
 
   @override
   State<EditDiaryPage> createState() => _EditDiaryPageState();
@@ -27,6 +34,8 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
   late DateTime selectedDate;
   XFile? selectedImage;
   bool? isLandscape;
+
+  List<Task> tasks = [];
 
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -106,7 +115,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
         image: domain.DiaryImage(
             imagePath: imagePath!, isLandscape: isLandscape!));
 
-    await widget.repo.updateDiary(diary,
+    await widget.diaryRepository.updateDiary(diary,
         contentChanged: contentChanged,
         dateChanged: dateChanged,
         imageChanged: imageChanged);

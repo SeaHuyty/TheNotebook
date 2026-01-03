@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/pages/edit_diary.dart';
@@ -8,9 +9,14 @@ import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart'
 
 class DiaryDetailPage extends StatefulWidget {
   final Diary diary;
-  final DiaryRepository repo;
+  final DiaryRepository diaryRepository;
+  final TaskRepository taskRepository;
 
-  const DiaryDetailPage({super.key, required this.diary, required this.repo});
+  const DiaryDetailPage(
+      {super.key,
+      required this.diary,
+      required this.diaryRepository,
+      required this.taskRepository});
 
   @override
   State<DiaryDetailPage> createState() => _DiaryDetailPageState();
@@ -28,15 +34,63 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     expanded = List<bool>.filled(widget.diary.tasks?.length ?? 0, false);
   }
 
+  void onToggleParentTask(int index) {
+    final task = currentDiary.tasks![index];
+    final bool newState = !task.isCompleted;
+
+    setState(() {
+      currentDiary.tasks![index] = Task(
+        id: task.id,
+        title: task.title,
+        isCompleted: newState,
+        subtasks: task.subtasks
+            ?.map((sub) => Task(
+                  id: sub.id,
+                  title: sub.title,
+                  isCompleted: newState,
+                  parentTaskId: task.id,
+                ))
+            .toList(),
+      );
+    });
+  }
+
+  void onToggleSubtask(int parentIndex, int subIndex) {
+    final parent = currentDiary.tasks![parentIndex];
+    final subtasks = [...parent.subtasks!];
+
+    subtasks[subIndex] = Task(
+      id: subtasks[subIndex].id,
+      title: subtasks[subIndex].title,
+      isCompleted: !subtasks[subIndex].isCompleted,
+      parentTaskId: parent.id,
+    );
+
+    final allCompleted = subtasks.every((t) => t.isCompleted);
+
+    setState(() {
+      currentDiary.tasks![parentIndex] = Task(
+        id: parent.id,
+        title: parent.title,
+        isCompleted: allCompleted,
+        subtasks: subtasks,
+      );
+    });
+  }
+
   void onEdit() async {
     final result = await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                EditDiaryPage(diary: widget.diary, repo: widget.repo)));
+            builder: (context) => EditDiaryPage(
+                  diary: widget.diary,
+                  diaryRepository: widget.diaryRepository,
+                  taskRepository: widget.taskRepository,
+                )));
 
     if (result == true) {
-      final updatedDiary = await widget.repo.getDiaryById(widget.diary.id!);
+      final updatedDiary =
+          await widget.diaryRepository.getDiaryById(widget.diary.id!);
 
       // Replace this page with updated diary data
       if (mounted && updatedDiary != null) {
@@ -69,7 +123,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
             ));
 
     if (result) {
-      final success = await widget.repo.deleteDiary(currentDiary.id!);
+      final success =
+          await widget.diaryRepository.deleteDiary(currentDiary.id!);
       if (success && mounted) {
         Navigator.pop(context, true);
       }
@@ -164,12 +219,16 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                 Task task = entry.value;
                 return TaskCard(
                   task: task,
+                  onToggleParentTask: () => onToggleParentTask(index),
+                  onToggleSubtask: (subIndex) =>
+                      onToggleSubtask(index, subIndex),
                   isExpanded: expanded[index],
                   onExpandChanged: (val) {
                     setState(() {
                       expanded[index] = val;
                     });
                   },
+                  onDelete: onDelete,
                 );
               }),
             ],

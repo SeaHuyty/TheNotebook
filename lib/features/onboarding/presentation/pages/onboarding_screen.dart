@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
 import 'package:the_notebook/features/notebook/presentation/notebook_page.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_page.dart';
@@ -9,10 +10,14 @@ const asset2 = "assets/images/education-note.svg";
 const asset3 = "assets/images/notepad-checklist.svg";
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen(
-      {super.key, required this.diaryRepo, required this.notebookRepo});
+      {super.key,
+      required this.diaryRepo,
+      required this.notebookRepo,
+      required this.taskRepo});
 
   final DiaryRepository diaryRepo;
   final NotebookRepository notebookRepo;
+  final TaskRepository taskRepo;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -34,8 +39,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           context,
           MaterialPageRoute(
               builder: (context) => NotebookPage(
-                  notebookRepo: widget.notebookRepo,
-                  diaryRepo: widget.diaryRepo)));
+                    notebookRepo: widget.notebookRepo,
+                    diaryRepo: widget.diaryRepo,
+                    taskRepo: widget.taskRepo,
+                  )));
     }
   }
 
@@ -44,8 +51,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         context,
         MaterialPageRoute(
             builder: (context) => NotebookPage(
-                notebookRepo: widget.notebookRepo,
-                diaryRepo: widget.diaryRepo)));
+                  notebookRepo: widget.notebookRepo,
+                  diaryRepo: widget.diaryRepo,
+                  taskRepo: widget.taskRepo,
+                )));
   }
 
   Widget buildPageIndicator() {
@@ -60,9 +69,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           height: 12,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6), // Small rounded corners
-            color: isActive
-                ? const Color(0xFF292524)
-                : Colors.grey,
+            color: isActive ? const Color(0xFF292524) : Colors.grey,
           ),
         );
       }),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
 import 'package:the_notebook/features/notebook/model/notebook.dart';
@@ -9,10 +10,14 @@ import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
 class NotebookPage extends StatefulWidget {
   const NotebookPage(
-      {super.key, required this.notebookRepo, required this.diaryRepo});
+      {super.key,
+      required this.notebookRepo,
+      required this.diaryRepo,
+      required this.taskRepo});
 
   final NotebookRepository notebookRepo;
   final DiaryRepository diaryRepo;
+  final TaskRepository taskRepo;
 
   @override
   State<NotebookPage> createState() => _NotebookPageState();
@@ -93,7 +98,11 @@ class _NotebookPageState extends State<NotebookPage> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => DiaryPage(repo: widget.diaryRepo, notebookId: notebookId)));
+            builder: (context) => DiaryPage(
+                  diaryRepository: widget.diaryRepo,
+                  taskRepository: widget.taskRepo,
+                  notebookId: notebookId
+                )));
   }
 
   @override

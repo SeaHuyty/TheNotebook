@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/create_diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
@@ -11,10 +12,15 @@ import '../widgets/diary_timeline_widget.dart';
 import '../widgets/diary_entry_content.dart';
 
 class DiaryPage extends StatefulWidget {
-  final DiaryRepository repo;
+  final DiaryRepository diaryRepository;
+  final TaskRepository taskRepository;
   final int notebookId;
 
-  const DiaryPage({super.key, required this.repo, required this.notebookId});
+  const DiaryPage(
+      {super.key,
+      required this.diaryRepository,
+      required this.taskRepository,
+      required this.notebookId});
 
   @override
   State<DiaryPage> createState() => _DiaryPageState();
@@ -39,8 +45,9 @@ class _DiaryPageState extends State<DiaryPage> {
   }
 
   Future<void> loadEntries() async {
-    final entries = await widget.repo.getDiaryEntriesByYear(selectedYear);
-    final years = await widget.repo.getAvailableYears();
+    final entries =
+        await widget.diaryRepository.getDiaryEntriesByYear(selectedYear);
+    final years = await widget.diaryRepository.getAvailableYears();
 
     setState(() {
       sortedEntries = entries;
@@ -126,7 +133,9 @@ class _DiaryPageState extends State<DiaryPage> {
       context,
       MaterialPageRoute(
           builder: (context) => CreateDiaryPage(
-                repo: widget.repo, notebookId: widget.notebookId,
+                diaryRepository: widget.diaryRepository,
+                taskRepository: widget.taskRepository,
+                notebookId: widget.notebookId,
               )),
     );
 
@@ -209,7 +218,12 @@ class _DiaryPageState extends State<DiaryPage> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => DiaryDetailPage(
-                                          diary: entry, repo: widget.repo)));
+                                            diary: entry,
+                                            diaryRepository:
+                                                widget.diaryRepository,
+                                            taskRepository:
+                                                widget.taskRepository,
+                                          )));
 
                               if (result == true) {
                                 loadEntries();
@@ -288,7 +302,8 @@ class _DiaryPageState extends State<DiaryPage> {
                 offset: isMonthSelectorExpanded ? Offset(0, 0) : Offset(0, -1),
                 child: Container(
                     height: 60,
-                    decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
+                    decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor),
                     child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: availableMonths.length,
@@ -296,14 +311,14 @@ class _DiaryPageState extends State<DiaryPage> {
                           final months = availableMonths.toList();
                           final month = months[index];
                           final isSelected = month == currentMonth;
-                
+
                           return Padding(
                             padding: EdgeInsets.symmetric(horizontal: 6),
                             child: ChoiceChip(
                                 label: Text(month.substring(0, 3)),
                                 showCheckmark: false,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20)),
                                 selected: isSelected,
                                 onSelected: (isSelected) {
                                   int index = sortedEntries.indexWhere((entry) {
@@ -311,7 +326,7 @@ class _DiaryPageState extends State<DiaryPage> {
                                         DateFormat('MMMM').format(entry.date);
                                     return entryMonth == month;
                                   });
-                
+
                                   if (index != -1) {
                                     _scrollController.scrollTo(
                                       index: index,
@@ -319,7 +334,7 @@ class _DiaryPageState extends State<DiaryPage> {
                                       curve: Curves.easeInOut,
                                     );
                                   }
-                
+
                                   setState(() {
                                     currentMonth = month;
                                     isMonthSelectorExpanded = false;

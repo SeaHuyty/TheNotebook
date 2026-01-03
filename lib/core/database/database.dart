@@ -27,7 +27,7 @@ class DiaryImages extends Table {
 class Tasks extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text()();
-  BoolColumn get isDone => boolean().withDefault(const Constant(false))();
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   IntColumn get diaryId => integer().nullable().references(Diaries, #id)();
   IntColumn get parentTaskId => integer().nullable().references(Tasks, #id)();
 }

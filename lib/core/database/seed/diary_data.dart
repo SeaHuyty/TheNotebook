@@ -12,10 +12,11 @@ final sampleDiaries = [
     tasks: [
       Task(
         title: "Complete project proposal",
+        isCompleted: false,
         subtasks: [
-          Task(title: "Write introduction"),
-          Task(title: "Make diagrams"),
-          Task(title: "Review with team"),
+          Task(title: "Write introduction", isCompleted: false),
+          Task(title: "Make diagrams", isCompleted: false),
+          Task(title: "Review with team", isCompleted: false),
         ],
       ),
     ],
@@ -31,10 +32,11 @@ final sampleDiaries = [
     tasks: [
       Task(
         title: "Complete project proposal",
+        isCompleted: false,
         subtasks: [
-          Task(title: "Write introduction"),
-          Task(title: "Make diagrams"),
-          Task(title: "Review with team"),
+          Task(title: "Write introduction", isCompleted: false),
+          Task(title: "Make diagrams", isCompleted: false),
+          Task(title: "Review with team", isCompleted: false),
         ],
       ),
     ],

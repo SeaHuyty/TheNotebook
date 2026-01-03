@@ -51,8 +51,8 @@ class DiaryRepository {
           for (var subtask in task.subtasks!) {
             await _db.into(_db.tasks).insert(
                   TasksCompanion(
-                    title: Value(subtask.title ?? ''),
-                    isDone: Value(subtask.isDone ?? false),
+                    title: Value(subtask.title),
+                    isCompleted: Value(subtask.isCompleted),
                     diaryId: Value(diaryId),
                     parentTaskId: Value(taskId),
                   ),
