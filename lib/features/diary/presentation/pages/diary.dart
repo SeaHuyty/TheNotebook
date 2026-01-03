@@ -266,10 +266,18 @@ class _DiaryPageState extends State<DiaryPage> {
                     child: FloatingActionButton(
                       heroTag: 'filter',
                       onPressed: showYearFilter,
-                      backgroundColor: const Color.fromARGB(255, 122, 171, 255),
+                      backgroundColor:
+                          Theme.of(context).scaffoldBackgroundColor,
+                      elevation: 0,
+                      hoverElevation: 0,
+                      focusElevation: 0,
+                      highlightElevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          side: BorderSide(color: Colors.black, width: 0.5)),
                       child: const Icon(
                         Icons.tune,
-                        color: Colors.white,
+                        color: Colors.black,
                         size: 20,
                       ),
                     ),
@@ -281,6 +289,8 @@ class _DiaryPageState extends State<DiaryPage> {
                       heroTag: 'create',
                       onPressed: onCreate,
                       backgroundColor: const Color.fromARGB(255, 122, 171, 255),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
                       child: const Icon(
                         Icons.draw_outlined,
                         color: Colors.white,
@@ -293,56 +303,51 @@ class _DiaryPageState extends State<DiaryPage> {
             ),
           ),
           if (isMonthSelectorExpanded)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: AnimatedSlide(
-                duration: Duration(milliseconds: 300),
-                offset: isMonthSelectorExpanded ? Offset(0, 0) : Offset(0, -1),
-                child: Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor),
-                    child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: availableMonths.length,
-                        itemBuilder: (context, index) {
-                          final months = availableMonths.toList();
-                          final month = months[index];
-                          final isSelected = month == currentMonth;
+            AnimatedSlide(
+              duration: Duration(milliseconds: 300),
+              offset: isMonthSelectorExpanded ? Offset(0, 0) : Offset(0, -1),
+              child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor),
+                  child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: availableMonths.length,
+                      itemBuilder: (context, index) {
+                        final months = availableMonths.toList();
+                        final month = months[index];
+                        final isSelected = month == currentMonth;
 
-                          return Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 6),
-                            child: ChoiceChip(
-                                label: Text(month.substring(0, 3)),
-                                showCheckmark: false,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20)),
-                                selected: isSelected,
-                                onSelected: (isSelected) {
-                                  int index = sortedEntries.indexWhere((entry) {
-                                    String entryMonth =
-                                        DateFormat('MMMM').format(entry.date);
-                                    return entryMonth == month;
-                                  });
+                        return Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          child: ChoiceChip(
+                              label: Text(month.substring(0, 3)),
+                              showCheckmark: false,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              selected: isSelected,
+                              onSelected: (isSelected) {
+                                int index = sortedEntries.indexWhere((entry) {
+                                  String entryMonth =
+                                      DateFormat('MMMM').format(entry.date);
+                                  return entryMonth == month;
+                                });
 
-                                  if (index != -1) {
-                                    _scrollController.scrollTo(
-                                      index: index,
-                                      duration: Duration(milliseconds: 500),
-                                      curve: Curves.easeInOut,
-                                    );
-                                  }
+                                if (index != -1) {
+                                  _scrollController.scrollTo(
+                                    index: index,
+                                    duration: Duration(milliseconds: 500),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
 
-                                  setState(() {
-                                    currentMonth = month;
-                                    isMonthSelectorExpanded = false;
-                                  });
-                                }),
-                          );
-                        })),
-              ),
+                                setState(() {
+                                  currentMonth = month;
+                                  isMonthSelectorExpanded = false;
+                                });
+                              }),
+                        );
+                      })),
             ),
         ],
       ),
