@@ -99,10 +99,9 @@ class _NotebookPageState extends State<NotebookPage> {
         context,
         MaterialPageRoute(
             builder: (context) => DiaryPage(
-                  diaryRepository: widget.diaryRepo,
-                  taskRepository: widget.taskRepo,
-                  notebookId: notebookId
-                )));
+                diaryRepository: widget.diaryRepo,
+                taskRepository: widget.taskRepo,
+                notebookId: notebookId)));
   }
 
   @override
@@ -159,7 +158,12 @@ class _NotebookPageState extends State<NotebookPage> {
           ],
         ),
       ),
-      drawer: AppDrawer(currentPage: 'notebook'),
+      drawer: AppDrawer(
+        currentPage: 'notebook',
+        diaryRepo: widget.diaryRepo,
+        notebookRepo: widget.notebookRepo,
+        taskRepo: widget.taskRepo,
+      ),
       body: Padding(padding: EdgeInsets.all(20), child: content),
     );
   }
