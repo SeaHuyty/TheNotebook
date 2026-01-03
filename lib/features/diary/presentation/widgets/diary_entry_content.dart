@@ -23,12 +23,23 @@ class DiaryEntryContent extends StatefulWidget {
 }
 
 class _DiaryEntryContentState extends State<DiaryEntryContent> {
-  late final List<bool> expanded;
+  late List<bool> expanded;
 
   @override
   void initState() {
     super.initState();
-    expanded = List<bool>.filled(widget.tasks?.length ?? 0, false);
+    expanded = List<bool>.generate(widget.tasks?.length ?? 0, (index) => false,
+        growable: true);
+  }
+
+  @override
+  void didUpdateWidget(DiaryEntryContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tasks?.length != widget.tasks?.length) {
+      expanded = List<bool>.generate(
+          widget.tasks?.length ?? 0, (index) => false,
+          growable: true);
+    }
   }
 
   void onToggleParentTask(int index) {
@@ -79,45 +90,46 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (widget.image != null) ...[
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: ImageWidget(
-              image: widget.image!,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.image != null) ...[
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: ImageWidget(
+                image: widget.image!,
+              ),
             ),
+            const SizedBox(height: 8),
+          ],
+          Text(
+            widget.date,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
+          Text(widget.content, style: const TextStyle(fontSize: 14)),
+          const SizedBox(height: 8),
+          if (widget.tasks != null) ...[
+            ...widget.tasks!.asMap().entries.map((entry) {
+              int index = entry.key;
+              Task task = entry.value;
+              return TaskCard(
+                task: task,
+                onToggleParentTask: () => onToggleParentTask(index),
+                onToggleSubtask: (subIndex) => onToggleSubtask(index, subIndex),
+                isExpanded: expanded[index],
+                onExpandChanged: (val) {
+                  setState(() {
+                    expanded[index] = val;
+                  });
+                },
+              );
+            }),
+          ],
         ],
-        Text(
-          widget.date,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        const SizedBox(height: 8),
-        Text(widget.content, style: const TextStyle(fontSize: 14)),
-        const SizedBox(height: 8),
-        if (widget.tasks != null) ...[
-          ...widget.tasks!.asMap().entries.map((entry) {
-            int index = entry.key;
-            Task task = entry.value;
-            return TaskCard(
-              task: task,
-              onToggleParentTask: () => onToggleParentTask(index),
-              onToggleSubtask: (subIndex) => onToggleSubtask(index, subIndex),
-              isExpanded: expanded[index],
-              onExpandChanged: (val) {
-                setState(() {
-                  expanded[index] = val;
-                });
-              },
-              onDelete: onDelete,
-            );
-          }),
-        ],
-      ],
+      ),
     );
   }
 }

@@ -94,19 +94,14 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
   }
 
   Future<void> createDiary() async {
-    if (mainTask == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please add a main task first.')),
+    // Assign subtasks to main task if it exists
+    if (mainTask != null) {
+      mainTask = Task(
+        title: mainTask!.title,
+        isCompleted: false,
+        subtasks: subtasks,
       );
-      return;
     }
-
-    // Assign subtasks to main task
-    mainTask = Task(
-      title: mainTask!.title,
-      isCompleted: false,
-      subtasks: subtasks,
-    );
 
     String? imagePath;
 
@@ -121,7 +116,7 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
       notebookId: widget.notebookId,
       date: selectedDate,
       content: descriptionController.text,
-      tasks: [mainTask!],
+      tasks: mainTask != null ? [mainTask!] : null,
       image: selectedImage != null && imagePath != null && isLandscape != null
           ? domain.DiaryImage(
               imagePath: imagePath,
@@ -130,11 +125,8 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
           : null,
     );
 
-    final diaryId = await widget.diaryRepository.insertDiary(diary);
+    await widget.diaryRepository.insertDiary(diary);
 
-    for (var sub in subtasks) {
-      await widget.taskRepository.insertTask(sub, diaryId);
-    }
     if (mounted) {
       Navigator.pop(context, true);
     }

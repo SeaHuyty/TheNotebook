@@ -23,7 +23,7 @@ class DiaryDetailPage extends StatefulWidget {
 }
 
 class _DiaryDetailPageState extends State<DiaryDetailPage> {
-  late final List<bool> expanded;
+  late List<bool> expanded;
   late Diary currentDiary;
   bool wasEdited = false;
 
@@ -31,7 +31,9 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
   void initState() {
     super.initState();
     currentDiary = widget.diary;
-    expanded = List<bool>.filled(widget.diary.tasks?.length ?? 0, false);
+    expanded = List<bool>.generate(
+        widget.diary.tasks?.length ?? 0, (index) => false,
+        growable: true);
   }
 
   void onToggleParentTask(int index) {
@@ -76,6 +78,50 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
         subtasks: subtasks,
       );
     });
+  }
+
+  void onDeleteTask(int index) async {
+    final task = currentDiary.tasks![index];
+    if (task.id == null) return;
+
+    final success = await widget.taskRepository.deleteTask(task.id!);
+    if (success && mounted) {
+      setState(() {
+        final updatedTasks = [...currentDiary.tasks!];
+        updatedTasks.removeAt(index);
+        expanded.removeAt(index);
+        currentDiary = Diary(
+          id: currentDiary.id,
+          notebookId: currentDiary.notebookId,
+          date: currentDiary.date,
+          content: currentDiary.content,
+          image: currentDiary.image,
+          tasks: updatedTasks.isEmpty ? null : updatedTasks,
+        );
+        wasEdited = true;
+      });
+    }
+  }
+
+  void onDeleteSubtask(int parentIndex, int subIndex) async {
+    final parent = currentDiary.tasks![parentIndex];
+    final subtask = parent.subtasks![subIndex];
+    if (subtask.id == null) return;
+
+    final success = await widget.taskRepository.deleteTask(subtask.id!);
+    if (success && mounted) {
+      setState(() {
+        final updatedSubtasks = [...parent.subtasks!];
+        updatedSubtasks.removeAt(subIndex);
+        currentDiary.tasks![parentIndex] = Task(
+          id: parent.id,
+          title: parent.title,
+          isCompleted: parent.isCompleted,
+          subtasks: updatedSubtasks.isEmpty ? null : updatedSubtasks,
+        );
+        wasEdited = true;
+      });
+    }
   }
 
   void onEdit() async {
@@ -228,7 +274,9 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                       expanded[index] = val;
                     });
                   },
-                  onDelete: onDelete,
+                  onDelete: () => onDeleteTask(index),
+                  onDeleteSubtask: (subIndex) =>
+                      onDeleteSubtask(index, subIndex),
                 );
               }),
             ],
