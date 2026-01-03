@@ -7,7 +7,6 @@ import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_p
 const asset1 = "assets/images/open-book.svg";
 const asset2 = "assets/images/education-note.svg";
 const asset3 = "assets/images/notepad-checklist.svg";
-
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen(
       {super.key, required this.diaryRepo, required this.notebookRepo});
@@ -27,7 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void nextPage() {
     if (_currentPage < _totalPage - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {

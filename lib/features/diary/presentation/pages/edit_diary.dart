@@ -99,6 +99,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     }
 
     final diary = domain.Diary(
+        notebookId: widget.diary.notebookId,
         id: widget.diary.id,
         date: selectedDate,
         content: descriptionController.text,

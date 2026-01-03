@@ -7,11 +7,13 @@ class Diary {
   final String content;
   final DiaryImage? image;
   final List<Task>? tasks;
+  final int notebookId;
 
   Diary({
     this.id,
     required this.date,
     required this.content,
+    required this.notebookId,
     this.image,
     List<Task>? tasks,
   }) : tasks = tasks ?? <Task>[];
