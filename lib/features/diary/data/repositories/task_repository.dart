@@ -9,10 +9,9 @@ class TaskRepository {
 
   Future<int> insertTask(domain.Task task, int diaryId) async {
     return await _db.into(_db.tasks).insert(TasksCompanion.insert(
-      title: task.title,
-      isCompleted: Value(task.isCompleted),
-      diaryId: Value(diaryId)
-    ));
+        title: task.title,
+        isCompleted: Value(task.isCompleted),
+        diaryId: Value(diaryId)));
   }
 
   Future<List<domain.Task>> getTasksForDiary(int diaryId) async {
@@ -55,9 +54,27 @@ class TaskRepository {
         .toList();
   }
 
+  Future<bool> updateTask(domain.Task task) async {
+    final rowsAffected = await (_db.update(_db.tasks)
+          ..where((t) => t.id.equals(task.id!)))
+        .write(TasksCompanion(
+      title: Value(task.title),
+      isCompleted: Value(task.isCompleted),
+    ));
+    return rowsAffected > 0;
+  }
+
+  Future<bool> deleteTask(int taskId) async {
+    // Delete the task and all its subtasks
+    await (_db.delete(_db.tasks)..where((t) => t.parentTaskId.equals(taskId)))
+        .go();
+    final rowsAffected =
+        await (_db.delete(_db.tasks)..where((t) => t.id.equals(taskId))).go();
+    return rowsAffected > 0;
+  }
+
   Future<void> deleteTasksByDiaryId(int diaryId) async {
-    await (_db.delete(_db.tasks)
-          ..where((tbl) => tbl.diaryId.equals(diaryId)))
+    await (_db.delete(_db.tasks)..where((tbl) => tbl.diaryId.equals(diaryId)))
         .go();
   }
 

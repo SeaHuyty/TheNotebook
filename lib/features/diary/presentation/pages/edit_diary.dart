@@ -30,6 +30,9 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
   // Inputs
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
+  final Map<int, TextEditingController> taskControllers = {};
+  final Map<int, TextEditingController> subtaskControllers = {};
+
   final ImagePicker picker = ImagePicker();
   late DateTime selectedDate;
   XFile? selectedImage;
@@ -112,13 +115,29 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
         id: widget.diary.id,
         date: selectedDate,
         content: descriptionController.text,
-        image: domain.DiaryImage(
-            imagePath: imagePath!, isLandscape: isLandscape!));
+        image: selectedImage != null && imagePath != null && isLandscape != null
+            ? domain.DiaryImage(imagePath: imagePath, isLandscape: isLandscape!)
+            : null);
 
     await widget.diaryRepository.updateDiary(diary,
         contentChanged: contentChanged,
         dateChanged: dateChanged,
         imageChanged: imageChanged);
+
+    // Update tasks
+    for (var task in tasks) {
+      if (task.id != null) {
+        await widget.taskRepository.updateTask(task);
+        // Update subtasks
+        if (task.subtasks != null) {
+          for (var subtask in task.subtasks!) {
+            if (subtask.id != null) {
+              await widget.taskRepository.updateTask(subtask);
+            }
+          }
+        }
+      }
+    }
 
     if (mounted) {
       Navigator.pop(context, true);
@@ -131,11 +150,40 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     descriptionController.text = widget.diary.content;
     titleController.text = 'A Productive Title';
     selectedDate = widget.diary.date;
+    tasks = widget.diary.tasks ?? [];
+
+    for (final task in tasks) {
+      if (task.id == null) continue;
+
+      taskControllers[task.id!] = TextEditingController(text: task.title);
+
+      for (final subtask in task.subtasks ?? []) {
+        if (subtask.id == null) continue;
+
+        subtaskControllers[subtask.id!] =
+            TextEditingController(text: subtask.title);
+      }
+    }
 
     if (widget.diary.image != null) {
       selectedImage = XFile(widget.diary.image!.imagePath);
       isLandscape = widget.diary.image!.isLandscape;
     }
+  }
+
+  @override
+  void dispose() {
+    // Dispose the controlers
+    titleController.dispose();
+    descriptionController.dispose();
+
+    for (final c in taskControllers.values) {
+      c.dispose();
+    }
+    for (final c in subtaskControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -220,6 +268,84 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
               ),
             ),
             const SizedBox(height: 10),
+            if (tasks.isNotEmpty) ...[
+              const Text(
+                'Tasks',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ...tasks.asMap().entries.map((entry) {
+                int index = entry.key;
+                Task task = entry.value;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: taskControllers[task.id]!,
+                          decoration: const InputDecoration(
+                            labelText: 'Task title',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              tasks[index] = Task(
+                                id: task.id,
+                                title: value,
+                                isCompleted: task.isCompleted,
+                                subtasks: task.subtasks,
+                              );
+                            });
+                          },
+                        ),
+                        if (task.subtasks != null &&
+                            task.subtasks!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          const Text('Subtasks:',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          ...task.subtasks!.asMap().entries.map((subEntry) {
+                            int subIndex = subEntry.key;
+                            Task subtask = subEntry.value;
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 16, top: 4),
+                              child: TextField(
+                                controller: subtaskControllers[subtask.id]!,
+                                decoration: const InputDecoration(
+                                  labelText: 'Subtask title',
+                                  border: OutlineInputBorder(),
+                                  isDense: true,
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    final updatedSubtasks = [...task.subtasks!];
+                                    updatedSubtasks[subIndex] = Task(
+                                      id: subtask.id,
+                                      title: value,
+                                      isCompleted: subtask.isCompleted,
+                                      parentTaskId: subtask.parentTaskId,
+                                    );
+                                    tasks[index] = Task(
+                                      id: task.id,
+                                      title: task.title,
+                                      isCompleted: task.isCompleted,
+                                      parentTaskId: task.parentTaskId,
+                                      subtasks: updatedSubtasks,
+                                    );
+                                  });
+                                },
+                              ),
+                            );
+                          }),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 10),
+            ],
             if (selectedImage != null && isLandscape != null)
               Center(
                 child: SizedBox(
