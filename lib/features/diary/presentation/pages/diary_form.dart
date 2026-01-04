@@ -126,21 +126,15 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
     }
   }
 
-  Future<void> saveDiary() async {
-    if (mainTask == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add a main task first.')),
+  Future<void> createDiary() async {
+    // Assign subtasks to main task if it exists
+    if (mainTask != null) {
+      mainTask = Task(
+        title: mainTask!.title,
+        isCompleted: false,
+        subtasks: subtasks,
       );
-      return;
     }
-
-    // Assign subtasks to main task
-    mainTask = Task(
-      id: mainTask!.id,
-      title: mainTask!.title,
-      isCompleted: mainTask!.isCompleted,
-      subtasks: subtasks,
-    );
 
     String? imagePath;
 
@@ -155,8 +149,7 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
       date: selectedDate,
       title: titleController.text,
       content: descriptionController.text,
-      time: selectedTime,
-      tasks: [mainTask!],
+      tasks: mainTask != null ? [mainTask!] : null,
       image: selectedImage != null && imagePath != null && isLandscape != null
           ? domain.DiaryImage(
               imagePath: imagePath,
