@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/core/database/database.dart';
 import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
@@ -18,10 +19,14 @@ class DiaryRepository {
     for (var diary in diaries) {
       final tasks = await _taskRepo.getTasksForDiary(diary.id);
       final image = await _imageRepo.getImageByDiaryId(diary.id);
+      final parts = diary.time.split(':');
       result.add(
         domain.Diary(
           notebookId: diary.notebookId,
           id: diary.id,
+          title: diary.title,
+          time: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+          tag: diary.tag,
           date: diary.date,
           content: diary.content,
           image: image,
@@ -35,9 +40,12 @@ class DiaryRepository {
   }
 
   Future<int> insertDiary(domain.Diary diary) async {
+    final timeString = '${diary.time.hour.toString().padLeft(2, '0')}:${diary.time.minute.toString().padLeft(2, '0')}';
     final diaryId = await _db.into(_db.diaries).insert(
           DiariesCompanion(
             notebookId: Value(diary.notebookId),
+            title: Value(diary.title),
+            time: Value(timeString),
             date: Value(diary.date),
             content: Value(diary.content),
           ),
@@ -100,9 +108,14 @@ class DiaryRepository {
     final diary = await query.getSingleOrNull();
     if (diary == null) return null;
 
+    final parts = diary.time.split(':');
+
     return domain.Diary(
       id: diary.id,
       notebookId: diary.notebookId,
+      title: diary.title,
+      time: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+      tag: diary.tag,
       date: diary.date,
       content: diary.content,
       image: image,
@@ -126,11 +139,16 @@ class DiaryRepository {
       final tasks = await _taskRepo.getTasksForDiary(diary.id);
       final image = await _imageRepo.getImageByDiaryId(diary.id);
 
+      final parts = diary.time.split(':');
+
       diaries.add(
         domain.Diary(
             id: diary.id,
             notebookId: diary.notebookId,
             date: diary.date,
+            title: diary.title,
+            time: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+            tag: diary.tag,
             content: diary.content,
             image: image,
             tasks: tasks),

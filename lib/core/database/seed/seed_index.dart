@@ -20,6 +20,9 @@ class SeedIndex {
     for (var diary in sampleDiaries) {
       final updatedDiary = domain.Diary(
           content: diary.content,
+          title: diary.title,
+          time: diary.time,
+          tag: diary.tag,
           notebookId: notebookId,
           date: diary.date,
           image: diary.image,

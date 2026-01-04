@@ -13,7 +13,10 @@ class Notebooks extends Table {
 class Diaries extends Table {
   IntColumn get id => integer().autoIncrement()();
   DateTimeColumn get date => dateTime()();
-  TextColumn get content => text()();
+  TextColumn get title => text()();
+  TextColumn get content => text().nullable()();
+  TextColumn get time => text()();
+  TextColumn get tag => text().nullable()();
   IntColumn get notebookId => integer().references(Notebooks, #id)();
 }
 
@@ -41,5 +44,5 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => _instance;
   
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'dart:ui' as ui;
 import 'package:path_provider/path_provider.dart';
@@ -11,34 +12,67 @@ import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:universal_io/universal_io.dart';
 
-class CreateDiaryPage extends StatefulWidget {
+class DiaryFormPage extends StatefulWidget {
   final DiaryRepository diaryRepository;
   final TaskRepository taskRepository;
-  final int notebookId;
+  final int? notebookId; // For create mode
+  final domain.Diary? diary; // For edit mode
 
-  const CreateDiaryPage(
-      {super.key,
-      required this.diaryRepository,
-      required this.taskRepository,
-      required this.notebookId});
+  const DiaryFormPage({
+    super.key,
+    required this.diaryRepository,
+    required this.taskRepository,
+    this.notebookId,
+    this.diary,
+  }) : assert(notebookId != null || diary != null,
+            'Either notebookId or diary must be provided');
 
   @override
-  State<CreateDiaryPage> createState() => _CreateDiaryPageState();
+  State<DiaryFormPage> createState() => _DiaryFormPageState();
 }
 
-class _CreateDiaryPageState extends State<CreateDiaryPage> {
+class _DiaryFormPageState extends State<DiaryFormPage> {
   // Inputs
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
   final TextEditingController taskController = TextEditingController();
   final TextEditingController subtaskController = TextEditingController();
   final ImagePicker picker = ImagePicker();
-  DateTime selectedDate = DateTime.now();
+  late DateTime selectedDate;
+  late TimeOfDay selectedTime;
   XFile? selectedImage;
   bool? isLandscape;
 
   Task? mainTask;
   List<Task> subtasks = [];
+
+  bool get isEditMode => widget.diary != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditMode) {
+      // Edit mode - populate with existing data
+      descriptionController.text = widget.diary!.content ?? '';
+      titleController.text = widget.diary!.title;
+      selectedDate = widget.diary!.date;
+      selectedTime = widget.diary!.time;
+
+      if (widget.diary!.image != null) {
+        selectedImage = XFile(widget.diary!.image!.imagePath);
+        isLandscape = widget.diary!.image!.isLandscape;
+      }
+
+      if (widget.diary!.tasks != null && widget.diary!.tasks!.isNotEmpty) {
+        mainTask = widget.diary!.tasks!.first;
+        subtasks = mainTask!.subtasks ?? [];
+      }
+    } else {
+      // Create mode - use defaults
+      selectedDate = DateTime.now();
+      selectedTime = TimeOfDay.now();
+    }
+  }
 
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -59,7 +93,6 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
     if (image != null) {
       final bytes = await image.readAsBytes();
 
-      // Correct way to decode image
       final ui.Codec codec = await ui.instantiateImageCodec(bytes);
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
       final decodedImage = frameInfo.image;
@@ -93,18 +126,19 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
     }
   }
 
-  Future<void> createDiary() async {
+  Future<void> saveDiary() async {
     if (mainTask == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please add a main task first.')),
+        const SnackBar(content: Text('Please add a main task first.')),
       );
       return;
     }
 
     // Assign subtasks to main task
     mainTask = Task(
+      id: mainTask!.id,
       title: mainTask!.title,
-      isCompleted: false,
+      isCompleted: mainTask!.isCompleted,
       subtasks: subtasks,
     );
 
@@ -112,15 +146,16 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
 
     if (selectedImage != null) {
       imagePath = await saveImagePermanently(selectedImage!);
-
-      // For web testing
-      imagePath ??= selectedImage!.path;
+      imagePath ??= selectedImage!.path; // For web testing
     }
 
     final diary = domain.Diary(
-      notebookId: widget.notebookId,
+      id: isEditMode ? widget.diary!.id : null,
+      notebookId: isEditMode ? widget.diary!.notebookId : widget.notebookId!,
       date: selectedDate,
+      title: titleController.text,
       content: descriptionController.text,
+      time: selectedTime,
       tasks: [mainTask!],
       image: selectedImage != null && imagePath != null && isLandscape != null
           ? domain.DiaryImage(
@@ -130,14 +165,38 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
           : null,
     );
 
-    final diaryId = await widget.diaryRepository.insertDiary(diary);
+    if (isEditMode) {
+      // Update existing diary
+      await widget.diaryRepository.updateDiary(
+        diary,
+        contentChanged: descriptionController.text != widget.diary!.content,
+        dateChanged: selectedDate != widget.diary!.date,
+        imageChanged: selectedImage?.path != widget.diary!.image?.imagePath,
+      );
+    } else {
+      // Create new diary
+      final diaryId = await widget.diaryRepository.insertDiary(diary);
 
-    for (var sub in subtasks) {
-      await widget.taskRepository.insertTask(sub, diaryId);
+      for (var sub in subtasks) {
+        await widget.taskRepository.insertTask(sub, diaryId);
+      }
     }
+
     if (mounted) {
       Navigator.pop(context, true);
     }
+  }
+
+  String _formatTime(TimeOfDay time, BuildContext context) {
+    final now = DateTime.now();
+    final dateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+    return DateFormat.jm().format(dateTime); // e.g. 5:30 PM
   }
 
   @override
@@ -158,52 +217,80 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
           ),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child:
-                TextButton(onPressed: createDiary, child: const Text('Save')),
+          Row(
+            spacing: 5,
+            children: [
+              OutlinedButton(
+                  onPressed: saveDiary,
+                  child: Row(
+                    spacing: 5,
+                    children: [
+                      const Icon(Icons.check),
+                      Text(isEditMode ? 'Save' : 'Done')
+                    ],
+                  )),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.sell_outlined)),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.more_horiz))
+            ],
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsetsGeometry.symmetric(horizontal: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Date',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
             TextButton(
               onPressed: () => selectDate(context),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.black,
+                padding: EdgeInsets.zero,
               ),
               child: Row(
                 spacing: 10,
                 children: [
                   const Icon(
                     Icons.calendar_today_outlined,
-                    size: 20,
+                    size: 18,
                   ),
                   Text(
-                    selectedDate.toString().split(' ')[0],
+                    DateFormat('MMMM, dd, yyyy').format(selectedDate),
                     style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
             ),
+            TextButton(
+                onPressed: () async {
+                  final TimeOfDay? pickedTime = await showTimePicker(
+                      context: context, initialTime: selectedTime);
+                  if (pickedTime != null) {
+                    setState(() {
+                      selectedTime = pickedTime;
+                    });
+                  }
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Row(
+                  spacing: 5,
+                  children: [
+                    const Icon(Icons.access_time),
+                    Text(_formatTime(selectedTime, context))
+                  ],
+                )),
             const SizedBox(
               height: 10,
             ),
             TextFormField(
               controller: titleController,
               style: const TextStyle(fontSize: 24),
-              decoration:
-                  InputDecoration(hintText: 'Title', border: InputBorder.none),
+              decoration: const InputDecoration(
+                  hintText: 'Title', border: InputBorder.none),
             ),
             const SizedBox(
               height: 4,
@@ -215,13 +302,13 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
                 maxLines: null,
                 expands: true,
                 keyboardType: TextInputType.multiline,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                     hintText: 'What is on your mind?',
                     border: InputBorder.none),
               ),
             ),
             const SizedBox(height: 10),
-            Text(
+            const Text(
               "Task",
               style: TextStyle(fontSize: 20),
             ),
@@ -231,7 +318,7 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
                 decoration: InputDecoration(
                   hintText: 'Enter main task title',
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.add),
+                    icon: const Icon(Icons.add),
                     onPressed: () {
                       if (taskController.text.isEmpty) return;
                       setState(() {
@@ -249,14 +336,14 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
             if (mainTask != null) ...[
               const SizedBox(height: 16),
               Text('Main Task: ${mainTask!.title}',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextField(
                 controller: subtaskController,
                 decoration: InputDecoration(
                   hintText: 'Add a subtask',
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.add),
+                    icon: const Icon(Icons.add),
                     onPressed: () {
                       if (subtaskController.text.isEmpty) return;
                       setState(() {
@@ -273,7 +360,7 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Subtasks:',
+                    const Text('Subtasks:',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     ...subtasks.map((s) => Text('- ${s.title}')),
                   ],
@@ -283,7 +370,7 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
             if (selectedImage != null && isLandscape != null)
               Center(
                 child: ClipRRect(
-                    borderRadius: BorderRadiusGeometry.circular(15),
+                    borderRadius: BorderRadius.circular(15),
                     child: ImageWidget(
                         image: domain.DiaryImage(
                       imagePath: selectedImage!.path,
@@ -298,7 +385,7 @@ class _CreateDiaryPageState extends State<CreateDiaryPage> {
                   foregroundColor: Colors.black,
                   shadowColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(8))),
+                      borderRadius: BorderRadius.circular(8))),
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Row(

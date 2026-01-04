@@ -277,12 +277,27 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
   late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
       'date', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _contentMeta =
       const VerificationMeta('content');
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
-      'content', aliasedName, false,
+      'content', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _timeMeta = const VerificationMeta('time');
+  @override
+  late final GeneratedColumn<String> time = GeneratedColumn<String>(
+      'time', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
+  @override
+  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
+      'tag', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _notebookIdMeta =
       const VerificationMeta('notebookId');
   @override
@@ -293,7 +308,8 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES notebooks (id)'));
   @override
-  List<GeneratedColumn> get $columns => [id, date, content, notebookId];
+  List<GeneratedColumn> get $columns =>
+      [id, date, title, content, time, tag, notebookId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -313,11 +329,25 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
     } else if (isInserting) {
       context.missing(_dateMeta);
     }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
     if (data.containsKey('content')) {
       context.handle(_contentMeta,
           content.isAcceptableOrUnknown(data['content']!, _contentMeta));
+    }
+    if (data.containsKey('time')) {
+      context.handle(
+          _timeMeta, time.isAcceptableOrUnknown(data['time']!, _timeMeta));
     } else if (isInserting) {
-      context.missing(_contentMeta);
+      context.missing(_timeMeta);
+    }
+    if (data.containsKey('tag')) {
+      context.handle(
+          _tagMeta, tag.isAcceptableOrUnknown(data['tag']!, _tagMeta));
     }
     if (data.containsKey('notebook_id')) {
       context.handle(
@@ -340,8 +370,14 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       content: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}content']),
+      time: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}time'])!,
+      tag: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tag']),
       notebookId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}notebook_id'])!,
     );
@@ -356,19 +392,32 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
 class Diary extends DataClass implements Insertable<Diary> {
   final int id;
   final DateTime date;
-  final String content;
+  final String title;
+  final String? content;
+  final String time;
+  final String? tag;
   final int notebookId;
   const Diary(
       {required this.id,
       required this.date,
-      required this.content,
+      required this.title,
+      this.content,
+      required this.time,
+      this.tag,
       required this.notebookId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['date'] = Variable<DateTime>(date);
-    map['content'] = Variable<String>(content);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || content != null) {
+      map['content'] = Variable<String>(content);
+    }
+    map['time'] = Variable<String>(time);
+    if (!nullToAbsent || tag != null) {
+      map['tag'] = Variable<String>(tag);
+    }
     map['notebook_id'] = Variable<int>(notebookId);
     return map;
   }
@@ -377,7 +426,12 @@ class Diary extends DataClass implements Insertable<Diary> {
     return DiariesCompanion(
       id: Value(id),
       date: Value(date),
-      content: Value(content),
+      title: Value(title),
+      content: content == null && nullToAbsent
+          ? const Value.absent()
+          : Value(content),
+      time: Value(time),
+      tag: tag == null && nullToAbsent ? const Value.absent() : Value(tag),
       notebookId: Value(notebookId),
     );
   }
@@ -388,7 +442,10 @@ class Diary extends DataClass implements Insertable<Diary> {
     return Diary(
       id: serializer.fromJson<int>(json['id']),
       date: serializer.fromJson<DateTime>(json['date']),
-      content: serializer.fromJson<String>(json['content']),
+      title: serializer.fromJson<String>(json['title']),
+      content: serializer.fromJson<String?>(json['content']),
+      time: serializer.fromJson<String>(json['time']),
+      tag: serializer.fromJson<String?>(json['tag']),
       notebookId: serializer.fromJson<int>(json['notebookId']),
     );
   }
@@ -398,23 +455,39 @@ class Diary extends DataClass implements Insertable<Diary> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'date': serializer.toJson<DateTime>(date),
-      'content': serializer.toJson<String>(content),
+      'title': serializer.toJson<String>(title),
+      'content': serializer.toJson<String?>(content),
+      'time': serializer.toJson<String>(time),
+      'tag': serializer.toJson<String?>(tag),
       'notebookId': serializer.toJson<int>(notebookId),
     };
   }
 
-  Diary copyWith({int? id, DateTime? date, String? content, int? notebookId}) =>
+  Diary copyWith(
+          {int? id,
+          DateTime? date,
+          String? title,
+          Value<String?> content = const Value.absent(),
+          String? time,
+          Value<String?> tag = const Value.absent(),
+          int? notebookId}) =>
       Diary(
         id: id ?? this.id,
         date: date ?? this.date,
-        content: content ?? this.content,
+        title: title ?? this.title,
+        content: content.present ? content.value : this.content,
+        time: time ?? this.time,
+        tag: tag.present ? tag.value : this.tag,
         notebookId: notebookId ?? this.notebookId,
       );
   Diary copyWithCompanion(DiariesCompanion data) {
     return Diary(
       id: data.id.present ? data.id.value : this.id,
       date: data.date.present ? data.date.value : this.date,
+      title: data.title.present ? data.title.value : this.title,
       content: data.content.present ? data.content.value : this.content,
+      time: data.time.present ? data.time.value : this.time,
+      tag: data.tag.present ? data.tag.value : this.tag,
       notebookId:
           data.notebookId.present ? data.notebookId.value : this.notebookId,
     );
@@ -425,53 +498,76 @@ class Diary extends DataClass implements Insertable<Diary> {
     return (StringBuffer('Diary(')
           ..write('id: $id, ')
           ..write('date: $date, ')
+          ..write('title: $title, ')
           ..write('content: $content, ')
+          ..write('time: $time, ')
+          ..write('tag: $tag, ')
           ..write('notebookId: $notebookId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, date, content, notebookId);
+  int get hashCode =>
+      Object.hash(id, date, title, content, time, tag, notebookId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Diary &&
           other.id == this.id &&
           other.date == this.date &&
+          other.title == this.title &&
           other.content == this.content &&
+          other.time == this.time &&
+          other.tag == this.tag &&
           other.notebookId == this.notebookId);
 }
 
 class DiariesCompanion extends UpdateCompanion<Diary> {
   final Value<int> id;
   final Value<DateTime> date;
-  final Value<String> content;
+  final Value<String> title;
+  final Value<String?> content;
+  final Value<String> time;
+  final Value<String?> tag;
   final Value<int> notebookId;
   const DiariesCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
+    this.title = const Value.absent(),
     this.content = const Value.absent(),
+    this.time = const Value.absent(),
+    this.tag = const Value.absent(),
     this.notebookId = const Value.absent(),
   });
   DiariesCompanion.insert({
     this.id = const Value.absent(),
     required DateTime date,
-    required String content,
+    required String title,
+    this.content = const Value.absent(),
+    required String time,
+    this.tag = const Value.absent(),
     required int notebookId,
   })  : date = Value(date),
-        content = Value(content),
+        title = Value(title),
+        time = Value(time),
         notebookId = Value(notebookId);
   static Insertable<Diary> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
+    Expression<String>? title,
     Expression<String>? content,
+    Expression<String>? time,
+    Expression<String>? tag,
     Expression<int>? notebookId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (date != null) 'date': date,
+      if (title != null) 'title': title,
       if (content != null) 'content': content,
+      if (time != null) 'time': time,
+      if (tag != null) 'tag': tag,
       if (notebookId != null) 'notebook_id': notebookId,
     });
   }
@@ -479,12 +575,18 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
   DiariesCompanion copyWith(
       {Value<int>? id,
       Value<DateTime>? date,
-      Value<String>? content,
+      Value<String>? title,
+      Value<String?>? content,
+      Value<String>? time,
+      Value<String?>? tag,
       Value<int>? notebookId}) {
     return DiariesCompanion(
       id: id ?? this.id,
       date: date ?? this.date,
+      title: title ?? this.title,
       content: content ?? this.content,
+      time: time ?? this.time,
+      tag: tag ?? this.tag,
       notebookId: notebookId ?? this.notebookId,
     );
   }
@@ -498,8 +600,17 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     if (date.present) {
       map['date'] = Variable<DateTime>(date.value);
     }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
     if (content.present) {
       map['content'] = Variable<String>(content.value);
+    }
+    if (time.present) {
+      map['time'] = Variable<String>(time.value);
+    }
+    if (tag.present) {
+      map['tag'] = Variable<String>(tag.value);
     }
     if (notebookId.present) {
       map['notebook_id'] = Variable<int>(notebookId.value);
@@ -512,7 +623,10 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     return (StringBuffer('DiariesCompanion(')
           ..write('id: $id, ')
           ..write('date: $date, ')
+          ..write('title: $title, ')
           ..write('content: $content, ')
+          ..write('time: $time, ')
+          ..write('tag: $tag, ')
           ..write('notebookId: $notebookId')
           ..write(')'))
         .toString();
@@ -1355,13 +1469,19 @@ typedef $$NotebooksTableProcessedTableManager = ProcessedTableManager<
 typedef $$DiariesTableCreateCompanionBuilder = DiariesCompanion Function({
   Value<int> id,
   required DateTime date,
-  required String content,
+  required String title,
+  Value<String?> content,
+  required String time,
+  Value<String?> tag,
   required int notebookId,
 });
 typedef $$DiariesTableUpdateCompanionBuilder = DiariesCompanion Function({
   Value<int> id,
   Value<DateTime> date,
-  Value<String> content,
+  Value<String> title,
+  Value<String?> content,
+  Value<String> time,
+  Value<String?> tag,
   Value<int> notebookId,
 });
 
@@ -1429,8 +1549,17 @@ class $$DiariesTableFilterComposer
   ColumnFilters<DateTime> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get time => $composableBuilder(
+      column: $table.time, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tag => $composableBuilder(
+      column: $table.tag, builder: (column) => ColumnFilters(column));
 
   $$NotebooksTableFilterComposer get notebookId {
     final $$NotebooksTableFilterComposer composer = $composerBuilder(
@@ -1510,8 +1639,17 @@ class $$DiariesTableOrderingComposer
   ColumnOrderings<DateTime> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get time => $composableBuilder(
+      column: $table.time, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tag => $composableBuilder(
+      column: $table.tag, builder: (column) => ColumnOrderings(column));
 
   $$NotebooksTableOrderingComposer get notebookId {
     final $$NotebooksTableOrderingComposer composer = $composerBuilder(
@@ -1549,8 +1687,17 @@ class $$DiariesTableAnnotationComposer
   GeneratedColumn<DateTime> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<String> get time =>
+      $composableBuilder(column: $table.time, builder: (column) => column);
+
+  GeneratedColumn<String> get tag =>
+      $composableBuilder(column: $table.tag, builder: (column) => column);
 
   $$NotebooksTableAnnotationComposer get notebookId {
     final $$NotebooksTableAnnotationComposer composer = $composerBuilder(
@@ -1641,25 +1788,37 @@ class $$DiariesTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<DateTime> date = const Value.absent(),
-            Value<String> content = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String?> content = const Value.absent(),
+            Value<String> time = const Value.absent(),
+            Value<String?> tag = const Value.absent(),
             Value<int> notebookId = const Value.absent(),
           }) =>
               DiariesCompanion(
             id: id,
             date: date,
+            title: title,
             content: content,
+            time: time,
+            tag: tag,
             notebookId: notebookId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required DateTime date,
-            required String content,
+            required String title,
+            Value<String?> content = const Value.absent(),
+            required String time,
+            Value<String?> tag = const Value.absent(),
             required int notebookId,
           }) =>
               DiariesCompanion.insert(
             id: id,
             date: date,
+            title: title,
             content: content,
+            time: time,
+            tag: tag,
             notebookId: notebookId,
           ),
           withReferenceMapper: (p0) => p0
