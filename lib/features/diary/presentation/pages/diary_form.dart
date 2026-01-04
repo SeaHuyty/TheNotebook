@@ -147,6 +147,7 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
       id: isEditMode ? widget.diary!.id : null,
       notebookId: isEditMode ? widget.diary!.notebookId : widget.notebookId!,
       date: selectedDate,
+      time: selectedTime,
       title: titleController.text,
       content: descriptionController.text,
       tasks: mainTask != null ? [mainTask!] : null,
@@ -214,7 +215,7 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
             spacing: 5,
             children: [
               OutlinedButton(
-                  onPressed: saveDiary,
+                  onPressed: createDiary,
                   child: Row(
                     spacing: 5,
                     children: [
@@ -228,176 +229,179 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextButton(
-              onPressed: () => selectDate(context),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.black,
-                padding: EdgeInsets.zero,
-              ),
-              child: Row(
-                spacing: 10,
-                children: [
-                  const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 18,
-                  ),
-                  Text(
-                    DateFormat('MMMM, dd, yyyy').format(selectedDate),
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-            TextButton(
-                onPressed: () async {
-                  final TimeOfDay? pickedTime = await showTimePicker(
-                      context: context, initialTime: selectedTime);
-                  if (pickedTime != null) {
-                    setState(() {
-                      selectedTime = pickedTime;
-                    });
-                  }
-                },
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextButton(
+                onPressed: () => selectDate(context),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.black,
                   padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Row(
-                  spacing: 5,
-                  children: [
-                    const Icon(Icons.access_time),
-                    Text(_formatTime(selectedTime, context))
-                  ],
-                )),
-            const SizedBox(
-              height: 10,
-            ),
-            TextFormField(
-              controller: titleController,
-              style: const TextStyle(fontSize: 24),
-              decoration: const InputDecoration(
-                  hintText: 'Title', border: InputBorder.none),
-            ),
-            const SizedBox(
-              height: 4,
-            ),
-            SizedBox(
-              height: 180,
-              child: TextFormField(
-                controller: descriptionController,
-                maxLines: null,
-                expands: true,
-                keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
-                    hintText: 'What is on your mind?',
-                    border: InputBorder.none),
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Task",
-              style: TextStyle(fontSize: 20),
-            ),
-            if (mainTask == null) ...[
-              TextField(
-                controller: taskController,
-                decoration: InputDecoration(
-                  hintText: 'Enter main task title',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      if (taskController.text.isEmpty) return;
-                      setState(() {
-                        mainTask = Task(
-                            title: taskController.text, isCompleted: false);
-                        taskController.clear();
-                      });
-                    },
-                  ),
-                ),
-              ),
-            ],
-
-            // Subtask Input
-            if (mainTask != null) ...[
-              const SizedBox(height: 16),
-              Text('Main Task: ${mainTask!.title}',
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: subtaskController,
-                decoration: InputDecoration(
-                  hintText: 'Add a subtask',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      if (subtaskController.text.isEmpty) return;
-                      setState(() {
-                        subtasks.add(Task(
-                            title: subtaskController.text, isCompleted: false));
-                        subtaskController.clear();
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (subtasks.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Subtasks:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...subtasks.map((s) => Text('- ${s.title}')),
-                  ],
-                ),
-            ],
-            const SizedBox(height: 10),
-            if (selectedImage != null && isLandscape != null)
-              Center(
-                child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: ImageWidget(
-                        image: domain.DiaryImage(
-                      imagePath: selectedImage!.path,
-                      isLandscape: isLandscape!,
-                    ))),
-              ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: pickImage,
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 233, 226, 226),
-                  foregroundColor: Colors.black,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8))),
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 8,
+                  spacing: 10,
                   children: [
                     const Icon(
-                      Icons.image_outlined,
-                      size: 19,
+                      Icons.calendar_today_outlined,
+                      size: 18,
                     ),
                     Text(
-                      selectedImage != null ? 'Change image' : 'Add image',
-                      style: const TextStyle(fontSize: 17),
-                    )
+                      DateFormat('MMMM, dd, yyyy').format(selectedDate),
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   ],
                 ),
               ),
-            ),
-          ],
+              TextButton(
+                  onPressed: () async {
+                    final TimeOfDay? pickedTime = await showTimePicker(
+                        context: context, initialTime: selectedTime);
+                    if (pickedTime != null) {
+                      setState(() {
+                        selectedTime = pickedTime;
+                      });
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Row(
+                    spacing: 5,
+                    children: [
+                      const Icon(Icons.access_time),
+                      Text(_formatTime(selectedTime, context))
+                    ],
+                  )),
+              const SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                controller: titleController,
+                style: const TextStyle(fontSize: 24),
+                decoration: const InputDecoration(
+                    hintText: 'Title', border: InputBorder.none),
+              ),
+              const SizedBox(
+                height: 4,
+              ),
+              SizedBox(
+                height: 180,
+                child: TextFormField(
+                  controller: descriptionController,
+                  maxLines: null,
+                  expands: true,
+                  keyboardType: TextInputType.multiline,
+                  decoration: const InputDecoration(
+                      hintText: 'What is on your mind?',
+                      border: InputBorder.none),
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Task",
+                style: TextStyle(fontSize: 20),
+              ),
+              if (mainTask == null) ...[
+                TextField(
+                  controller: taskController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter main task title',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        if (taskController.text.isEmpty) return;
+                        setState(() {
+                          mainTask = Task(
+                              title: taskController.text, isCompleted: false);
+                          taskController.clear();
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+        
+              // Subtask Input
+              if (mainTask != null) ...[
+                const SizedBox(height: 16),
+                Text('Main Task: ${mainTask!.title}',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: subtaskController,
+                  decoration: InputDecoration(
+                    hintText: 'Add a subtask',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        if (subtaskController.text.isEmpty) return;
+                        setState(() {
+                          subtasks.add(Task(
+                              title: subtaskController.text, isCompleted: false));
+                          subtaskController.clear();
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (subtasks.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Subtasks:',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      ...subtasks.map((s) => Text('- ${s.title}')),
+                    ],
+                  ),
+              ],
+              const SizedBox(height: 10),
+              if (selectedImage != null && isLandscape != null)
+                Center(
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: ImageWidget(
+                          image: domain.DiaryImage(
+                        imagePath: selectedImage!.path,
+                        isLandscape: isLandscape!,
+                      ))),
+                ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: pickImage,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 233, 226, 226),
+                    foregroundColor: Colors.black,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8))),
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 8,
+                    children: [
+                      const Icon(
+                        Icons.image_outlined,
+                        size: 19,
+                      ),
+                      Text(
+                        selectedImage != null ? 'Change image' : 'Add image',
+                        style: const TextStyle(fontSize: 17),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+            ],
+          ),
         ),
       ),
     );

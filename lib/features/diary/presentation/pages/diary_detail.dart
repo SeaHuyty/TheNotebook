@@ -93,6 +93,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
         currentDiary = Diary(
           id: currentDiary.id,
           notebookId: currentDiary.notebookId,
+          time: currentDiary.time,
+          title: currentDiary.title,
           date: currentDiary.date,
           content: currentDiary.content,
           image: currentDiary.image,
