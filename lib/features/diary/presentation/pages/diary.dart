@@ -3,9 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
-import 'package:the_notebook/features/diary/presentation/pages/create_diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
-// import 'package:the_notebook/features/diary/presentation/widgets/month_filter.dart';
+import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../widgets/diary_timeline_widget.dart';
@@ -132,11 +131,11 @@ class _DiaryPageState extends State<DiaryPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => CreateDiaryPage(
-                diaryRepository: widget.diaryRepository,
-                taskRepository: widget.taskRepository,
-                notebookId: widget.notebookId,
-              )),
+        builder: (context) => DiaryFormPage(
+              diaryRepository: widget.diaryRepository,
+              taskRepository: widget.taskRepository,
+              notebookId: widget.notebookId,
+            )),
     );
 
     if (result == true) {
@@ -240,7 +239,7 @@ class _DiaryPageState extends State<DiaryPage> {
                                   date: DateFormat(
                                     'MMM, dd, yyyy',
                                   ).format(entry.date),
-                                  content: entry.content,
+                                  content: entry.content!,
                                   image: entry.image,
                                   tasks: entry.tasks,
                                 ),

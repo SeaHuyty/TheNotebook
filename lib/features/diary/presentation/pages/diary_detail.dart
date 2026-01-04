@@ -3,7 +3,7 @@ import 'package:the_notebook/features/diary/data/repositories/diary_repository.d
 import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
-import 'package:the_notebook/features/diary/presentation/pages/edit_diary.dart';
+import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
@@ -93,6 +93,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
         currentDiary = Diary(
           id: currentDiary.id,
           notebookId: currentDiary.notebookId,
+          time: currentDiary.time,
+          title: currentDiary.title,
           date: currentDiary.date,
           content: currentDiary.content,
           image: currentDiary.image,
@@ -128,8 +130,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     final result = await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => EditDiaryPage(
-                  diary: widget.diary,
+            builder: (context) => DiaryFormPage(
+                  diary: currentDiary,
                   diaryRepository: widget.diaryRepository,
                   taskRepository: widget.taskRepository,
                 )));
@@ -240,7 +242,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
               height: 16,
             ),
             Text(
-              currentDiary.content,
+              currentDiary.content!,
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(
