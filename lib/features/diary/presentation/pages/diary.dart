@@ -236,12 +236,7 @@ class _DiaryPageState extends State<DiaryPage> {
                                   horizontal: 10,
                                 ),
                                 child: DiaryEntryContent(
-                                  date: DateFormat(
-                                    'MMM, dd, yyyy',
-                                  ).format(entry.date),
-                                  content: entry.content!,
-                                  image: entry.image,
-                                  tasks: entry.tasks,
+                                  diary: entry,
                                 ),
                               ),
                             ),

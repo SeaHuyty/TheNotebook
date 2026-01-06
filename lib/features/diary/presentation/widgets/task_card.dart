@@ -46,7 +46,7 @@ class TaskCard extends StatelessWidget {
               title: Text(
                 task.title,
                 style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    const TextStyle(fontSize: 15),
               ),
               leading: GestureDetector(
                 onTap: onToggleParentTask,
@@ -117,7 +117,7 @@ class SubTaskList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: Colors.grey[100]),
+      decoration: BoxDecoration(color: Colors.white),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

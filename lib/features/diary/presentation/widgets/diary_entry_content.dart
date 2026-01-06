@@ -1,21 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/diary/domain/diary_image.dart';
+import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryEntryContent extends StatefulWidget {
-  final String date;
-  final String content;
-  final DiaryImage? image;
-  final List<Task>? tasks;
+  final Diary diary;
 
   const DiaryEntryContent({
     super.key,
-    required this.date,
-    required this.content,
-    this.tasks,
-    this.image,
+    required this.diary,
   });
 
   @override
@@ -28,26 +22,26 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
   @override
   void initState() {
     super.initState();
-    expanded = List<bool>.generate(widget.tasks?.length ?? 0, (index) => false,
+    expanded = List<bool>.generate(widget.diary.tasks?.length ?? 0, (index) => false,
         growable: true);
   }
 
   @override
   void didUpdateWidget(DiaryEntryContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.tasks?.length != widget.tasks?.length) {
+    if (oldWidget.diary.tasks?.length != widget.diary.tasks?.length) {
       expanded = List<bool>.generate(
-          widget.tasks?.length ?? 0, (index) => false,
+          widget.diary.tasks?.length ?? 0, (index) => false,
           growable: true);
     }
   }
 
   void onToggleParentTask(int index) {
-    final task = widget.tasks![index];
+    final task = widget.diary.tasks![index];
     final bool newState = !task.isCompleted;
 
     setState(() {
-      widget.tasks![index] = Task(
+      widget.diary.tasks![index] = Task(
         id: task.id,
         title: task.title,
         isCompleted: newState,
@@ -64,7 +58,7 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
   }
 
   void onToggleSubtask(int parentIndex, int subIndex) {
-    final parent = widget.tasks![parentIndex];
+    final parent = widget.diary.tasks![parentIndex];
     final subtasks = [...parent.subtasks!];
 
     subtasks[subIndex] = Task(
@@ -77,7 +71,7 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
     final allCompleted = subtasks.every((t) => t.isCompleted);
 
     setState(() {
-      widget.tasks![parentIndex] = Task(
+      widget.diary.tasks![parentIndex] = Task(
         id: parent.id,
         title: parent.title,
         isCompleted: allCompleted,
@@ -95,25 +89,25 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.image != null) ...[
+          if (widget.diary.image != null) ...[
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: ImageWidget(
-                image: widget.image!,
+                image: widget.diary.image!,
               ),
             ),
             const SizedBox(height: 8),
           ],
           Text(
-            widget.date,
+            widget.diary.title,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
-          Text(widget.content, style: const TextStyle(fontSize: 14)),
+          Text(widget.diary.content!, style: const TextStyle(fontSize: 14)),
           const SizedBox(height: 8),
-          if (widget.tasks != null) ...[
-            ...widget.tasks!.asMap().entries.map((entry) {
+          if (widget.diary.tasks != null) ...[
+            ...widget.diary.tasks!.asMap().entries.map((entry) {
               int index = entry.key;
               Task task = entry.value;
               return TaskCard(

@@ -10,6 +10,8 @@ import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/tag_drawer.dart';
 import 'package:universal_io/universal_io.dart';
 
 class DiaryFormPage extends StatefulWidget {
@@ -166,6 +168,7 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
         contentChanged: descriptionController.text != widget.diary!.content,
         dateChanged: selectedDate != widget.diary!.date,
         imageChanged: selectedImage?.path != widget.diary!.image?.imagePath,
+        timeChanged: selectedTime != widget.diary!.time,
       );
     } else {
       // Create new diary
@@ -179,18 +182,6 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
     if (mounted) {
       Navigator.pop(context, true);
     }
-  }
-
-  String _formatTime(TimeOfDay time, BuildContext context) {
-    final now = DateTime.now();
-    final dateTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      time.hour,
-      time.minute,
-    );
-    return DateFormat.jm().format(dateTime); // e.g. 5:30 PM
   }
 
   @override
@@ -218,17 +209,19 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
                   onPressed: createDiary,
                   child: Row(
                     spacing: 5,
-                    children: [
-                      const Icon(Icons.check),
-                      Text(isEditMode ? 'Save' : 'Done')
-                    ],
+                    children: [const Icon(Icons.check), Text('Done')],
                   )),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.sell_outlined)),
+              Builder(builder: (context) {
+                return IconButton(
+                    onPressed: Scaffold.of(context).openEndDrawer,
+                    icon: const Icon(Icons.sell_outlined));
+              }),
               IconButton(onPressed: () {}, icon: const Icon(Icons.more_horiz))
             ],
           ),
         ],
       ),
+      endDrawer: TagDrawer(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -243,43 +236,76 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
                 ),
                 child: Row(
                   spacing: 10,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(
                       Icons.calendar_today_outlined,
-                      size: 18,
+                      size: 20,
                     ),
                     Text(
                       DateFormat('MMMM, dd, yyyy').format(selectedDate),
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 18),
                     ),
                   ],
                 ),
               ),
-              TextButton(
-                  onPressed: () async {
-                    final TimeOfDay? pickedTime = await showTimePicker(
-                        context: context, initialTime: selectedTime);
-                    if (pickedTime != null) {
-                      setState(() {
-                        selectedTime = pickedTime;
-                      });
-                    }
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Row(
-                    spacing: 5,
-                    children: [
-                      const Icon(Icons.access_time),
-                      Text(_formatTime(selectedTime, context))
-                    ],
-                  )),
               const SizedBox(
                 height: 10,
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 5,
+                  children: [
+                    TextButton(
+                        onPressed: () async {
+                          final TimeOfDay? pickedTime = await showTimePicker(
+                              context: context, initialTime: selectedTime);
+                          if (pickedTime != null) {
+                            setState(() {
+                              selectedTime = pickedTime;
+                            });
+                          }
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.black,
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Row(
+                          children: [
+                            LabelChip(
+                              icon: Icon(
+                                Icons.access_time,
+                                size: 18,
+                              ),
+                              time: selectedTime,
+                            ),
+                          ],
+                        )),
+                    if (widget.diary!.tags != null)
+                      for (var tag in widget.diary!.tags!) ...[
+                        LabelChip(
+                          icon: Icon(
+                            Icons.tag,
+                            size: 18,
+                          ),
+                          tag: tag.name,
+                        ),
+                      ],
+                    LabelChip(
+                      icon: Icon(
+                        Icons.fiber_manual_record_outlined,
+                        size: 18,
+                      ),
+                      date: widget.diary!.date,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 5,
               ),
               TextFormField(
                 controller: titleController,
@@ -326,7 +352,7 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
                   ),
                 ),
               ],
-        
+
               // Subtask Input
               if (mainTask != null) ...[
                 const SizedBox(height: 16),
@@ -343,7 +369,8 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
                         if (subtaskController.text.isEmpty) return;
                         setState(() {
                           subtasks.add(Task(
-                              title: subtaskController.text, isCompleted: false));
+                              title: subtaskController.text,
+                              isCompleted: false));
                           subtaskController.clear();
                         });
                       },

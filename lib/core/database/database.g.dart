@@ -293,11 +293,6 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
   late final GeneratedColumn<String> time = GeneratedColumn<String>(
       'time', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
-  @override
-  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
-      'tag', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _notebookIdMeta =
       const VerificationMeta('notebookId');
   @override
@@ -309,7 +304,7 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
           GeneratedColumn.constraintIsAlways('REFERENCES notebooks (id)'));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, date, title, content, time, tag, notebookId];
+      [id, date, title, content, time, notebookId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -345,10 +340,6 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
     } else if (isInserting) {
       context.missing(_timeMeta);
     }
-    if (data.containsKey('tag')) {
-      context.handle(
-          _tagMeta, tag.isAcceptableOrUnknown(data['tag']!, _tagMeta));
-    }
     if (data.containsKey('notebook_id')) {
       context.handle(
           _notebookIdMeta,
@@ -376,8 +367,6 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
           .read(DriftSqlType.string, data['${effectivePrefix}content']),
       time: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}time'])!,
-      tag: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}tag']),
       notebookId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}notebook_id'])!,
     );
@@ -395,7 +384,6 @@ class Diary extends DataClass implements Insertable<Diary> {
   final String title;
   final String? content;
   final String time;
-  final String? tag;
   final int notebookId;
   const Diary(
       {required this.id,
@@ -403,7 +391,6 @@ class Diary extends DataClass implements Insertable<Diary> {
       required this.title,
       this.content,
       required this.time,
-      this.tag,
       required this.notebookId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -415,9 +402,6 @@ class Diary extends DataClass implements Insertable<Diary> {
       map['content'] = Variable<String>(content);
     }
     map['time'] = Variable<String>(time);
-    if (!nullToAbsent || tag != null) {
-      map['tag'] = Variable<String>(tag);
-    }
     map['notebook_id'] = Variable<int>(notebookId);
     return map;
   }
@@ -431,7 +415,6 @@ class Diary extends DataClass implements Insertable<Diary> {
           ? const Value.absent()
           : Value(content),
       time: Value(time),
-      tag: tag == null && nullToAbsent ? const Value.absent() : Value(tag),
       notebookId: Value(notebookId),
     );
   }
@@ -445,7 +428,6 @@ class Diary extends DataClass implements Insertable<Diary> {
       title: serializer.fromJson<String>(json['title']),
       content: serializer.fromJson<String?>(json['content']),
       time: serializer.fromJson<String>(json['time']),
-      tag: serializer.fromJson<String?>(json['tag']),
       notebookId: serializer.fromJson<int>(json['notebookId']),
     );
   }
@@ -458,7 +440,6 @@ class Diary extends DataClass implements Insertable<Diary> {
       'title': serializer.toJson<String>(title),
       'content': serializer.toJson<String?>(content),
       'time': serializer.toJson<String>(time),
-      'tag': serializer.toJson<String?>(tag),
       'notebookId': serializer.toJson<int>(notebookId),
     };
   }
@@ -469,7 +450,6 @@ class Diary extends DataClass implements Insertable<Diary> {
           String? title,
           Value<String?> content = const Value.absent(),
           String? time,
-          Value<String?> tag = const Value.absent(),
           int? notebookId}) =>
       Diary(
         id: id ?? this.id,
@@ -477,7 +457,6 @@ class Diary extends DataClass implements Insertable<Diary> {
         title: title ?? this.title,
         content: content.present ? content.value : this.content,
         time: time ?? this.time,
-        tag: tag.present ? tag.value : this.tag,
         notebookId: notebookId ?? this.notebookId,
       );
   Diary copyWithCompanion(DiariesCompanion data) {
@@ -487,7 +466,6 @@ class Diary extends DataClass implements Insertable<Diary> {
       title: data.title.present ? data.title.value : this.title,
       content: data.content.present ? data.content.value : this.content,
       time: data.time.present ? data.time.value : this.time,
-      tag: data.tag.present ? data.tag.value : this.tag,
       notebookId:
           data.notebookId.present ? data.notebookId.value : this.notebookId,
     );
@@ -501,15 +479,13 @@ class Diary extends DataClass implements Insertable<Diary> {
           ..write('title: $title, ')
           ..write('content: $content, ')
           ..write('time: $time, ')
-          ..write('tag: $tag, ')
           ..write('notebookId: $notebookId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, date, title, content, time, tag, notebookId);
+  int get hashCode => Object.hash(id, date, title, content, time, notebookId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -519,7 +495,6 @@ class Diary extends DataClass implements Insertable<Diary> {
           other.title == this.title &&
           other.content == this.content &&
           other.time == this.time &&
-          other.tag == this.tag &&
           other.notebookId == this.notebookId);
 }
 
@@ -529,7 +504,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
   final Value<String> title;
   final Value<String?> content;
   final Value<String> time;
-  final Value<String?> tag;
   final Value<int> notebookId;
   const DiariesCompanion({
     this.id = const Value.absent(),
@@ -537,7 +511,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     this.title = const Value.absent(),
     this.content = const Value.absent(),
     this.time = const Value.absent(),
-    this.tag = const Value.absent(),
     this.notebookId = const Value.absent(),
   });
   DiariesCompanion.insert({
@@ -546,7 +519,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     required String title,
     this.content = const Value.absent(),
     required String time,
-    this.tag = const Value.absent(),
     required int notebookId,
   })  : date = Value(date),
         title = Value(title),
@@ -558,7 +530,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     Expression<String>? title,
     Expression<String>? content,
     Expression<String>? time,
-    Expression<String>? tag,
     Expression<int>? notebookId,
   }) {
     return RawValuesInsertable({
@@ -567,7 +538,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
       if (title != null) 'title': title,
       if (content != null) 'content': content,
       if (time != null) 'time': time,
-      if (tag != null) 'tag': tag,
       if (notebookId != null) 'notebook_id': notebookId,
     });
   }
@@ -578,7 +548,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
       Value<String>? title,
       Value<String?>? content,
       Value<String>? time,
-      Value<String?>? tag,
       Value<int>? notebookId}) {
     return DiariesCompanion(
       id: id ?? this.id,
@@ -586,7 +555,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
       title: title ?? this.title,
       content: content ?? this.content,
       time: time ?? this.time,
-      tag: tag ?? this.tag,
       notebookId: notebookId ?? this.notebookId,
     );
   }
@@ -609,9 +577,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     if (time.present) {
       map['time'] = Variable<String>(time.value);
     }
-    if (tag.present) {
-      map['tag'] = Variable<String>(tag.value);
-    }
     if (notebookId.present) {
       map['notebook_id'] = Variable<int>(notebookId.value);
     }
@@ -626,7 +591,6 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
           ..write('title: $title, ')
           ..write('content: $content, ')
           ..write('time: $time, ')
-          ..write('tag: $tag, ')
           ..write('notebookId: $notebookId')
           ..write(')'))
         .toString();
@@ -1220,6 +1184,381 @@ class TasksCompanion extends UpdateCompanion<Task> {
   }
 }
 
+class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  @override
+  List<GeneratedColumn> get $columns => [id, title];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tags';
+  @override
+  VerificationContext validateIntegrity(Insertable<Tag> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Tag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Tag(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+    );
+  }
+
+  @override
+  $TagsTable createAlias(String alias) {
+    return $TagsTable(attachedDatabase, alias);
+  }
+}
+
+class Tag extends DataClass implements Insertable<Tag> {
+  final int id;
+  final String title;
+  const Tag({required this.id, required this.title});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    return map;
+  }
+
+  TagsCompanion toCompanion(bool nullToAbsent) {
+    return TagsCompanion(
+      id: Value(id),
+      title: Value(title),
+    );
+  }
+
+  factory Tag.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Tag(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+    };
+  }
+
+  Tag copyWith({int? id, String? title}) => Tag(
+        id: id ?? this.id,
+        title: title ?? this.title,
+      );
+  Tag copyWithCompanion(TagsCompanion data) {
+    return Tag(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Tag(')
+          ..write('id: $id, ')
+          ..write('title: $title')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, title);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Tag && other.id == this.id && other.title == this.title);
+}
+
+class TagsCompanion extends UpdateCompanion<Tag> {
+  final Value<int> id;
+  final Value<String> title;
+  const TagsCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+  });
+  TagsCompanion.insert({
+    this.id = const Value.absent(),
+    required String title,
+  }) : title = Value(title);
+  static Insertable<Tag> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+    });
+  }
+
+  TagsCompanion copyWith({Value<int>? id, Value<String>? title}) {
+    return TagsCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TagsCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DiaryTagsTable extends DiaryTags
+    with TableInfo<$DiaryTagsTable, DiaryTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DiaryTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _diaryIdMeta =
+      const VerificationMeta('diaryId');
+  @override
+  late final GeneratedColumn<int> diaryId = GeneratedColumn<int>(
+      'diary_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES diaries (id) ON DELETE CASCADE'));
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<int> tagId = GeneratedColumn<int>(
+      'tag_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES tags (id) ON DELETE CASCADE'));
+  @override
+  List<GeneratedColumn> get $columns => [diaryId, tagId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'diary_tags';
+  @override
+  VerificationContext validateIntegrity(Insertable<DiaryTag> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('diary_id')) {
+      context.handle(_diaryIdMeta,
+          diaryId.isAcceptableOrUnknown(data['diary_id']!, _diaryIdMeta));
+    } else if (isInserting) {
+      context.missing(_diaryIdMeta);
+    }
+    if (data.containsKey('tag_id')) {
+      context.handle(
+          _tagIdMeta, tagId.isAcceptableOrUnknown(data['tag_id']!, _tagIdMeta));
+    } else if (isInserting) {
+      context.missing(_tagIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  DiaryTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DiaryTag(
+      diaryId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}diary_id'])!,
+      tagId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}tag_id'])!,
+    );
+  }
+
+  @override
+  $DiaryTagsTable createAlias(String alias) {
+    return $DiaryTagsTable(attachedDatabase, alias);
+  }
+}
+
+class DiaryTag extends DataClass implements Insertable<DiaryTag> {
+  final int diaryId;
+  final int tagId;
+  const DiaryTag({required this.diaryId, required this.tagId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['diary_id'] = Variable<int>(diaryId);
+    map['tag_id'] = Variable<int>(tagId);
+    return map;
+  }
+
+  DiaryTagsCompanion toCompanion(bool nullToAbsent) {
+    return DiaryTagsCompanion(
+      diaryId: Value(diaryId),
+      tagId: Value(tagId),
+    );
+  }
+
+  factory DiaryTag.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DiaryTag(
+      diaryId: serializer.fromJson<int>(json['diaryId']),
+      tagId: serializer.fromJson<int>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'diaryId': serializer.toJson<int>(diaryId),
+      'tagId': serializer.toJson<int>(tagId),
+    };
+  }
+
+  DiaryTag copyWith({int? diaryId, int? tagId}) => DiaryTag(
+        diaryId: diaryId ?? this.diaryId,
+        tagId: tagId ?? this.tagId,
+      );
+  DiaryTag copyWithCompanion(DiaryTagsCompanion data) {
+    return DiaryTag(
+      diaryId: data.diaryId.present ? data.diaryId.value : this.diaryId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiaryTag(')
+          ..write('diaryId: $diaryId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(diaryId, tagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DiaryTag &&
+          other.diaryId == this.diaryId &&
+          other.tagId == this.tagId);
+}
+
+class DiaryTagsCompanion extends UpdateCompanion<DiaryTag> {
+  final Value<int> diaryId;
+  final Value<int> tagId;
+  final Value<int> rowid;
+  const DiaryTagsCompanion({
+    this.diaryId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DiaryTagsCompanion.insert({
+    required int diaryId,
+    required int tagId,
+    this.rowid = const Value.absent(),
+  })  : diaryId = Value(diaryId),
+        tagId = Value(tagId);
+  static Insertable<DiaryTag> custom({
+    Expression<int>? diaryId,
+    Expression<int>? tagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (diaryId != null) 'diary_id': diaryId,
+      if (tagId != null) 'tag_id': tagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DiaryTagsCompanion copyWith(
+      {Value<int>? diaryId, Value<int>? tagId, Value<int>? rowid}) {
+    return DiaryTagsCompanion(
+      diaryId: diaryId ?? this.diaryId,
+      tagId: tagId ?? this.tagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (diaryId.present) {
+      map['diary_id'] = Variable<int>(diaryId.value);
+    }
+    if (tagId.present) {
+      map['tag_id'] = Variable<int>(tagId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiaryTagsCompanion(')
+          ..write('diaryId: $diaryId, ')
+          ..write('tagId: $tagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1227,12 +1566,33 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DiariesTable diaries = $DiariesTable(this);
   late final $DiaryImagesTable diaryImages = $DiaryImagesTable(this);
   late final $TasksTable tasks = $TasksTable(this);
+  late final $TagsTable tags = $TagsTable(this);
+  late final $DiaryTagsTable diaryTags = $DiaryTagsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [notebooks, diaries, diaryImages, tasks];
+      [notebooks, diaries, diaryImages, tasks, tags, diaryTags];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('diaries',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('diary_tags', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('tags',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('diary_tags', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
 }
 
 typedef $$NotebooksTableCreateCompanionBuilder = NotebooksCompanion Function({
@@ -1472,7 +1832,6 @@ typedef $$DiariesTableCreateCompanionBuilder = DiariesCompanion Function({
   required String title,
   Value<String?> content,
   required String time,
-  Value<String?> tag,
   required int notebookId,
 });
 typedef $$DiariesTableUpdateCompanionBuilder = DiariesCompanion Function({
@@ -1481,7 +1840,6 @@ typedef $$DiariesTableUpdateCompanionBuilder = DiariesCompanion Function({
   Value<String> title,
   Value<String?> content,
   Value<String> time,
-  Value<String?> tag,
   Value<int> notebookId,
 });
 
@@ -1532,6 +1890,20 @@ final class $$DiariesTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$DiaryTagsTable, List<DiaryTag>>
+      _diaryTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.diaryTags,
+          aliasName: $_aliasNameGenerator(db.diaries.id, db.diaryTags.diaryId));
+
+  $$DiaryTagsTableProcessedTableManager get diaryTagsRefs {
+    final manager = $$DiaryTagsTableTableManager($_db, $_db.diaryTags)
+        .filter((f) => f.diaryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_diaryTagsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$DiariesTableFilterComposer
@@ -1557,9 +1929,6 @@ class $$DiariesTableFilterComposer
 
   ColumnFilters<String> get time => $composableBuilder(
       column: $table.time, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get tag => $composableBuilder(
-      column: $table.tag, builder: (column) => ColumnFilters(column));
 
   $$NotebooksTableFilterComposer get notebookId {
     final $$NotebooksTableFilterComposer composer = $composerBuilder(
@@ -1622,6 +1991,27 @@ class $$DiariesTableFilterComposer
             ));
     return f(composer);
   }
+
+  Expression<bool> diaryTagsRefs(
+      Expression<bool> Function($$DiaryTagsTableFilterComposer f) f) {
+    final $$DiaryTagsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.diaryTags,
+        getReferencedColumn: (t) => t.diaryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiaryTagsTableFilterComposer(
+              $db: $db,
+              $table: $db.diaryTags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$DiariesTableOrderingComposer
@@ -1647,9 +2037,6 @@ class $$DiariesTableOrderingComposer
 
   ColumnOrderings<String> get time => $composableBuilder(
       column: $table.time, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get tag => $composableBuilder(
-      column: $table.tag, builder: (column) => ColumnOrderings(column));
 
   $$NotebooksTableOrderingComposer get notebookId {
     final $$NotebooksTableOrderingComposer composer = $composerBuilder(
@@ -1695,9 +2082,6 @@ class $$DiariesTableAnnotationComposer
 
   GeneratedColumn<String> get time =>
       $composableBuilder(column: $table.time, builder: (column) => column);
-
-  GeneratedColumn<String> get tag =>
-      $composableBuilder(column: $table.tag, builder: (column) => column);
 
   $$NotebooksTableAnnotationComposer get notebookId {
     final $$NotebooksTableAnnotationComposer composer = $composerBuilder(
@@ -1760,6 +2144,27 @@ class $$DiariesTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> diaryTagsRefs<T extends Object>(
+      Expression<T> Function($$DiaryTagsTableAnnotationComposer a) f) {
+    final $$DiaryTagsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.diaryTags,
+        getReferencedColumn: (t) => t.diaryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiaryTagsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.diaryTags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$DiariesTableTableManager extends RootTableManager<
@@ -1774,7 +2179,10 @@ class $$DiariesTableTableManager extends RootTableManager<
     (Diary, $$DiariesTableReferences),
     Diary,
     PrefetchHooks Function(
-        {bool notebookId, bool diaryImagesRefs, bool tasksRefs})> {
+        {bool notebookId,
+        bool diaryImagesRefs,
+        bool tasksRefs,
+        bool diaryTagsRefs})> {
   $$DiariesTableTableManager(_$AppDatabase db, $DiariesTable table)
       : super(TableManagerState(
           db: db,
@@ -1791,7 +2199,6 @@ class $$DiariesTableTableManager extends RootTableManager<
             Value<String> title = const Value.absent(),
             Value<String?> content = const Value.absent(),
             Value<String> time = const Value.absent(),
-            Value<String?> tag = const Value.absent(),
             Value<int> notebookId = const Value.absent(),
           }) =>
               DiariesCompanion(
@@ -1800,7 +2207,6 @@ class $$DiariesTableTableManager extends RootTableManager<
             title: title,
             content: content,
             time: time,
-            tag: tag,
             notebookId: notebookId,
           ),
           createCompanionCallback: ({
@@ -1809,7 +2215,6 @@ class $$DiariesTableTableManager extends RootTableManager<
             required String title,
             Value<String?> content = const Value.absent(),
             required String time,
-            Value<String?> tag = const Value.absent(),
             required int notebookId,
           }) =>
               DiariesCompanion.insert(
@@ -1818,7 +2223,6 @@ class $$DiariesTableTableManager extends RootTableManager<
             title: title,
             content: content,
             time: time,
-            tag: tag,
             notebookId: notebookId,
           ),
           withReferenceMapper: (p0) => p0
@@ -1828,12 +2232,14 @@ class $$DiariesTableTableManager extends RootTableManager<
           prefetchHooksCallback: (
               {notebookId = false,
               diaryImagesRefs = false,
-              tasksRefs = false}) {
+              tasksRefs = false,
+              diaryTagsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (diaryImagesRefs) db.diaryImages,
-                if (tasksRefs) db.tasks
+                if (tasksRefs) db.tasks,
+                if (diaryTagsRefs) db.diaryTags
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -1885,6 +2291,18 @@ class $$DiariesTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.diaryId == item.id),
+                        typedResults: items),
+                  if (diaryTagsRefs)
+                    await $_getPrefetchedData<Diary, $DiariesTable, DiaryTag>(
+                        currentTable: table,
+                        referencedTable:
+                            $$DiariesTableReferences._diaryTagsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$DiariesTableReferences(db, table, p0)
+                                .diaryTagsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.diaryId == item.id),
                         typedResults: items)
                 ];
               },
@@ -1905,7 +2323,10 @@ typedef $$DiariesTableProcessedTableManager = ProcessedTableManager<
     (Diary, $$DiariesTableReferences),
     Diary,
     PrefetchHooks Function(
-        {bool notebookId, bool diaryImagesRefs, bool tasksRefs})>;
+        {bool notebookId,
+        bool diaryImagesRefs,
+        bool tasksRefs,
+        bool diaryTagsRefs})>;
 typedef $$DiaryImagesTableCreateCompanionBuilder = DiaryImagesCompanion
     Function({
   Value<int> id,
@@ -2496,6 +2917,502 @@ typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
     (Task, $$TasksTableReferences),
     Task,
     PrefetchHooks Function({bool diaryId, bool parentTaskId})>;
+typedef $$TagsTableCreateCompanionBuilder = TagsCompanion Function({
+  Value<int> id,
+  required String title,
+});
+typedef $$TagsTableUpdateCompanionBuilder = TagsCompanion Function({
+  Value<int> id,
+  Value<String> title,
+});
+
+final class $$TagsTableReferences
+    extends BaseReferences<_$AppDatabase, $TagsTable, Tag> {
+  $$TagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$DiaryTagsTable, List<DiaryTag>>
+      _diaryTagsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.diaryTags,
+              aliasName: $_aliasNameGenerator(db.tags.id, db.diaryTags.tagId));
+
+  $$DiaryTagsTableProcessedTableManager get diaryTagsRefs {
+    final manager = $$DiaryTagsTableTableManager($_db, $_db.diaryTags)
+        .filter((f) => f.tagId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_diaryTagsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$TagsTableFilterComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> diaryTagsRefs(
+      Expression<bool> Function($$DiaryTagsTableFilterComposer f) f) {
+    final $$DiaryTagsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.diaryTags,
+        getReferencedColumn: (t) => t.tagId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiaryTagsTableFilterComposer(
+              $db: $db,
+              $table: $db.diaryTags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+}
+
+class $$TagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  Expression<T> diaryTagsRefs<T extends Object>(
+      Expression<T> Function($$DiaryTagsTableAnnotationComposer a) f) {
+    final $$DiaryTagsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.diaryTags,
+        getReferencedColumn: (t) => t.tagId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiaryTagsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.diaryTags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$TagsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TagsTable,
+    Tag,
+    $$TagsTableFilterComposer,
+    $$TagsTableOrderingComposer,
+    $$TagsTableAnnotationComposer,
+    $$TagsTableCreateCompanionBuilder,
+    $$TagsTableUpdateCompanionBuilder,
+    (Tag, $$TagsTableReferences),
+    Tag,
+    PrefetchHooks Function({bool diaryTagsRefs})> {
+  $$TagsTableTableManager(_$AppDatabase db, $TagsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> title = const Value.absent(),
+          }) =>
+              TagsCompanion(
+            id: id,
+            title: title,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String title,
+          }) =>
+              TagsCompanion.insert(
+            id: id,
+            title: title,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) =>
+                  (e.readTable(table), $$TagsTableReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: ({diaryTagsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (diaryTagsRefs) db.diaryTags],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (diaryTagsRefs)
+                    await $_getPrefetchedData<Tag, $TagsTable, DiaryTag>(
+                        currentTable: table,
+                        referencedTable:
+                            $$TagsTableReferences._diaryTagsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TagsTableReferences(db, table, p0).diaryTagsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.tagId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TagsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TagsTable,
+    Tag,
+    $$TagsTableFilterComposer,
+    $$TagsTableOrderingComposer,
+    $$TagsTableAnnotationComposer,
+    $$TagsTableCreateCompanionBuilder,
+    $$TagsTableUpdateCompanionBuilder,
+    (Tag, $$TagsTableReferences),
+    Tag,
+    PrefetchHooks Function({bool diaryTagsRefs})>;
+typedef $$DiaryTagsTableCreateCompanionBuilder = DiaryTagsCompanion Function({
+  required int diaryId,
+  required int tagId,
+  Value<int> rowid,
+});
+typedef $$DiaryTagsTableUpdateCompanionBuilder = DiaryTagsCompanion Function({
+  Value<int> diaryId,
+  Value<int> tagId,
+  Value<int> rowid,
+});
+
+final class $$DiaryTagsTableReferences
+    extends BaseReferences<_$AppDatabase, $DiaryTagsTable, DiaryTag> {
+  $$DiaryTagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DiariesTable _diaryIdTable(_$AppDatabase db) => db.diaries
+      .createAlias($_aliasNameGenerator(db.diaryTags.diaryId, db.diaries.id));
+
+  $$DiariesTableProcessedTableManager get diaryId {
+    final $_column = $_itemColumn<int>('diary_id')!;
+
+    final manager = $$DiariesTableTableManager($_db, $_db.diaries)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_diaryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $TagsTable _tagIdTable(_$AppDatabase db) =>
+      db.tags.createAlias($_aliasNameGenerator(db.diaryTags.tagId, db.tags.id));
+
+  $$TagsTableProcessedTableManager get tagId {
+    final $_column = $_itemColumn<int>('tag_id')!;
+
+    final manager = $$TagsTableTableManager($_db, $_db.tags)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tagIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$DiaryTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $DiaryTagsTable> {
+  $$DiaryTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$DiariesTableFilterComposer get diaryId {
+    final $$DiariesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableFilterComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TagsTableFilterComposer get tagId {
+    final $$TagsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagId,
+        referencedTable: $db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TagsTableFilterComposer(
+              $db: $db,
+              $table: $db.tags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DiaryTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DiaryTagsTable> {
+  $$DiaryTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$DiariesTableOrderingComposer get diaryId {
+    final $$DiariesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableOrderingComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TagsTableOrderingComposer get tagId {
+    final $$TagsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagId,
+        referencedTable: $db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TagsTableOrderingComposer(
+              $db: $db,
+              $table: $db.tags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DiaryTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DiaryTagsTable> {
+  $$DiaryTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$DiariesTableAnnotationComposer get diaryId {
+    final $$DiariesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.diaryId,
+        referencedTable: $db.diaries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DiariesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TagsTableAnnotationComposer get tagId {
+    final $$TagsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagId,
+        referencedTable: $db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TagsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.tags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DiaryTagsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DiaryTagsTable,
+    DiaryTag,
+    $$DiaryTagsTableFilterComposer,
+    $$DiaryTagsTableOrderingComposer,
+    $$DiaryTagsTableAnnotationComposer,
+    $$DiaryTagsTableCreateCompanionBuilder,
+    $$DiaryTagsTableUpdateCompanionBuilder,
+    (DiaryTag, $$DiaryTagsTableReferences),
+    DiaryTag,
+    PrefetchHooks Function({bool diaryId, bool tagId})> {
+  $$DiaryTagsTableTableManager(_$AppDatabase db, $DiaryTagsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DiaryTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DiaryTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DiaryTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> diaryId = const Value.absent(),
+            Value<int> tagId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DiaryTagsCompanion(
+            diaryId: diaryId,
+            tagId: tagId,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required int diaryId,
+            required int tagId,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DiaryTagsCompanion.insert(
+            diaryId: diaryId,
+            tagId: tagId,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$DiaryTagsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({diaryId = false, tagId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (diaryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.diaryId,
+                    referencedTable:
+                        $$DiaryTagsTableReferences._diaryIdTable(db),
+                    referencedColumn:
+                        $$DiaryTagsTableReferences._diaryIdTable(db).id,
+                  ) as T;
+                }
+                if (tagId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.tagId,
+                    referencedTable: $$DiaryTagsTableReferences._tagIdTable(db),
+                    referencedColumn:
+                        $$DiaryTagsTableReferences._tagIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$DiaryTagsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DiaryTagsTable,
+    DiaryTag,
+    $$DiaryTagsTableFilterComposer,
+    $$DiaryTagsTableOrderingComposer,
+    $$DiaryTagsTableAnnotationComposer,
+    $$DiaryTagsTableCreateCompanionBuilder,
+    $$DiaryTagsTableUpdateCompanionBuilder,
+    (DiaryTag, $$DiaryTagsTableReferences),
+    DiaryTag,
+    PrefetchHooks Function({bool diaryId, bool tagId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2508,4 +3425,7 @@ class $AppDatabaseManager {
       $$DiaryImagesTableTableManager(_db, _db.diaryImages);
   $$TasksTableTableManager get tasks =>
       $$TasksTableTableManager(_db, _db.tasks);
+  $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
+  $$DiaryTagsTableTableManager get diaryTags =>
+      $$DiaryTagsTableTableManager(_db, _db.diaryTags);
 }
