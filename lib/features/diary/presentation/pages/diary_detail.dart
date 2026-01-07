@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryDetailPage extends StatefulWidget {
@@ -189,20 +191,21 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
             },
             icon: const Icon(Icons.arrow_back_ios)),
         actions: [
+          IconButton(onPressed: onEdit, icon: Icon(Icons.edit_note_outlined)),
           Padding(
             padding: const EdgeInsets.all(8),
             child: PopupMenuButton<String>(
               icon: Icon(Icons.more_horiz),
               onSelected: (value) {
-                if (value == 'edit') onEdit();
+                if (value == 'info') onEdit();
                 if (value == 'delete') onDelete();
               },
               itemBuilder: (context) => [
                 PopupMenuItem(
-                    value: 'edit',
+                    value: 'info',
                     child: Row(
                       spacing: 10,
-                      children: [Icon(Icons.edit), Text('Edit')],
+                      children: [Icon(Icons.info_outline), Text('Info')],
                     )),
                 PopupMenuItem(
                     value: 'delete',
@@ -215,74 +218,112 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              spacing: 10,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 20,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                spacing: 10,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 20,
+                  ),
+                  Text(DateFormat('MMMM, dd, yyyy').format(currentDiary.date),
+                      style: TextStyle(fontSize: 18))
+                ],
+              ),
+              const SizedBox(
+                height: 5,
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 5,
+                  children: [
+                    LabelChip(
+                      icon: Icon(
+                        Icons.access_time,
+                        size: 18,
+                      ),
+                      time: currentDiary.time,
+                    ),
+                    if (currentDiary.tags != null)
+                      for (var tag in currentDiary.tags!) ...[
+                        LabelChip(
+                          icon: Icon(
+                            Icons.tag,
+                            size: 18,
+                          ),
+                          tag: tag.name,
+                        ),
+                      ],
+                    LabelChip(
+                      icon: Icon(
+                        Icons.fiber_manual_record_outlined,
+                        size: 18,
+                      ),
+                      date: currentDiary.date,
+                    ),
+                  ],
                 ),
-                Text(currentDiary.date.toString())
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(
+                currentDiary.title,
+                style: TextStyle(fontSize: 24),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(
+                currentDiary.content!,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              if (currentDiary.image != null) ...[
+                ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: ImageWidget(image: currentDiary.image!)),
+                const SizedBox(
+                  height: 16,
+                ),
               ],
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            const Text(
-              'A Productive Title',
-              style: TextStyle(fontSize: 24),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              currentDiary.content!,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            if (currentDiary.image != null) ...[
-              ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: ImageWidget(image: currentDiary.image!)),
-              const SizedBox(
-                height: 16,
-              ),
+              if (currentDiary.tasks != null &&
+                  currentDiary.tasks!.isNotEmpty) ...[
+                const Text('Task', style: TextStyle(fontSize: 18)),
+                const SizedBox(
+                  height: 16,
+                ),
+                ...currentDiary.tasks!.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  Task task = entry.value;
+                  return TaskCard(
+                    task: task,
+                    onToggleParentTask: () => onToggleParentTask(index),
+                    onToggleSubtask: (subIndex) =>
+                        onToggleSubtask(index, subIndex),
+                    isExpanded: expanded[index],
+                    onExpandChanged: (val) {
+                      setState(() {
+                        expanded[index] = val;
+                      });
+                    },
+                    onDelete: () => onDeleteTask(index),
+                    onDeleteSubtask: (subIndex) =>
+                        onDeleteSubtask(index, subIndex),
+                  );
+                }),
+              ],
             ],
-            if (currentDiary.tasks != null &&
-                currentDiary.tasks!.isNotEmpty) ...[
-              const Text('Task', style: TextStyle(fontSize: 18)),
-              const SizedBox(
-                height: 16,
-              ),
-              ...currentDiary.tasks!.asMap().entries.map((entry) {
-                int index = entry.key;
-                Task task = entry.value;
-                return TaskCard(
-                  task: task,
-                  onToggleParentTask: () => onToggleParentTask(index),
-                  onToggleSubtask: (subIndex) =>
-                      onToggleSubtask(index, subIndex),
-                  isExpanded: expanded[index],
-                  onExpandChanged: (val) {
-                    setState(() {
-                      expanded[index] = val;
-                    });
-                  },
-                  onDelete: () => onDeleteTask(index),
-                  onDeleteSubtask: (subIndex) =>
-                      onDeleteSubtask(index, subIndex),
-                );
-              }),
-            ],
-          ],
+          ),
         ),
       ),
     );
