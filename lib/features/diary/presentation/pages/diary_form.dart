@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,7 +11,7 @@ import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
 import 'package:the_notebook/features/diary/domain/tag.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
-import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/image_gallery.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/tag_drawer.dart';
 import 'package:universal_io/universal_io.dart';
@@ -43,8 +44,8 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
   final ImagePicker picker = ImagePicker();
   late DateTime selectedDate;
   late TimeOfDay selectedTime;
-  XFile? selectedImage;
-  bool? isLandscape;
+  List<XFile> selectedImages = [];
+  List<bool> isLandscape = [];
   List<Tag> tags = [];
 
   Task? mainTask;
@@ -63,9 +64,11 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
       selectedTime = widget.diary!.time;
       tags = widget.diary!.tags ?? [];
 
-      if (widget.diary!.image != null) {
-        selectedImage = XFile(widget.diary!.image!.imagePath);
-        isLandscape = widget.diary!.image!.isLandscape;
+      if (widget.diary!.images != null && widget.diary!.images!.isNotEmpty) {
+        selectedImages =
+            widget.diary!.images!.map((img) => XFile(img.imagePath)).toList();
+        isLandscape =
+            widget.diary!.images!.map((img) => img.isLandscape).toList();
       }
 
       if (widget.diary!.tasks != null && widget.diary!.tasks!.isNotEmpty) {
@@ -94,24 +97,51 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
   }
 
   Future<void> pickImage() async {
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      final bytes = await image.readAsBytes();
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images.isNotEmpty) {
+      List<bool> orientations = [];
 
-      final ui.Codec codec = await ui.instantiateImageCodec(bytes);
-      final ui.FrameInfo frameInfo = await codec.getNextFrame();
-      final decodedImage = frameInfo.image;
-      final orientation = decodedImage.width > decodedImage.height;
+      for (var image in images) {
+        final bytes = await image.readAsBytes();
+
+        final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+        final ui.FrameInfo frameInfo = await codec.getNextFrame();
+        final decodedImage = frameInfo.image;
+        final orientation = decodedImage.width > decodedImage.height;
+
+        orientations.add(orientation);
+      }
 
       setState(() {
-        selectedImage = image;
-        isLandscape = orientation;
+        selectedImages.addAll(images);
+        isLandscape.addAll(orientations);
       });
     }
   }
 
-  Future<String?> saveImagePermanently(XFile image) async {
+  Future<List<domain.DiaryImage>?> diaryImages() async {
+    if (selectedImages.isNotEmpty) {
+      final List<domain.DiaryImage> images = [];
+      for (var entry in selectedImages.asMap().entries) {
+        final index = entry.key;
+        final image = entry.value;
+        images.add(domain.DiaryImage(
+            imagePath: await saveImagePermanently(image),
+            isLandscape: isLandscape[index]));
+      }
+
+      return images;
+    } else {
+      return null;
+    }
+  }
+
+  Future<String> saveImagePermanently(XFile image) async {
     try {
+      if (kIsWeb) {
+        return image.path;
+      }
+
       final Directory appDocDir = await getApplicationDocumentsDirectory();
       final Directory imageDir = Directory('${appDocDir.path}/diary_images');
       if (!await imageDir.exists()) {
@@ -127,7 +157,7 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
 
       return newPath;
     } catch (e) {
-      return null;
+      return image.path;
     }
   }
 
@@ -141,28 +171,15 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
       );
     }
 
-    String? imagePath;
-
-    if (selectedImage != null) {
-      imagePath = await saveImagePermanently(selectedImage!);
-      imagePath ??= selectedImage!.path; // For web testing
-    }
-
     final diary = domain.Diary(
-      id: isEditMode ? widget.diary!.id : null,
-      notebookId: isEditMode ? widget.diary!.notebookId : widget.notebookId!,
-      date: selectedDate,
-      time: selectedTime,
-      title: titleController.text,
-      content: descriptionController.text,
-      tasks: mainTask != null ? [mainTask!] : null,
-      image: selectedImage != null && imagePath != null && isLandscape != null
-          ? domain.DiaryImage(
-              imagePath: imagePath,
-              isLandscape: isLandscape!,
-            )
-          : null,
-    );
+        id: isEditMode ? widget.diary!.id : null,
+        notebookId: isEditMode ? widget.diary!.notebookId : widget.notebookId!,
+        date: selectedDate,
+        time: selectedTime,
+        title: titleController.text,
+        content: descriptionController.text,
+        tasks: mainTask != null ? [mainTask!] : null,
+        images: await diaryImages());
 
     if (isEditMode) {
       // Update existing diary
@@ -170,12 +187,19 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
         diary,
         contentChanged: descriptionController.text != widget.diary!.content,
         dateChanged: selectedDate != widget.diary!.date,
-        imageChanged: selectedImage?.path != widget.diary!.image?.imagePath,
+        imageChanged: selectedImages.length != (widget.diary!.images?.length ?? 0),
         timeChanged: selectedTime != widget.diary!.time,
       );
     } else {
       // Create new diary
       final diaryId = await diaryRepository.insertDiary(diary);
+
+      final diaryTagRepo = ref.read(diaryTagRepositoryProvider);
+      for (var tag in tags) {
+        if (tag.id != null) {
+          await diaryTagRepo.insertTagToDiary(tag.id!, diaryId);
+        }
+      }
 
       for (var sub in subtasks) {
         await taskRepository.insertTask(sub, diaryId);
@@ -401,15 +425,17 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
                   ),
               ],
               const SizedBox(height: 10),
-              if (selectedImage != null && isLandscape != null)
-                Center(
-                  child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: ImageWidget(
-                          image: domain.DiaryImage(
-                        imagePath: selectedImage!.path,
-                        isLandscape: isLandscape!,
-                      ))),
+              if (selectedImages.isNotEmpty)
+                ImageGalleryWidget(
+                  images: selectedImages,
+                  isLandscape: isLandscape,
+                  showRemoveButton: true,
+                  onRemove: (index) {
+                    setState(() {
+                      selectedImages.removeAt(index);
+                      isLandscape.removeAt(index);
+                    });
+                  },
                 ),
               const SizedBox(height: 10),
               ElevatedButton(
@@ -431,7 +457,7 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
                         size: 19,
                       ),
                       Text(
-                        selectedImage != null ? 'Change image' : 'Add image',
+                        selectedImages.isEmpty ? 'Add image' : 'Add more image',
                         style: const TextStyle(fontSize: 17),
                       )
                     ],

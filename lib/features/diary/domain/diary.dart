@@ -10,7 +10,7 @@ class Diary {
   final String title;
   final List<Tag>? tags;
   final String? content;
-  final DiaryImage? image;
+  final List<DiaryImage>? images;
   final List<Task>? tasks;
   final int notebookId;
 
@@ -22,7 +22,7 @@ class Diary {
     this.tags,
     required this.time,
     required this.notebookId,
-    this.image,
+    this.images,
     List<Task>? tasks,
   }) : tasks = tasks ?? <Task>[];
 }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
-import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/image_gallery.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
@@ -99,7 +100,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
           title: currentDiary.title,
           date: currentDiary.date,
           content: currentDiary.content,
-          image: currentDiary.image,
+          images: currentDiary.images,
           tasks: updatedTasks.isEmpty ? null : updatedTasks,
         );
         wasEdited = true;
@@ -284,13 +285,17 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
               const SizedBox(
                 height: 16,
               ),
-              if (currentDiary.image != null) ...[
-                ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: ImageWidget(image: currentDiary.image!)),
-                const SizedBox(
-                  height: 16,
-                ),
+              if (currentDiary.images != null &&
+                  currentDiary.images!.isNotEmpty) ...[
+                ImageGalleryWidget(
+                  images: currentDiary.images!
+                      .map((img) => XFile(img.imagePath))
+                      .toList(),
+                  isLandscape: currentDiary.images!
+                      .map((img) => img.isLandscape)
+                      .toList(),
+                  showRemoveButton: false,
+                )
               ],
               if (currentDiary.tasks != null &&
                   currentDiary.tasks!.isNotEmpty) ...[

@@ -20,7 +20,7 @@ class DiaryRepository {
 
     for (var diary in diaries) {
       final tasks = await _taskRepo.getTasksForDiary(diary.id);
-      final image = await _imageRepo.getImageByDiaryId(diary.id);
+      final image = await _imageRepo.getImagesByDiaryId(diary.id);
       final tags = await _tagRepo.getTagsForDiary(diary.id);
 
       final parts = diary.time.split(':');
@@ -35,7 +35,7 @@ class DiaryRepository {
           tags: tags,
           date: diary.date,
           content: diary.content,
-          image: image,
+          images: image,
           tasks: tasks,
         ),
       );
@@ -86,8 +86,10 @@ class DiaryRepository {
       }
     }
 
-    if (diary.image != null) {
-      await _imageRepo.insertImage(diary.image!, diaryId);
+    if (diary.images != null) {
+      for (var image in diary.images!) {
+        await _imageRepo.insertImage(image, diaryId);
+      }
     }
 
     return diaryId;
@@ -122,15 +124,17 @@ class DiaryRepository {
     if (imageChanged) {
       await _imageRepo.deleteImageByDiaryId(diary.id!);
 
-      if (diary.image != null) {
-        await _imageRepo.insertImage(diary.image!, diary.id!);
+      if (diary.images != null) {
+        for (var image in diary.images!) {
+          await _imageRepo.insertImage(image, diary.id!);
+        }
       }
     }
   }
 
   Future<domain.Diary?> getDiaryById(int diaryId) async {
     final tasks = await _taskRepo.getTasksForDiary(diaryId);
-    final image = await _imageRepo.getImageByDiaryId(diaryId);
+    final image = await _imageRepo.getImagesByDiaryId(diaryId);
     final tags = await _tagRepo.getTagsForDiary(diaryId);
 
     final query = _db.select(_db.diaries)
@@ -149,7 +153,7 @@ class DiaryRepository {
       tags: tags,
       date: diary.date,
       content: diary.content,
-      image: image,
+      images: image,
       tasks: tasks,
     );
   }
@@ -168,7 +172,7 @@ class DiaryRepository {
 
     for (var diary in result) {
       final tasks = await _taskRepo.getTasksForDiary(diary.id);
-      final image = await _imageRepo.getImageByDiaryId(diary.id);
+      final image = await _imageRepo.getImagesByDiaryId(diary.id);
       final tags = await _tagRepo.getTagsForDiary(diary.id);
 
       final parts = diary.time.split(':');
@@ -183,7 +187,7 @@ class DiaryRepository {
                 hour: int.parse(parts[0]), minute: int.parse(parts[1])),
             content: diary.content,
             tags: tags,
-            image: image,
+            images: image,
             tasks: tasks),
       );
     }
