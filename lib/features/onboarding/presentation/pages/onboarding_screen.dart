@@ -1,29 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
-import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:the_notebook/features/notebook/presentation/notebook_page.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_page.dart';
 
 const asset1 = "assets/images/open-book.svg";
 const asset2 = "assets/images/education-note.svg";
 const asset3 = "assets/images/notepad-checklist.svg";
-class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen(
-      {super.key,
-      required this.diaryRepo,
-      required this.notebookRepo,
-      required this.taskRepo});
 
-  final DiaryRepository diaryRepo;
-  final NotebookRepository notebookRepo;
-  final TaskRepository taskRepo;
+class OnboardingScreen extends ConsumerStatefulWidget {
+  const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   final int _totalPage = 3;
@@ -36,25 +28,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       );
     } else {
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => NotebookPage(
-                    notebookRepo: widget.notebookRepo,
-                    diaryRepo: widget.diaryRepo,
-                    taskRepo: widget.taskRepo,
-                  )));
+          context, MaterialPageRoute(builder: (context) => NotebookPage()));
     }
   }
 
   void onSkipped() {
     Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) => NotebookPage(
-                  notebookRepo: widget.notebookRepo,
-                  diaryRepo: widget.diaryRepo,
-                  taskRepo: widget.taskRepo,
-                )));
+        context, MaterialPageRoute(builder: (context) => NotebookPage()));
   }
 
   Widget buildPageIndicator() {

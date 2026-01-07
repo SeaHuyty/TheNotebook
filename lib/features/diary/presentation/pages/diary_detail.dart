@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
+import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
@@ -9,22 +9,22 @@ import 'package:the_notebook/features/diary/presentation/widgets/image_widget.da
 import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
-class DiaryDetailPage extends StatefulWidget {
+class DiaryDetailPage extends ConsumerStatefulWidget {
   final Diary diary;
-  final DiaryRepository diaryRepository;
-  final TaskRepository taskRepository;
 
-  const DiaryDetailPage(
-      {super.key,
-      required this.diary,
-      required this.diaryRepository,
-      required this.taskRepository});
+  const DiaryDetailPage({
+    super.key,
+    required this.diary,
+  });
 
   @override
-  State<DiaryDetailPage> createState() => _DiaryDetailPageState();
+  ConsumerState<DiaryDetailPage> createState() => _DiaryDetailPageState();
 }
 
-class _DiaryDetailPageState extends State<DiaryDetailPage> {
+class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
+  late final diaryRepository = ref.read(diaryRepositoryProvider);
+  late final taskRepository = ref.read(taskRepositoryProvider);
+
   late List<bool> expanded;
   late Diary currentDiary;
   bool wasEdited = false;
@@ -86,7 +86,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     final task = currentDiary.tasks![index];
     if (task.id == null) return;
 
-    final success = await widget.taskRepository.deleteTask(task.id!);
+    final success = await taskRepository.deleteTask(task.id!);
     if (success && mounted) {
       setState(() {
         final updatedTasks = [...currentDiary.tasks!];
@@ -112,7 +112,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     final subtask = parent.subtasks![subIndex];
     if (subtask.id == null) return;
 
-    final success = await widget.taskRepository.deleteTask(subtask.id!);
+    final success = await taskRepository.deleteTask(subtask.id!);
     if (success && mounted) {
       setState(() {
         final updatedSubtasks = [...parent.subtasks!];
@@ -134,13 +134,10 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
         MaterialPageRoute(
             builder: (context) => DiaryFormPage(
                   diary: currentDiary,
-                  diaryRepository: widget.diaryRepository,
-                  taskRepository: widget.taskRepository,
                 )));
 
     if (result == true) {
-      final updatedDiary =
-          await widget.diaryRepository.getDiaryById(widget.diary.id!);
+      final updatedDiary = await diaryRepository.getDiaryById(widget.diary.id!);
 
       // Replace this page with updated diary data
       if (mounted && updatedDiary != null) {
@@ -173,8 +170,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
             ));
 
     if (result) {
-      final success =
-          await widget.diaryRepository.deleteDiary(currentDiary.id!);
+      final success = await diaryRepository.deleteDiary(currentDiary.id!);
       if (success && mounted) {
         Navigator.pop(context, true);
       }

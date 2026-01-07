@@ -1,30 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
-import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
 import 'package:the_notebook/features/notebook/model/notebook.dart';
 import 'package:the_notebook/features/notebook/presentation/notebook_form.dart';
 import 'package:the_notebook/features/notebook/widgets/notebook_tile.dart';
 import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
-class NotebookPage extends StatefulWidget {
-  const NotebookPage(
-      {super.key,
-      required this.notebookRepo,
-      required this.diaryRepo,
-      required this.taskRepo});
-
-  final NotebookRepository notebookRepo;
-  final DiaryRepository diaryRepo;
-  final TaskRepository taskRepo;
+class NotebookPage extends ConsumerStatefulWidget {
+  const NotebookPage({super.key});
 
   @override
-  State<NotebookPage> createState() => _NotebookPageState();
+  ConsumerState<NotebookPage> createState() => _NotebookPageState();
 }
 
-class _NotebookPageState extends State<NotebookPage> {
+class _NotebookPageState extends ConsumerState<NotebookPage> {
   List<Notebook> notebookList = [];
+  late final notebookRepo = ref.read(notebookRepositoryProvider);
 
   @override
   void initState() {
@@ -33,7 +25,7 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> loadNotebooks() async {
-    final notebooks = await widget.notebookRepo.getNotebooks();
+    final notebooks = await notebookRepo.getNotebooks();
     setState(() {
       notebookList = notebooks;
     });
@@ -46,7 +38,7 @@ class _NotebookPageState extends State<NotebookPage> {
       builder: (context) => const NotebookForm(isEdited: false),
     );
     if (newNotebook != null) {
-      final newId = await widget.notebookRepo.insertNotebook(newNotebook);
+      final newId = await notebookRepo.insertNotebook(newNotebook);
       setState(() {
         notebookList.insert(
             notebookList.length,
@@ -66,7 +58,7 @@ class _NotebookPageState extends State<NotebookPage> {
       builder: (context) => NotebookForm(notebook: notebook, isEdited: true),
     );
     if (updated != null && updated.id != null) {
-      await widget.notebookRepo.updateNotebook(updated);
+      await notebookRepo.updateNotebook(updated);
       setState(() {
         final index = notebookList.indexWhere((n) => n.id == updated.id);
         if (index != -1) {
@@ -81,7 +73,7 @@ class _NotebookPageState extends State<NotebookPage> {
     if (index == -1) return;
 
     try {
-      await widget.notebookRepo.deleteNotebook(notebook.id!);
+      await notebookRepo.deleteNotebook(notebook.id!);
       setState(() {
         notebookList.removeAt(index);
       });
@@ -99,8 +91,6 @@ class _NotebookPageState extends State<NotebookPage> {
         context,
         MaterialPageRoute(
             builder: (context) => DiaryPage(
-                diaryRepository: widget.diaryRepo,
-                taskRepository: widget.taskRepo,
                 notebookId: notebookId)));
   }
 
@@ -160,9 +150,6 @@ class _NotebookPageState extends State<NotebookPage> {
       ),
       drawer: AppDrawer(
         currentPage: 'notebook',
-        diaryRepo: widget.diaryRepo,
-        notebookRepo: widget.notebookRepo,
-        taskRepo: widget.taskRepo,
       ),
       body: Padding(padding: EdgeInsets.all(20), child: content),
     );

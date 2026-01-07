@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'dart:ui' as ui;
 import 'package:path_provider/path_provider.dart';
-import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
+import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
-import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/domain/tag.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
@@ -15,26 +15,26 @@ import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart
 import 'package:the_notebook/features/diary/presentation/widgets/tag_drawer.dart';
 import 'package:universal_io/universal_io.dart';
 
-class DiaryFormPage extends StatefulWidget {
-  final DiaryRepository diaryRepository;
-  final TaskRepository taskRepository;
+class DiaryFormPage extends ConsumerStatefulWidget {
   final int? notebookId; // For create mode
   final domain.Diary? diary; // For edit mode
 
   const DiaryFormPage({
     super.key,
-    required this.diaryRepository,
-    required this.taskRepository,
     this.notebookId,
     this.diary,
   }) : assert(notebookId != null || diary != null,
             'Either notebookId or diary must be provided');
 
   @override
-  State<DiaryFormPage> createState() => _DiaryFormPageState();
+  ConsumerState<DiaryFormPage> createState() => _DiaryFormPageState();
 }
 
-class _DiaryFormPageState extends State<DiaryFormPage> {
+class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
+  // Repository
+  late final diaryRepository = ref.read(diaryRepositoryProvider);
+  late final taskRepository = ref.read(taskRepositoryProvider);
+
   // Inputs
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
@@ -166,7 +166,7 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
 
     if (isEditMode) {
       // Update existing diary
-      await widget.diaryRepository.updateDiary(
+      await diaryRepository.updateDiary(
         diary,
         contentChanged: descriptionController.text != widget.diary!.content,
         dateChanged: selectedDate != widget.diary!.date,
@@ -175,10 +175,10 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
       );
     } else {
       // Create new diary
-      final diaryId = await widget.diaryRepository.insertDiary(diary);
+      final diaryId = await diaryRepository.insertDiary(diary);
 
       for (var sub in subtasks) {
-        await widget.taskRepository.insertTask(sub, diaryId);
+        await taskRepository.insertTask(sub, diaryId);
       }
     }
 

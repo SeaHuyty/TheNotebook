@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
+import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
@@ -10,22 +10,18 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../widgets/diary_timeline_widget.dart';
 import '../widgets/diary_entry_content.dart';
 
-class DiaryPage extends StatefulWidget {
-  final DiaryRepository diaryRepository;
-  final TaskRepository taskRepository;
+class DiaryPage extends ConsumerStatefulWidget {
   final int notebookId;
 
   const DiaryPage(
       {super.key,
-      required this.diaryRepository,
-      required this.taskRepository,
       required this.notebookId});
 
   @override
-  State<DiaryPage> createState() => _DiaryPageState();
+  ConsumerState<DiaryPage> createState() => _DiaryPageState();
 }
 
-class _DiaryPageState extends State<DiaryPage> {
+class _DiaryPageState extends ConsumerState<DiaryPage> {
   bool isMonthSelectorExpanded = false;
   String currentMonth = DateFormat('MMMM').format(DateTime.now());
   final ItemScrollController _scrollController = ItemScrollController();
@@ -36,6 +32,7 @@ class _DiaryPageState extends State<DiaryPage> {
   List<int> availableYears = [];
   Set<String> availableMonths = {};
   List<Diary> sortedEntries = [];
+  late final diaryRepository = ref.read(diaryRepositoryProvider);
 
   @override
   void initState() {
@@ -45,8 +42,8 @@ class _DiaryPageState extends State<DiaryPage> {
 
   Future<void> loadEntries() async {
     final entries =
-        await widget.diaryRepository.getDiaryEntriesByYear(selectedYear);
-    final years = await widget.diaryRepository.getAvailableYears();
+        await diaryRepository.getDiaryEntriesByYear(selectedYear);
+    final years = await diaryRepository.getAvailableYears();
 
     setState(() {
       sortedEntries = entries;
@@ -132,8 +129,6 @@ class _DiaryPageState extends State<DiaryPage> {
       context,
       MaterialPageRoute(
         builder: (context) => DiaryFormPage(
-              diaryRepository: widget.diaryRepository,
-              taskRepository: widget.taskRepository,
               notebookId: widget.notebookId,
             )),
     );
@@ -218,10 +213,6 @@ class _DiaryPageState extends State<DiaryPage> {
                                   MaterialPageRoute(
                                       builder: (context) => DiaryDetailPage(
                                             diary: entry,
-                                            diaryRepository:
-                                                widget.diaryRepository,
-                                            taskRepository:
-                                                widget.taskRepository,
                                           )));
 
                               if (result == true) {

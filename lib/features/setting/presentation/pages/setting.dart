@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
-import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
 import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
 class SettingPage extends StatelessWidget {
-  final DiaryRepository? diaryRepo;
-  final NotebookRepository? notebookRepo;
-  final TaskRepository? taskRepo;
-
-  const SettingPage(
-      {super.key, required this.diaryRepo, this.notebookRepo, this.taskRepo});
+  const SettingPage({super.key});
 
   void onReset() {
     // Reset the configuration to default
@@ -32,20 +24,17 @@ class SettingPage extends StatelessWidget {
             },
             itemBuilder: (context) => [
               PopupMenuItem(
-                value: 'reset',
+                  value: 'reset',
                   child: Row(
-                spacing: 10,
-                children: [Icon(Icons.autorenew), Text('Reset')],
-              ))
+                    spacing: 10,
+                    children: [Icon(Icons.autorenew), Text('Reset')],
+                  ))
             ],
           ),
         ],
       ),
       drawer: AppDrawer(
         currentPage: 'setting',
-        diaryRepo: diaryRepo,
-        notebookRepo: notebookRepo,
-        taskRepo: taskRepo,
       ),
       body: Column(
         children: [
