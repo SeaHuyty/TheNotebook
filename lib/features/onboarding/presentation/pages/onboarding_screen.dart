@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:the_notebook/core/providers/repository_providers.dart';
 
 import 'package:the_notebook/features/notebook/presentation/notebook_page.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_page.dart';
@@ -20,21 +21,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _currentPage = 0;
   final int _totalPage = 3;
 
-  void nextPage() {
+  void nextPage() async {
     if (_currentPage < _totalPage - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => NotebookPage()));
+      await ref.read(userRepositoryProvider).createUser();
+      if (mounted) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const NotebookPage()));
+      }
     }
   }
 
-  void onSkipped() {
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => NotebookPage()));
+  void onSkipped() async {
+    await ref.read(userRepositoryProvider).createUser();
+
+    if (mounted) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const NotebookPage()));
+    }
   }
 
   Widget buildPageIndicator() {

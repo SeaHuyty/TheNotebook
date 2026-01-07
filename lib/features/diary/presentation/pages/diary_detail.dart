@@ -295,7 +295,10 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                       .map((img) => img.isLandscape)
                       .toList(),
                   showRemoveButton: false,
-                )
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
               ],
               if (currentDiary.tasks != null &&
                   currentDiary.tasks!.isNotEmpty) ...[

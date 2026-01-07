@@ -302,9 +302,17 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
       requiredDuringInsert: true,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES notebooks (id)'));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, date, title, content, time, notebookId];
+      [id, date, title, content, time, notebookId, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -348,6 +356,10 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
     } else if (isInserting) {
       context.missing(_notebookIdMeta);
     }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
     return context;
   }
 
@@ -369,6 +381,8 @@ class $DiariesTable extends Diaries with TableInfo<$DiariesTable, Diary> {
           .read(DriftSqlType.string, data['${effectivePrefix}time'])!,
       notebookId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}notebook_id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
   }
 
@@ -385,13 +399,15 @@ class Diary extends DataClass implements Insertable<Diary> {
   final String? content;
   final String time;
   final int notebookId;
+  final DateTime createdAt;
   const Diary(
       {required this.id,
       required this.date,
       required this.title,
       this.content,
       required this.time,
-      required this.notebookId});
+      required this.notebookId,
+      required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -403,6 +419,7 @@ class Diary extends DataClass implements Insertable<Diary> {
     }
     map['time'] = Variable<String>(time);
     map['notebook_id'] = Variable<int>(notebookId);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
@@ -416,6 +433,7 @@ class Diary extends DataClass implements Insertable<Diary> {
           : Value(content),
       time: Value(time),
       notebookId: Value(notebookId),
+      createdAt: Value(createdAt),
     );
   }
 
@@ -429,6 +447,7 @@ class Diary extends DataClass implements Insertable<Diary> {
       content: serializer.fromJson<String?>(json['content']),
       time: serializer.fromJson<String>(json['time']),
       notebookId: serializer.fromJson<int>(json['notebookId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
@@ -441,6 +460,7 @@ class Diary extends DataClass implements Insertable<Diary> {
       'content': serializer.toJson<String?>(content),
       'time': serializer.toJson<String>(time),
       'notebookId': serializer.toJson<int>(notebookId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
@@ -450,7 +470,8 @@ class Diary extends DataClass implements Insertable<Diary> {
           String? title,
           Value<String?> content = const Value.absent(),
           String? time,
-          int? notebookId}) =>
+          int? notebookId,
+          DateTime? createdAt}) =>
       Diary(
         id: id ?? this.id,
         date: date ?? this.date,
@@ -458,6 +479,7 @@ class Diary extends DataClass implements Insertable<Diary> {
         content: content.present ? content.value : this.content,
         time: time ?? this.time,
         notebookId: notebookId ?? this.notebookId,
+        createdAt: createdAt ?? this.createdAt,
       );
   Diary copyWithCompanion(DiariesCompanion data) {
     return Diary(
@@ -468,6 +490,7 @@ class Diary extends DataClass implements Insertable<Diary> {
       time: data.time.present ? data.time.value : this.time,
       notebookId:
           data.notebookId.present ? data.notebookId.value : this.notebookId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
@@ -479,13 +502,15 @@ class Diary extends DataClass implements Insertable<Diary> {
           ..write('title: $title, ')
           ..write('content: $content, ')
           ..write('time: $time, ')
-          ..write('notebookId: $notebookId')
+          ..write('notebookId: $notebookId, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, date, title, content, time, notebookId);
+  int get hashCode =>
+      Object.hash(id, date, title, content, time, notebookId, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -495,7 +520,8 @@ class Diary extends DataClass implements Insertable<Diary> {
           other.title == this.title &&
           other.content == this.content &&
           other.time == this.time &&
-          other.notebookId == this.notebookId);
+          other.notebookId == this.notebookId &&
+          other.createdAt == this.createdAt);
 }
 
 class DiariesCompanion extends UpdateCompanion<Diary> {
@@ -505,6 +531,7 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
   final Value<String?> content;
   final Value<String> time;
   final Value<int> notebookId;
+  final Value<DateTime> createdAt;
   const DiariesCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
@@ -512,6 +539,7 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     this.content = const Value.absent(),
     this.time = const Value.absent(),
     this.notebookId = const Value.absent(),
+    this.createdAt = const Value.absent(),
   });
   DiariesCompanion.insert({
     this.id = const Value.absent(),
@@ -520,6 +548,7 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     this.content = const Value.absent(),
     required String time,
     required int notebookId,
+    this.createdAt = const Value.absent(),
   })  : date = Value(date),
         title = Value(title),
         time = Value(time),
@@ -531,6 +560,7 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     Expression<String>? content,
     Expression<String>? time,
     Expression<int>? notebookId,
+    Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -539,6 +569,7 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
       if (content != null) 'content': content,
       if (time != null) 'time': time,
       if (notebookId != null) 'notebook_id': notebookId,
+      if (createdAt != null) 'created_at': createdAt,
     });
   }
 
@@ -548,7 +579,8 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
       Value<String>? title,
       Value<String?>? content,
       Value<String>? time,
-      Value<int>? notebookId}) {
+      Value<int>? notebookId,
+      Value<DateTime>? createdAt}) {
     return DiariesCompanion(
       id: id ?? this.id,
       date: date ?? this.date,
@@ -556,6 +588,7 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
       content: content ?? this.content,
       time: time ?? this.time,
       notebookId: notebookId ?? this.notebookId,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -580,6 +613,9 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
     if (notebookId.present) {
       map['notebook_id'] = Variable<int>(notebookId.value);
     }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
     return map;
   }
 
@@ -591,7 +627,8 @@ class DiariesCompanion extends UpdateCompanion<Diary> {
           ..write('title: $title, ')
           ..write('content: $content, ')
           ..write('time: $time, ')
-          ..write('notebookId: $notebookId')
+          ..write('notebookId: $notebookId, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -1559,6 +1596,231 @@ class DiaryTagsCompanion extends UpdateCompanion<DiaryTag> {
   }
 }
 
+class $UsersTable extends Users with TableInfo<$UsersTable, User> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UsersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _hasSeenOnboardingMeta =
+      const VerificationMeta('hasSeenOnboarding');
+  @override
+  late final GeneratedColumn<bool> hasSeenOnboarding = GeneratedColumn<bool>(
+      'has_seen_onboarding', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("has_seen_onboarding" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [id, hasSeenOnboarding, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'users';
+  @override
+  VerificationContext validateIntegrity(Insertable<User> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('has_seen_onboarding')) {
+      context.handle(
+          _hasSeenOnboardingMeta,
+          hasSeenOnboarding.isAcceptableOrUnknown(
+              data['has_seen_onboarding']!, _hasSeenOnboardingMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  User map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return User(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      hasSeenOnboarding: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}has_seen_onboarding'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $UsersTable createAlias(String alias) {
+    return $UsersTable(attachedDatabase, alias);
+  }
+}
+
+class User extends DataClass implements Insertable<User> {
+  final int id;
+  final bool hasSeenOnboarding;
+  final DateTime createdAt;
+  const User(
+      {required this.id,
+      required this.hasSeenOnboarding,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  UsersCompanion toCompanion(bool nullToAbsent) {
+    return UsersCompanion(
+      id: Value(id),
+      hasSeenOnboarding: Value(hasSeenOnboarding),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory User.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return User(
+      id: serializer.fromJson<int>(json['id']),
+      hasSeenOnboarding: serializer.fromJson<bool>(json['hasSeenOnboarding']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'hasSeenOnboarding': serializer.toJson<bool>(hasSeenOnboarding),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  User copyWith({int? id, bool? hasSeenOnboarding, DateTime? createdAt}) =>
+      User(
+        id: id ?? this.id,
+        hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  User copyWithCompanion(UsersCompanion data) {
+    return User(
+      id: data.id.present ? data.id.value : this.id,
+      hasSeenOnboarding: data.hasSeenOnboarding.present
+          ? data.hasSeenOnboarding.value
+          : this.hasSeenOnboarding,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('User(')
+          ..write('id: $id, ')
+          ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, hasSeenOnboarding, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is User &&
+          other.id == this.id &&
+          other.hasSeenOnboarding == this.hasSeenOnboarding &&
+          other.createdAt == this.createdAt);
+}
+
+class UsersCompanion extends UpdateCompanion<User> {
+  final Value<int> id;
+  final Value<bool> hasSeenOnboarding;
+  final Value<DateTime> createdAt;
+  const UsersCompanion({
+    this.id = const Value.absent(),
+    this.hasSeenOnboarding = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  UsersCompanion.insert({
+    this.id = const Value.absent(),
+    this.hasSeenOnboarding = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  static Insertable<User> custom({
+    Expression<int>? id,
+    Expression<bool>? hasSeenOnboarding,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (hasSeenOnboarding != null) 'has_seen_onboarding': hasSeenOnboarding,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  UsersCompanion copyWith(
+      {Value<int>? id,
+      Value<bool>? hasSeenOnboarding,
+      Value<DateTime>? createdAt}) {
+    return UsersCompanion(
+      id: id ?? this.id,
+      hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (hasSeenOnboarding.present) {
+      map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UsersCompanion(')
+          ..write('id: $id, ')
+          ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1568,12 +1830,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TasksTable tasks = $TasksTable(this);
   late final $TagsTable tags = $TagsTable(this);
   late final $DiaryTagsTable diaryTags = $DiaryTagsTable(this);
+  late final $UsersTable users = $UsersTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [notebooks, diaries, diaryImages, tasks, tags, diaryTags];
+      [notebooks, diaries, diaryImages, tasks, tags, diaryTags, users];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
         [
@@ -1833,6 +2096,7 @@ typedef $$DiariesTableCreateCompanionBuilder = DiariesCompanion Function({
   Value<String?> content,
   required String time,
   required int notebookId,
+  Value<DateTime> createdAt,
 });
 typedef $$DiariesTableUpdateCompanionBuilder = DiariesCompanion Function({
   Value<int> id,
@@ -1841,6 +2105,7 @@ typedef $$DiariesTableUpdateCompanionBuilder = DiariesCompanion Function({
   Value<String?> content,
   Value<String> time,
   Value<int> notebookId,
+  Value<DateTime> createdAt,
 });
 
 final class $$DiariesTableReferences
@@ -1929,6 +2194,9 @@ class $$DiariesTableFilterComposer
 
   ColumnFilters<String> get time => $composableBuilder(
       column: $table.time, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   $$NotebooksTableFilterComposer get notebookId {
     final $$NotebooksTableFilterComposer composer = $composerBuilder(
@@ -2038,6 +2306,9 @@ class $$DiariesTableOrderingComposer
   ColumnOrderings<String> get time => $composableBuilder(
       column: $table.time, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
   $$NotebooksTableOrderingComposer get notebookId {
     final $$NotebooksTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -2082,6 +2353,9 @@ class $$DiariesTableAnnotationComposer
 
   GeneratedColumn<String> get time =>
       $composableBuilder(column: $table.time, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $$NotebooksTableAnnotationComposer get notebookId {
     final $$NotebooksTableAnnotationComposer composer = $composerBuilder(
@@ -2200,6 +2474,7 @@ class $$DiariesTableTableManager extends RootTableManager<
             Value<String?> content = const Value.absent(),
             Value<String> time = const Value.absent(),
             Value<int> notebookId = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
           }) =>
               DiariesCompanion(
             id: id,
@@ -2208,6 +2483,7 @@ class $$DiariesTableTableManager extends RootTableManager<
             content: content,
             time: time,
             notebookId: notebookId,
+            createdAt: createdAt,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2216,6 +2492,7 @@ class $$DiariesTableTableManager extends RootTableManager<
             Value<String?> content = const Value.absent(),
             required String time,
             required int notebookId,
+            Value<DateTime> createdAt = const Value.absent(),
           }) =>
               DiariesCompanion.insert(
             id: id,
@@ -2224,6 +2501,7 @@ class $$DiariesTableTableManager extends RootTableManager<
             content: content,
             time: time,
             notebookId: notebookId,
+            createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) =>
@@ -3413,6 +3691,136 @@ typedef $$DiaryTagsTableProcessedTableManager = ProcessedTableManager<
     (DiaryTag, $$DiaryTagsTableReferences),
     DiaryTag,
     PrefetchHooks Function({bool diaryId, bool tagId})>;
+typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
+  Value<int> id,
+  Value<bool> hasSeenOnboarding,
+  Value<DateTime> createdAt,
+});
+typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
+  Value<int> id,
+  Value<bool> hasSeenOnboarding,
+  Value<DateTime> createdAt,
+});
+
+class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
+  $$UsersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get hasSeenOnboarding => $composableBuilder(
+      column: $table.hasSeenOnboarding,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$UsersTableOrderingComposer
+    extends Composer<_$AppDatabase, $UsersTable> {
+  $$UsersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get hasSeenOnboarding => $composableBuilder(
+      column: $table.hasSeenOnboarding,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$UsersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UsersTable> {
+  $$UsersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get hasSeenOnboarding => $composableBuilder(
+      column: $table.hasSeenOnboarding, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$UsersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $UsersTable,
+    User,
+    $$UsersTableFilterComposer,
+    $$UsersTableOrderingComposer,
+    $$UsersTableAnnotationComposer,
+    $$UsersTableCreateCompanionBuilder,
+    $$UsersTableUpdateCompanionBuilder,
+    (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+    User,
+    PrefetchHooks Function()> {
+  $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UsersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UsersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UsersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<bool> hasSeenOnboarding = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              UsersCompanion(
+            id: id,
+            hasSeenOnboarding: hasSeenOnboarding,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<bool> hasSeenOnboarding = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              UsersCompanion.insert(
+            id: id,
+            hasSeenOnboarding: hasSeenOnboarding,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$UsersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $UsersTable,
+    User,
+    $$UsersTableFilterComposer,
+    $$UsersTableOrderingComposer,
+    $$UsersTableAnnotationComposer,
+    $$UsersTableCreateCompanionBuilder,
+    $$UsersTableUpdateCompanionBuilder,
+    (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+    User,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3428,4 +3836,6 @@ class $AppDatabaseManager {
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
   $$DiaryTagsTableTableManager get diaryTags =>
       $$DiaryTagsTableTableManager(_db, _db.diaryTags);
+  $$UsersTableTableManager get users =>
+      $$UsersTableTableManager(_db, _db.users);
 }

@@ -4,6 +4,7 @@ import 'package:the_notebook/features/diary/data/repositories/diary_tag_reposito
 import 'package:the_notebook/features/diary/data/repositories/tag_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
+import 'package:the_notebook/features/setting/data/repositories/user_repository.dart';
 
 final diaryRepositoryProvider = Provider<DiaryRepository>((ref) {
   return DiaryRepository();
@@ -23,4 +24,8 @@ final diaryTagRepositoryProvider = Provider<DiaryTagRepository>((ref) {
 
 final notebookRepositoryProvider = Provider<NotebookRepository>((ref) {
   return NotebookRepository();
+});
+
+final userRepositoryProvider = Provider<UserRepository>((ref) {
+  return UserRepository();
 });

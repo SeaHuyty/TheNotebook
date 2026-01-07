@@ -13,6 +13,7 @@ class Diary {
   final List<DiaryImage>? images;
   final List<Task>? tasks;
   final int notebookId;
+  final DateTime? createdAt;
 
   Diary({
     this.id,
@@ -23,6 +24,7 @@ class Diary {
     required this.time,
     required this.notebookId,
     this.images,
+    this.createdAt,
     List<Task>? tasks,
   }) : tasks = tasks ?? <Task>[];
 }
