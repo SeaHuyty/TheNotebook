@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_tag_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/tag_repository.dart';
 import 'package:the_notebook/features/diary/domain/tag.dart';
 
-class TagDrawer extends StatefulWidget {
+class TagDrawer extends ConsumerStatefulWidget {
   final int? diaryId;
   final List<Tag>? tags;
   final Function(List<Tag>)? onTagsChanged;
@@ -11,10 +13,10 @@ class TagDrawer extends StatefulWidget {
   const TagDrawer({super.key, this.diaryId, this.tags, this.onTagsChanged});
 
   @override
-  State<TagDrawer> createState() => _TagDrawerState();
+  ConsumerState<TagDrawer> createState() => _TagDrawerState();
 }
 
-class _TagDrawerState extends State<TagDrawer> {
+class _TagDrawerState extends ConsumerState<TagDrawer> {
   final TagRepository _tagRepo = TagRepository();
   final DiaryTagRepository _diaryTagRepo = DiaryTagRepository();
   List<Tag> tags = [];
@@ -44,8 +46,58 @@ class _TagDrawerState extends State<TagDrawer> {
     }
   }
 
+  Future<void> addNewTag() async {
+    final TextEditingController controller = TextEditingController();
+
+    final tagName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add new tag'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+              hintText: 'Enter tag name', border: OutlineInputBorder()),
+          onSubmitted: (value) => Navigator.pop(context, value),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Add'))
+        ],
+      ),
+    );
+
+    if (tagName != null && tagName.trim().isNotEmpty) {
+      try {
+        final tagRepo = ref.read(tagRepositoryProvider);
+        final newTagId = await tagRepo.insertTag(Tag(name: tagName.trim()));
+        final Tag tag = Tag(name: tagName, id: newTagId);
+        setState(() {
+          tags.add(tag);
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Tag "$tagName" added successfully')),
+          );
+
+          toggleTag(tag);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Failed to add tag')));
+        }
+      }
+    }
+  }
+
   Future<void> toggleTag(Tag tag) async {
-    if (tag.id == null || widget.diaryId == null) return;
+    if (tag.id == null) return;
 
     setState(() {
       if (selectedTagIds.contains(tag.id)) {
@@ -87,6 +139,15 @@ class _TagDrawerState extends State<TagDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    final sortedTags = [...tags]..sort((a, b) {
+        final aChecked = a.id != null && selectedTagIds.contains(a.id);
+        final bChecked = b.id != null && selectedTagIds.contains(b.id);
+
+        if (aChecked && !bChecked) return -1; // a comes first
+        if (!aChecked && bChecked) return 1; // b comes first
+        return 0; // keep original order
+      });
+
     return Drawer(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -100,7 +161,7 @@ class _TagDrawerState extends State<TagDrawer> {
               children: [
                 const SizedBox(width: 10),
                 const Text('Tags', style: TextStyle(fontSize: 18)),
-                IconButton(onPressed: () {}, icon: const Icon(Icons.add))
+                IconButton(onPressed: addNewTag, icon: const Icon(Icons.add))
               ],
             ),
             Expanded(
@@ -110,17 +171,15 @@ class _TagDrawerState extends State<TagDrawer> {
                       ? const Center(child: Text('No tags available'))
                       : ListView.builder(
                           padding: EdgeInsets.zero,
-                          itemCount: tags.length,
+                          itemCount: sortedTags.length,
                           itemBuilder: (context, index) {
-                            final tag = tags[index];
+                            final tag = sortedTags[index];
                             final isChecked = tag.id != null &&
                                 selectedTagIds.contains(tag.id);
 
                             return CheckboxListTile(
                               value: isChecked,
-                              onChanged: widget.diaryId != null
-                                  ? (bool? value) => toggleTag(tag)
-                                  : null,
+                              onChanged: (bool? value) => toggleTag(tag),
                               title: Text(tag.name),
                               controlAffinity: ListTileControlAffinity.leading,
                             );

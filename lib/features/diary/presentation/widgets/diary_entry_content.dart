@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
-import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/image_gallery.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryEntryContent extends StatefulWidget {
@@ -22,7 +23,8 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
   @override
   void initState() {
     super.initState();
-    expanded = List<bool>.generate(widget.diary.tasks?.length ?? 0, (index) => false,
+    expanded = List<bool>.generate(
+        widget.diary.tasks?.length ?? 0, (index) => false,
         growable: true);
   }
 
@@ -89,13 +91,15 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.diary.image != null) ...[
+          if (widget.diary.images != null) ...[
             const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: ImageWidget(
-                image: widget.diary.image!,
-              ),
+            ImageGalleryWidget(
+              images: widget.diary.images!
+                  .map((img) => XFile(img.imagePath))
+                  .toList(),
+              isLandscape:
+                  widget.diary.images!.map((img) => img.isLandscape).toList(),
+              showRemoveButton: false,
             ),
             const SizedBox(height: 8),
           ],

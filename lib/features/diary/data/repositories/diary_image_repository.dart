@@ -17,23 +17,28 @@ class DiaryImageRepository {
         );
   }
 
-  Future<domain.DiaryImage?> getImageByDiaryId(int diaryId) async {
+  Future<List<domain.DiaryImage>?> getImagesByDiaryId(int diaryId) async {
+    final List<domain.DiaryImage> diaryImages = [];
     final query = _db.select(_db.diaryImages)
       ..where((tbl) => tbl.diaryId.equals(diaryId));
 
-    final image = await query.getSingleOrNull();
-    if (image == null) return null;
+    final images = await query.get();
+    if (images.isEmpty) return null;
 
-    return domain.DiaryImage(
-        id: image.id,
-        diaryId: image.diaryId,
-        imagePath: image.imagePath,
-        isLandscape: image.isLandscape!);
+    for (var image in images) {
+      diaryImages.add(domain.DiaryImage(
+          id: image.id,
+          diaryId: image.diaryId,
+          imagePath: image.imagePath,
+          isLandscape: image.isLandscape!));
+    }
+
+    return diaryImages;
   }
 
   Future<void> deleteImageByDiaryId(int diaryId) async {
     // .go() - Execute the delete
-    
+
     await (_db.delete(_db.diaryImages)
           ..where((tbl) => tbl.diaryId.equals(diaryId)))
         .go();

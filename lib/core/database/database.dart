@@ -17,6 +17,7 @@ class Diaries extends Table {
   TextColumn get content => text().nullable()();
   TextColumn get time => text()();
   IntColumn get notebookId => integer().references(Notebooks, #id)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class DiaryImages extends Table {
@@ -44,7 +45,13 @@ class DiaryTags extends Table {
   IntColumn get tagId => integer().references(Tags, #id, onDelete: KeyAction.cascade)();
 }
 
-@DriftDatabase(tables: [Notebooks, Diaries, DiaryImages, Tasks, Tags, DiaryTags])
+class Users extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  BoolColumn get hasSeenOnboarding => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+@DriftDatabase(tables: [Notebooks, Diaries, DiaryImages, Tasks, Tags, DiaryTags, Users])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(openConnection());
   
@@ -53,5 +60,5 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => _instance;
   
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 }

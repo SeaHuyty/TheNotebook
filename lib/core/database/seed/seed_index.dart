@@ -52,7 +52,7 @@ class SeedIndex {
           tags: tagsWithIds,
           notebookId: notebookId,
           date: diary.date,
-          image: diary.image,
+          images: diary.images,
           tasks: diary.tasks);
 
       await _diaryRepo.insertDiary(updatedDiary);

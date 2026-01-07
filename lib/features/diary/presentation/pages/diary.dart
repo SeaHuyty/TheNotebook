@@ -179,7 +179,7 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
                     itemPositionsListener: _itemPositionsListener,
                     padding: const EdgeInsets.only(
                       left: 16,
-                      right: 16,
+                      right: 0,
                       top: 16,
                       bottom: 300,
                     ),
