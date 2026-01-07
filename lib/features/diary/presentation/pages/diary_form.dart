@@ -8,6 +8,7 @@ import 'package:the_notebook/features/diary/data/repositories/task_repository.da
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
+import 'package:the_notebook/features/diary/domain/tag.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart';
@@ -44,6 +45,7 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
   late TimeOfDay selectedTime;
   XFile? selectedImage;
   bool? isLandscape;
+  List<Tag> tags = [];
 
   Task? mainTask;
   List<Task> subtasks = [];
@@ -59,6 +61,7 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
       titleController.text = widget.diary!.title;
       selectedDate = widget.diary!.date;
       selectedTime = widget.diary!.time;
+      tags = widget.diary!.tags ?? [];
 
       if (widget.diary!.image != null) {
         selectedImage = XFile(widget.diary!.image!.imagePath);
@@ -221,7 +224,15 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
           ),
         ],
       ),
-      endDrawer: TagDrawer(),
+      endDrawer: TagDrawer(
+        diaryId: widget.diary?.id,
+        tags: tags,
+        onTagsChanged: (updateTags) {
+          setState(() {
+            tags = updateTags;
+          });
+        },
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -284,8 +295,8 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
                             ),
                           ],
                         )),
-                    if (widget.diary!.tags != null)
-                      for (var tag in widget.diary!.tags!) ...[
+                    if (tags.isNotEmpty)
+                      for (var tag in tags) ...[
                         LabelChip(
                           icon: Icon(
                             Icons.tag,
@@ -294,13 +305,14 @@ class _DiaryFormPageState extends State<DiaryFormPage> {
                           tag: tag.name,
                         ),
                       ],
-                    LabelChip(
-                      icon: Icon(
-                        Icons.fiber_manual_record_outlined,
-                        size: 18,
+                    if (isEditMode)
+                      LabelChip(
+                        icon: Icon(
+                          Icons.fiber_manual_record_outlined,
+                          size: 18,
+                        ),
+                        date: widget.diary!.date,
                       ),
-                      date: widget.diary!.date,
-                    ),
                   ],
                 ),
               ),
