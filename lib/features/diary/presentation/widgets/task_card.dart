@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/domain/task.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/custom_radio.dart';
+import 'package:the_notebook/features/diary/presentation/widgets/subtask_list.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -20,14 +22,6 @@ class TaskCard extends StatelessWidget {
       this.onDelete,
       this.onDeleteSubtask});
 
-  Color get radioColor =>
-      task.isCompleted ? Colors.green[500]! : Colors.transparent;
-
-  Border? get radioBorder =>
-      task.isCompleted ? null : Border.all(color: Colors.grey, width: 2);
-
-  IconData? get radioIcon => task.isCompleted ? Icons.check : null;
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -45,25 +39,12 @@ class TaskCard extends StatelessWidget {
             child: ListTile(
               title: Text(
                 task.title,
-                style:
-                    const TextStyle(fontSize: 15),
+                style: const TextStyle(fontSize: 15),
               ),
-              leading: GestureDetector(
-                onTap: onToggleParentTask,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: radioColor,
-                    border: radioBorder,
-                  ),
-                  child: radioIcon != null
-                      ? Icon(radioIcon, size: 12, color: Colors.white)
-                      : const SizedBox.shrink(),
-                ),
-              ),
+              leading: CustomRadio(
+                  checked: task.isCompleted,
+                  onTap: onToggleParentTask,
+                  size: 20),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -98,127 +79,6 @@ class TaskCard extends StatelessWidget {
                   : const SizedBox.shrink(),
         ),
       ],
-    );
-  }
-}
-
-class SubTaskList extends StatelessWidget {
-  final List<Task> subtasks;
-  final Function(int) onToggle;
-  final Function(int)? onDelete;
-
-  const SubTaskList({
-    super.key,
-    required this.subtasks,
-    required this.onToggle,
-    this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // GREY CONNECTOR LINE
-          Padding(
-            padding: EdgeInsets.only(left: 25),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                width: 2,
-                height: subtasks.length * 48.0,
-                color: Colors.grey.shade300,
-              ),
-            ),
-          ),
-
-          // SUBTASKS
-          Expanded(
-            child: Column(
-              children: subtasks.asMap().entries.map((entry) {
-                int index = entry.key;
-                Task task = entry.value;
-                return Padding(
-                  padding: EdgeInsets.only(top: 5),
-                  child: SubtaskTile(
-                    task: task,
-                    onToggle: () => onToggle(index),
-                    onDelete: onDelete != null ? () => onDelete!(index) : null,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SubtaskTile extends StatelessWidget {
-  final Task task;
-  final VoidCallback onToggle;
-  final VoidCallback? onDelete;
-
-  const SubtaskTile({
-    super.key,
-    required this.task,
-    required this.onToggle,
-    this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      dense: true,
-      leading: Radio(
-        checked: task.isCompleted,
-        onTap: onToggle,
-      ),
-      title: Text(
-        task.title,
-        style: const TextStyle(fontSize: 16),
-      ),
-      trailing: onDelete != null
-          ? IconButton(
-              icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-              onPressed: onDelete,
-            )
-          : null,
-    );
-  }
-}
-
-class Radio extends StatelessWidget {
-  final bool checked;
-  final VoidCallback onTap;
-  final double size;
-
-  const Radio({
-    super.key,
-    required this.checked,
-    required this.onTap,
-    this.size = 18,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: checked ? null : Border.all(color: Colors.grey, width: 2),
-          color: checked ? Colors.green : Colors.transparent,
-        ),
-        child: checked
-            ? const Icon(Icons.check, size: 12, color: Colors.white)
-            : null,
-      ),
     );
   }
 }
