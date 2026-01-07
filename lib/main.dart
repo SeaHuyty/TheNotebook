@@ -15,11 +15,9 @@ void main() async {
 
   // Develop on Web Browser
   runApp(ProviderScope(
-    child: DevicePreview(enabled: true, builder: (context) => const MyApp()),
+    child: const MyApp(),
+    // child: DevicePreview(enabled: true, builder: (context) => const MyApp()),
   ));
-
-  // Develop on Simuator
-  // runApp(MyApp(repo: repo));
 }
 
 class MyApp extends ConsumerWidget {
