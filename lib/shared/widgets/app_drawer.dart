@@ -1,22 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
-import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
-import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
 import 'package:the_notebook/features/notebook/presentation/notebook_page.dart';
 import 'package:the_notebook/features/setting/presentation/pages/setting.dart';
 
 class AppDrawer extends StatelessWidget {
-  final DiaryRepository? diaryRepo;
-  final NotebookRepository? notebookRepo;
-  final TaskRepository? taskRepo;
   final String currentPage;
 
   const AppDrawer(
       {super.key,
-      required this.currentPage,
-      this.diaryRepo,
-      this.notebookRepo,
-      this.taskRepo});
+      required this.currentPage,});
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +30,7 @@ class AppDrawer extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => NotebookPage(
-                        notebookRepo: notebookRepo!,
-                        diaryRepo: diaryRepo!,
-                        taskRepo: taskRepo!),
+                    builder: (context) => NotebookPage(),
                   ),
                 );
               } else {
@@ -60,9 +48,6 @@ class AppDrawer extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => SettingPage(
-                            notebookRepo: notebookRepo,
-                            diaryRepo: diaryRepo,
-                            taskRepo: taskRepo,
                           )),
                 );
               } else {
