@@ -25,11 +25,11 @@ class LabelChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-          color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8)),
+          color: Theme.of(context).colorScheme.onSurface, borderRadius: BorderRadius.circular(8)),
       child: Row(
         spacing: 5,
         mainAxisSize: MainAxisSize.min,
-        children: [icon, Text(text)],
+        children: [icon, Text(text, style: TextStyle(color: Theme.of(context).colorScheme.surface),)],
       ),
     );
   }

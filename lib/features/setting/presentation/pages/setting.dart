@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:the_notebook/core/providers/theme_provider.dart';
 import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
-class SettingPage extends StatelessWidget {
+class SettingPage extends ConsumerWidget {
   const SettingPage({super.key});
 
   void onReset() {
@@ -9,7 +11,10 @@ class SettingPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    final isDarkMode = themeMode == ThemeMode.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -46,7 +51,10 @@ class SettingPage extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.light_mode_outlined),
             title: Text('Theme Mode'),
-            subtitle: Text('Light mode'),
+            subtitle: Text(isDarkMode ? 'Dark mode' : 'Light mode'),
+            onTap: () {
+              ref.read(themeModeProvider.notifier).toggleTheme();
+            },
           ),
           ListTile(
             leading: Container(
