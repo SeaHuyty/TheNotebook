@@ -100,7 +100,8 @@ class DiaryRepository {
       bool timeChanged = false,
       bool tagChanged = false,
       bool dateChanged = false,
-      bool imageChanged = false}) async {
+      bool imageChanged = false,
+      bool taskChanged = false}) async {
     if (contentChanged || dateChanged) {
       await (_db.update(_db.diaries)..where((d) => d.id.equals(diary.id!)))
           .write(DiariesCompanion(
@@ -127,6 +128,29 @@ class DiaryRepository {
       if (diary.images != null) {
         for (var image in diary.images!) {
           await _imageRepo.insertImage(image, diary.id!);
+        }
+      }
+    }
+
+    if (taskChanged) {
+      await _taskRepo.deleteTasksByDiaryId(diary.id!);
+
+      if (diary.tasks != null) {
+        for (var task in diary.tasks!) {
+          final taskId = await _taskRepo.insertTask(task, diary.id!);
+
+          if (task.subtasks != null) {
+            for (var subtask in task.subtasks!) {
+              await _db.into(_db.tasks).insert(
+                    TasksCompanion(
+                      title: Value(subtask.title),
+                      isCompleted: Value(subtask.isCompleted),
+                      diaryId: Value(diary.id!),
+                      parentTaskId: Value(taskId),
+                    ),
+                  );
+            }
+          }
         }
       }
     }
