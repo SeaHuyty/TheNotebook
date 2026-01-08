@@ -182,14 +182,16 @@ class DiaryRepository {
     );
   }
 
-  Future<List<domain.Diary>> getDiaryEntriesByYear(int year) async {
+  Future<List<domain.Diary>> getDiaryEntriesByYear(
+      int year, int notebookId) async {
     final startOfYear = DateTime(year, 1, 1);
     final endOfYear = DateTime(year, 12, 31, 23, 59, 59);
 
     final query = _db.select(_db.diaries)
       ..where((tbl) =>
           tbl.date.isBiggerOrEqualValue(startOfYear) &
-          tbl.date.isSmallerOrEqualValue(endOfYear));
+          tbl.date.isSmallerOrEqualValue(endOfYear) &
+          tbl.notebookId.equals(notebookId));
 
     final result = await query.get();
     final diaries = <domain.Diary>[];
@@ -220,8 +222,10 @@ class DiaryRepository {
     return diaries;
   }
 
-  Future<List<int>> getAvailableYears() async {
-    final query = _db.selectOnly(_db.diaries)..addColumns([_db.diaries.date]);
+  Future<List<int>> getAvailableYears(int notebookId) async {
+    final query = _db.selectOnly(_db.diaries)
+      ..where(_db.diaries.notebookId.equals(notebookId))
+      ..addColumns([_db.diaries.date]);
 
     final results = await query.get();
 

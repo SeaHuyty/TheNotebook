@@ -248,6 +248,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                       icon: Icon(
                         Icons.access_time,
                         size: 18,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                       time: currentDiary.time,
                     ),
@@ -257,6 +258,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                           icon: Icon(
                             Icons.tag,
                             size: 18,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                           tag: tag.name,
                         ),
@@ -265,6 +267,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                       icon: Icon(
                         Icons.fiber_manual_record_outlined,
                         size: 18,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                       date: currentDiary.date,
                     ),

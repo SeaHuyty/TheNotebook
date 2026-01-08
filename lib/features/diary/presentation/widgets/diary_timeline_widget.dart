@@ -30,7 +30,6 @@ class DiaryTimelineWidget extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: circleColor,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: Center(
                   child: Text(
