@@ -17,7 +17,7 @@ class SubTaskList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: Colors.grey[100]),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

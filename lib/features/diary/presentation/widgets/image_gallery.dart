@@ -43,7 +43,7 @@ class ImageGalleryWidget extends StatelessWidget {
                       imagePath: images[index].path,
                       isLandscape: isLandscape[index],
                     ),
-                    height: imageHeight
+                    height: imageHeight,
                   ),
                 ),
                 if (showRemoveButton && onRemove != null)

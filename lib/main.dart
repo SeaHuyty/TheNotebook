@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:device_preview/device_preview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/database/seed/seed_index.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';

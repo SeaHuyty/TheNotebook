@@ -73,7 +73,7 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
 
       if (widget.diary!.tasks != null && widget.diary!.tasks!.isNotEmpty) {
         mainTask = widget.diary!.tasks!.first;
-        subtasks = mainTask!.subtasks ?? [];
+        subtasks = List.from(mainTask!.subtasks ?? []);
       }
     } else {
       // Create mode - use defaults
@@ -182,13 +182,40 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
         images: await diaryImages());
 
     if (isEditMode) {
+      // Check if tasks changed
+      bool tasksChanged = false;
+      final oldTasks = widget.diary!.tasks;
+      if ((oldTasks == null || oldTasks.isEmpty) && mainTask != null) {
+        tasksChanged = true;
+      } else if ((oldTasks != null && oldTasks.isNotEmpty) &&
+          mainTask == null) {
+        tasksChanged = true;
+      } else if (oldTasks != null && oldTasks.isNotEmpty && mainTask != null) {
+        final oldMainTask = oldTasks.first;
+        final oldSubtasks = oldMainTask.subtasks ?? [];
+        if (oldMainTask.title != mainTask!.title ||
+            oldSubtasks.length != subtasks.length) {
+          tasksChanged = true;
+        } else {
+          // Only compare if lengths are equal
+          for (int i = 0; i < subtasks.length; i++) {
+            if (subtasks[i].title != oldSubtasks[i].title) {
+              tasksChanged = true;
+              break;
+            }
+          }
+        }
+      }
+
       // Update existing diary
       await diaryRepository.updateDiary(
         diary,
         contentChanged: descriptionController.text != widget.diary!.content,
         dateChanged: selectedDate != widget.diary!.date,
-        imageChanged: selectedImages.length != (widget.diary!.images?.length ?? 0),
+        imageChanged:
+            selectedImages.length != (widget.diary!.images?.length ?? 0),
         timeChanged: selectedTime != widget.diary!.time,
+        taskChanged: tasksChanged,
       );
     } else {
       // Create new diary
@@ -199,10 +226,6 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
         if (tag.id != null) {
           await diaryTagRepo.insertTagToDiary(tag.id!, diaryId);
         }
-      }
-
-      for (var sub in subtasks) {
-        await taskRepository.insertTask(sub, diaryId);
       }
     }
 
@@ -392,8 +415,28 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
               // Subtask Input
               if (mainTask != null) ...[
                 const SizedBox(height: 16),
-                Text('Main Task: ${mainTask!.title}',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Main Task: ${mainTask!.title}',
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        size: 20,
+                        color: Colors.red,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          mainTask = null;
+                          subtasks.clear();
+                        });
+                      },
+                      tooltip: 'Delete main task',
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: subtaskController,
@@ -420,7 +463,24 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
                     children: [
                       const Text('Subtasks:',
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      ...subtasks.map((s) => Text('- ${s.title}')),
+                      ...subtasks.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final subtask = entry.value;
+                        return Row(
+                          children: [
+                            Expanded(child: Text('- ${subtask.title}')),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 18),
+                              onPressed: () {
+                                setState(() {
+                                  subtasks.removeAt(index);
+                                });
+                              },
+                              tooltip: 'Remove subtask',
+                            ),
+                          ],
+                        );
+                      }),
                     ],
                   ),
               ],

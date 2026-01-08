@@ -144,6 +144,9 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
       if (mounted && updatedDiary != null) {
         setState(() {
           currentDiary = updatedDiary;
+          expanded = List<bool>.generate(
+              updatedDiary.tasks?.length ?? 0, (index) => false,
+              growable: true);
           wasEdited = true;
         });
       }
