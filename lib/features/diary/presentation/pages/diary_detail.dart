@@ -164,12 +164,12 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                     onPressed: () {
                       Navigator.pop(context, false);
                     },
-                    child: Text('Cancel')),
+                    child: Text('Cancel', style: TextStyle(color: Colors.black),)),
                 TextButton(
                     onPressed: () {
                       Navigator.pop(context, true);
                     },
-                    child: Text('Delete')),
+                    child: Text('Delete', style: TextStyle(color: Colors.red))),
               ],
             ));
 
