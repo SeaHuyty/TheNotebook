@@ -100,7 +100,8 @@ class DiaryRepository {
       bool timeChanged = false,
       bool tagChanged = false,
       bool dateChanged = false,
-      bool imageChanged = false}) async {
+      bool imageChanged = false,
+      bool taskChanged = false}) async {
     if (contentChanged || dateChanged) {
       await (_db.update(_db.diaries)..where((d) => d.id.equals(diary.id!)))
           .write(DiariesCompanion(
@@ -127,6 +128,29 @@ class DiaryRepository {
       if (diary.images != null) {
         for (var image in diary.images!) {
           await _imageRepo.insertImage(image, diary.id!);
+        }
+      }
+    }
+
+    if (taskChanged) {
+      await _taskRepo.deleteTasksByDiaryId(diary.id!);
+
+      if (diary.tasks != null) {
+        for (var task in diary.tasks!) {
+          final taskId = await _taskRepo.insertTask(task, diary.id!);
+
+          if (task.subtasks != null) {
+            for (var subtask in task.subtasks!) {
+              await _db.into(_db.tasks).insert(
+                    TasksCompanion(
+                      title: Value(subtask.title),
+                      isCompleted: Value(subtask.isCompleted),
+                      diaryId: Value(diary.id!),
+                      parentTaskId: Value(taskId),
+                    ),
+                  );
+            }
+          }
         }
       }
     }
@@ -158,14 +182,16 @@ class DiaryRepository {
     );
   }
 
-  Future<List<domain.Diary>> getDiaryEntriesByYear(int year) async {
+  Future<List<domain.Diary>> getDiaryEntriesByYear(
+      int year, int notebookId) async {
     final startOfYear = DateTime(year, 1, 1);
     final endOfYear = DateTime(year, 12, 31, 23, 59, 59);
 
     final query = _db.select(_db.diaries)
       ..where((tbl) =>
           tbl.date.isBiggerOrEqualValue(startOfYear) &
-          tbl.date.isSmallerOrEqualValue(endOfYear));
+          tbl.date.isSmallerOrEqualValue(endOfYear) &
+          tbl.notebookId.equals(notebookId));
 
     final result = await query.get();
     final diaries = <domain.Diary>[];
@@ -196,8 +222,10 @@ class DiaryRepository {
     return diaries;
   }
 
-  Future<List<int>> getAvailableYears() async {
-    final query = _db.selectOnly(_db.diaries)..addColumns([_db.diaries.date]);
+  Future<List<int>> getAvailableYears(int notebookId) async {
+    final query = _db.selectOnly(_db.diaries)
+      ..where(_db.diaries.notebookId.equals(notebookId))
+      ..addColumns([_db.diaries.date]);
 
     final results = await query.get();
 

@@ -13,9 +13,7 @@ import '../widgets/diary_entry_content.dart';
 class DiaryPage extends ConsumerStatefulWidget {
   final int notebookId;
 
-  const DiaryPage(
-      {super.key,
-      required this.notebookId});
+  const DiaryPage({super.key, required this.notebookId});
 
   @override
   ConsumerState<DiaryPage> createState() => _DiaryPageState();
@@ -41,9 +39,9 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
   }
 
   Future<void> loadEntries() async {
-    final entries =
-        await diaryRepository.getDiaryEntriesByYear(selectedYear);
-    final years = await diaryRepository.getAvailableYears();
+    final entries = await diaryRepository.getDiaryEntriesByYear(
+        selectedYear, widget.notebookId);
+    final years = await diaryRepository.getAvailableYears(widget.notebookId);
 
     setState(() {
       sortedEntries = entries;
@@ -128,9 +126,9 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DiaryFormPage(
-              notebookId: widget.notebookId,
-            )),
+          builder: (context) => DiaryFormPage(
+                notebookId: widget.notebookId,
+              )),
     );
 
     if (result == true) {
@@ -160,8 +158,11 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(currentMonth,
-                      style: TextStyle(fontSize: 18, color: Colors.black)),
-                  const Icon(Icons.arrow_drop_down, color: Colors.black),
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  Icon(Icons.arrow_drop_down,
+                      color: Theme.of(context).colorScheme.onSurface),
                 ],
               )),
         ],
@@ -173,7 +174,9 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
               context,
             ).copyWith(scrollbars: false),
             child: sortedEntries.isEmpty
-                ? Center(child: Text('Loading Data'))
+                ? Center(
+                    child: Text(
+                        'Add your first diary by clicking the button on the right!'))
                 : ScrollablePositionedList.builder(
                     itemScrollController: _scrollController,
                     itemPositionsListener: _itemPositionsListener,
@@ -259,10 +262,10 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
                       highlightElevation: 0,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
-                          side: BorderSide(color: Colors.black, width: 0.5)),
-                      child: const Icon(
+                          side: BorderSide(color: Theme.of(context).colorScheme.onSurface, width: 0.5)),
+                      child: Icon(
                         Icons.tune,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSurface,
                         size: 20,
                       ),
                     ),
@@ -307,6 +310,7 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
                           padding: EdgeInsets.symmetric(horizontal: 6),
                           child: ChoiceChip(
                               label: Text(month.substring(0, 3)),
+                              selectedColor: Colors.blueAccent,
                               showCheckmark: false,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20)),

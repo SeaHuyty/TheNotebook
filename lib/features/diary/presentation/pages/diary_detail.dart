@@ -144,6 +144,9 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
       if (mounted && updatedDiary != null) {
         setState(() {
           currentDiary = updatedDiary;
+          expanded = List<bool>.generate(
+              updatedDiary.tasks?.length ?? 0, (index) => false,
+              growable: true);
           wasEdited = true;
         });
       }
@@ -161,12 +164,12 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                     onPressed: () {
                       Navigator.pop(context, false);
                     },
-                    child: Text('Cancel')),
+                    child: Text('Cancel', style: TextStyle(color: Colors.black),)),
                 TextButton(
                     onPressed: () {
                       Navigator.pop(context, true);
                     },
-                    child: Text('Delete')),
+                    child: Text('Delete', style: TextStyle(color: Colors.red))),
               ],
             ));
 
@@ -245,6 +248,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                       icon: Icon(
                         Icons.access_time,
                         size: 18,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                       time: currentDiary.time,
                     ),
@@ -254,6 +258,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                           icon: Icon(
                             Icons.tag,
                             size: 18,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                           tag: tag.name,
                         ),
@@ -262,6 +267,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                       icon: Icon(
                         Icons.fiber_manual_record_outlined,
                         size: 18,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                       date: currentDiary.date,
                     ),
