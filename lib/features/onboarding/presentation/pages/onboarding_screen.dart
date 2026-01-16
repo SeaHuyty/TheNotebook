@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
+import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 
-import 'package:the_notebook/features/notebook/presentation/notebook_page.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_page.dart';
 
 const asset1 = "assets/images/open-book.svg";
@@ -18,8 +18,20 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
+  late final userRepo = ref.read(userRepositoryProvider);
   int _currentPage = 0;
   final int _totalPage = 3;
+  late int? defaultNotebook;
+
+  @override
+  void initState() {
+    loadDefaultNotebook();
+    super.initState();
+  }
+
+  void loadDefaultNotebook() async {
+    defaultNotebook = await userRepo.getDefaultNotebook();
+  }
 
   void nextPage() async {
     if (_currentPage < _totalPage - 1) {
@@ -28,20 +40,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      await ref.read(userRepositoryProvider).createUser();
       if (mounted) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const NotebookPage()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DiaryPage(
+              notebookId: defaultNotebook!,
+            ),
+          ),
+        );
       }
     }
   }
 
   void onSkipped() async {
-    await ref.read(userRepositoryProvider).createUser();
-
     if (mounted) {
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const NotebookPage()));
+        context,
+        MaterialPageRoute(
+          builder: (context) => DiaryPage(
+            notebookId: defaultNotebook!,
+          ),
+        ),
+      );
     }
   }
 
@@ -53,10 +74,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: EdgeInsets.symmetric(horizontal: 10),
-          width: isActive ? 44 : 12, // Wider rectangle when active
+          width: isActive ? 44 : 12,
           height: 12,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6), // Small rounded corners
+            borderRadius: BorderRadius.circular(6),
             color: isActive ? const Color(0xFF292524) : Colors.grey,
           ),
         );

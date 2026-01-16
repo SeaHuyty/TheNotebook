@@ -40,7 +40,7 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       home: FutureBuilder<bool>(
-        future: ref.read(userRepositoryProvider).hasUser(),
+        future: ref.read(userRepositoryProvider).hasSeenOnboarding(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
