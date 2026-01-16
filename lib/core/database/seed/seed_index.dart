@@ -5,11 +5,13 @@ import 'package:the_notebook/features/diary/domain/tag.dart' as domain;
 import 'package:the_notebook/features/notebook/model/notebook.dart' as domain;
 import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
 import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
+import 'package:the_notebook/features/setting/data/repositories/user_repository.dart';
 
 class SeedIndex {
   final NotebookRepository _noteRepo = NotebookRepository();
   final DiaryRepository _diaryRepo = DiaryRepository();
   final TagRepository _tagRepo = TagRepository();
+  final UserRepository _userRepo = UserRepository();
 
   final notebook =
       domain.Notebook(title: 'Starter', icon: 'assets/images/home.png');
@@ -19,6 +21,8 @@ class SeedIndex {
     if (notebooks.isNotEmpty) return;
 
     final notebookId = await _noteRepo.insertNotebook(notebook);
+
+    await _userRepo.createUser(notebookId); 
 
     final Map<String, int> tagNameToId = {};
     final Set<String> allTagNames = {};

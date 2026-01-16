@@ -49,6 +49,7 @@ class Users extends Table {
   IntColumn get id => integer().autoIncrement()();
   BoolColumn get hasSeenOnboarding => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get defaultNotebook => integer().references(Notebooks, #id)();
 }
 
 @DriftDatabase(tables: [Notebooks, Diaries, DiaryImages, Tasks, Tags, DiaryTags, Users])
@@ -60,5 +61,5 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => _instance;
   
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 }

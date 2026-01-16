@@ -6,14 +6,24 @@ class UserRepository {
 
   UserRepository();
 
-  Future<bool> hasUser() async {
+  Future<bool> hasSeenOnboarding() async {
     final users = await _db.select(_db.users).get();
-    return users.isNotEmpty;
+    if (users.isEmpty) {
+      return false;
+    }
+    return users.first.hasSeenOnboarding;
   }
 
-  Future<int> createUser() async {
-    return await _db
-        .into(_db.users)
-        .insert(UsersCompanion.insert(hasSeenOnboarding: Value(true)));
+  Future<int> createUser(int notebookId) async {
+    return await _db.into(_db.users).insert(UsersCompanion.insert(
+        hasSeenOnboarding: Value(false), defaultNotebook: notebookId));
+  }
+
+  Future<int?> getDefaultNotebook() async {
+    final users = await _db.select(_db.users).get();
+    if (users.isEmpty) {
+      return null;
+    }
+    return users.first.defaultNotebook;
   }
 }

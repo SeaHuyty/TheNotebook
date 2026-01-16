@@ -1,13 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/notebook/presentation/notebook_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:the_notebook/core/providers/repository_providers.dart';
+import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
+import 'package:the_notebook/features/notebook/widgets/notebook_drawer.dart';
 import 'package:the_notebook/features/setting/presentation/pages/setting.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerStatefulWidget {
   final String currentPage;
 
-  const AppDrawer(
-      {super.key,
-      required this.currentPage,});
+  const AppDrawer({
+    super.key,
+    required this.currentPage,
+  });
+
+  @override
+  ConsumerState<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends ConsumerState<AppDrawer> {
+  late final userRepo = ref.read(userRepositoryProvider);
+  late int? defaultNotebook;
+
+  @override
+  void initState() {
+    loadDefaultNotebook();
+    super.initState();
+  }
+
+  void loadDefaultNotebook() async {
+    defaultNotebook = await userRepo.getDefaultNotebook();
+  }
+
+  void openNotebookDrawer(BuildContext context) {
+    Navigator.pop(context);
+    showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel:
+            MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Align(
+            alignment: Alignment.centerLeft,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(-1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: const NotebookDrawer(),
+            ),
+          );
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,31 +69,34 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.book_outlined),
             title: const Text('Notebook'),
-            selected: currentPage == 'notebook',
+            subtitle: Row(
+              children: [Text('Switch'), Icon(Icons.arrow_drop_down)],
+            ),
+            selected: widget.currentPage == 'notebook',
             onTap: () {
-              if (currentPage != 'notebook') {
+              if (widget.currentPage != 'notebook') {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => NotebookPage(),
+                    builder: (context) => DiaryPage(
+                      notebookId: defaultNotebook!,
+                    ),
                   ),
                 );
               } else {
-                Navigator.pop(context);
+                openNotebookDrawer(context);
               }
             },
           ),
           ListTile(
             leading: Icon(Icons.settings_outlined),
             title: const Text('Setting'),
-            selected: currentPage == 'setting',
+            selected: widget.currentPage == 'setting',
             onTap: () {
-              if (currentPage != 'setting') {
+              if (widget.currentPage != 'setting') {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => SettingPage(
-                          )),
+                  MaterialPageRoute(builder: (context) => SettingPage()),
                 );
               } else {
                 Navigator.pop(context);

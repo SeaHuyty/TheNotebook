@@ -1628,8 +1628,18 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
+  static const VerificationMeta _defaultNotebookMeta =
+      const VerificationMeta('defaultNotebook');
   @override
-  List<GeneratedColumn> get $columns => [id, hasSeenOnboarding, createdAt];
+  late final GeneratedColumn<int> defaultNotebook = GeneratedColumn<int>(
+      'default_notebook', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES notebooks (id)'));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, hasSeenOnboarding, createdAt, defaultNotebook];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1653,6 +1663,14 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     }
+    if (data.containsKey('default_notebook')) {
+      context.handle(
+          _defaultNotebookMeta,
+          defaultNotebook.isAcceptableOrUnknown(
+              data['default_notebook']!, _defaultNotebookMeta));
+    } else if (isInserting) {
+      context.missing(_defaultNotebookMeta);
+    }
     return context;
   }
 
@@ -1668,6 +1686,8 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
           DriftSqlType.bool, data['${effectivePrefix}has_seen_onboarding'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      defaultNotebook: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}default_notebook'])!,
     );
   }
 
@@ -1681,16 +1701,19 @@ class User extends DataClass implements Insertable<User> {
   final int id;
   final bool hasSeenOnboarding;
   final DateTime createdAt;
+  final int defaultNotebook;
   const User(
       {required this.id,
       required this.hasSeenOnboarding,
-      required this.createdAt});
+      required this.createdAt,
+      required this.defaultNotebook});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['default_notebook'] = Variable<int>(defaultNotebook);
     return map;
   }
 
@@ -1699,6 +1722,7 @@ class User extends DataClass implements Insertable<User> {
       id: Value(id),
       hasSeenOnboarding: Value(hasSeenOnboarding),
       createdAt: Value(createdAt),
+      defaultNotebook: Value(defaultNotebook),
     );
   }
 
@@ -1709,6 +1733,7 @@ class User extends DataClass implements Insertable<User> {
       id: serializer.fromJson<int>(json['id']),
       hasSeenOnboarding: serializer.fromJson<bool>(json['hasSeenOnboarding']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      defaultNotebook: serializer.fromJson<int>(json['defaultNotebook']),
     );
   }
   @override
@@ -1718,14 +1743,20 @@ class User extends DataClass implements Insertable<User> {
       'id': serializer.toJson<int>(id),
       'hasSeenOnboarding': serializer.toJson<bool>(hasSeenOnboarding),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'defaultNotebook': serializer.toJson<int>(defaultNotebook),
     };
   }
 
-  User copyWith({int? id, bool? hasSeenOnboarding, DateTime? createdAt}) =>
+  User copyWith(
+          {int? id,
+          bool? hasSeenOnboarding,
+          DateTime? createdAt,
+          int? defaultNotebook}) =>
       User(
         id: id ?? this.id,
         hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
         createdAt: createdAt ?? this.createdAt,
+        defaultNotebook: defaultNotebook ?? this.defaultNotebook,
       );
   User copyWithCompanion(UsersCompanion data) {
     return User(
@@ -1734,6 +1765,9 @@ class User extends DataClass implements Insertable<User> {
           ? data.hasSeenOnboarding.value
           : this.hasSeenOnboarding,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      defaultNotebook: data.defaultNotebook.present
+          ? data.defaultNotebook.value
+          : this.defaultNotebook,
     );
   }
 
@@ -1742,56 +1776,66 @@ class User extends DataClass implements Insertable<User> {
     return (StringBuffer('User(')
           ..write('id: $id, ')
           ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('defaultNotebook: $defaultNotebook')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, hasSeenOnboarding, createdAt);
+  int get hashCode =>
+      Object.hash(id, hasSeenOnboarding, createdAt, defaultNotebook);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is User &&
           other.id == this.id &&
           other.hasSeenOnboarding == this.hasSeenOnboarding &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.defaultNotebook == this.defaultNotebook);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
   final Value<int> id;
   final Value<bool> hasSeenOnboarding;
   final Value<DateTime> createdAt;
+  final Value<int> defaultNotebook;
   const UsersCompanion({
     this.id = const Value.absent(),
     this.hasSeenOnboarding = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.defaultNotebook = const Value.absent(),
   });
   UsersCompanion.insert({
     this.id = const Value.absent(),
     this.hasSeenOnboarding = const Value.absent(),
     this.createdAt = const Value.absent(),
-  });
+    required int defaultNotebook,
+  }) : defaultNotebook = Value(defaultNotebook);
   static Insertable<User> custom({
     Expression<int>? id,
     Expression<bool>? hasSeenOnboarding,
     Expression<DateTime>? createdAt,
+    Expression<int>? defaultNotebook,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (hasSeenOnboarding != null) 'has_seen_onboarding': hasSeenOnboarding,
       if (createdAt != null) 'created_at': createdAt,
+      if (defaultNotebook != null) 'default_notebook': defaultNotebook,
     });
   }
 
   UsersCompanion copyWith(
       {Value<int>? id,
       Value<bool>? hasSeenOnboarding,
-      Value<DateTime>? createdAt}) {
+      Value<DateTime>? createdAt,
+      Value<int>? defaultNotebook}) {
     return UsersCompanion(
       id: id ?? this.id,
       hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
       createdAt: createdAt ?? this.createdAt,
+      defaultNotebook: defaultNotebook ?? this.defaultNotebook,
     );
   }
 
@@ -1807,6 +1851,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (defaultNotebook.present) {
+      map['default_notebook'] = Variable<int>(defaultNotebook.value);
+    }
     return map;
   }
 
@@ -1815,7 +1862,8 @@ class UsersCompanion extends UpdateCompanion<User> {
     return (StringBuffer('UsersCompanion(')
           ..write('id: $id, ')
           ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('defaultNotebook: $defaultNotebook')
           ..write(')'))
         .toString();
   }
@@ -1889,6 +1937,21 @@ final class $$NotebooksTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$UsersTable, List<User>> _usersRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.users,
+          aliasName:
+              $_aliasNameGenerator(db.notebooks.id, db.users.defaultNotebook));
+
+  $$UsersTableProcessedTableManager get usersRefs {
+    final manager = $$UsersTableTableManager($_db, $_db.users).filter(
+        (f) => f.defaultNotebook.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_usersRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$NotebooksTableFilterComposer
@@ -1925,6 +1988,27 @@ class $$NotebooksTableFilterComposer
             $$DiariesTableFilterComposer(
               $db: $db,
               $table: $db.diaries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> usersRefs(
+      Expression<bool> Function($$UsersTableFilterComposer f) f) {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.defaultNotebook,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableFilterComposer(
+              $db: $db,
+              $table: $db.users,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -1997,6 +2081,27 @@ class $$NotebooksTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> usersRefs<T extends Object>(
+      Expression<T> Function($$UsersTableAnnotationComposer a) f) {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.defaultNotebook,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$NotebooksTableTableManager extends RootTableManager<
@@ -2010,7 +2115,7 @@ class $$NotebooksTableTableManager extends RootTableManager<
     $$NotebooksTableUpdateCompanionBuilder,
     (Notebook, $$NotebooksTableReferences),
     Notebook,
-    PrefetchHooks Function({bool diariesRefs})> {
+    PrefetchHooks Function({bool diariesRefs, bool usersRefs})> {
   $$NotebooksTableTableManager(_$AppDatabase db, $NotebooksTable table)
       : super(TableManagerState(
           db: db,
@@ -2051,10 +2156,13 @@ class $$NotebooksTableTableManager extends RootTableManager<
                     $$NotebooksTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({diariesRefs = false}) {
+          prefetchHooksCallback: ({diariesRefs = false, usersRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (diariesRefs) db.diaries],
+              explicitlyWatchedTables: [
+                if (diariesRefs) db.diaries,
+                if (usersRefs) db.users
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
@@ -2069,6 +2177,17 @@ class $$NotebooksTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.notebookId == item.id),
+                        typedResults: items),
+                  if (usersRefs)
+                    await $_getPrefetchedData<Notebook, $NotebooksTable, User>(
+                        currentTable: table,
+                        referencedTable:
+                            $$NotebooksTableReferences._usersRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$NotebooksTableReferences(db, table, p0).usersRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.defaultNotebook == item.id),
                         typedResults: items)
                 ];
               },
@@ -2088,7 +2207,7 @@ typedef $$NotebooksTableProcessedTableManager = ProcessedTableManager<
     $$NotebooksTableUpdateCompanionBuilder,
     (Notebook, $$NotebooksTableReferences),
     Notebook,
-    PrefetchHooks Function({bool diariesRefs})>;
+    PrefetchHooks Function({bool diariesRefs, bool usersRefs})>;
 typedef $$DiariesTableCreateCompanionBuilder = DiariesCompanion Function({
   Value<int> id,
   required DateTime date,
@@ -3695,12 +3814,34 @@ typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
   Value<int> id,
   Value<bool> hasSeenOnboarding,
   Value<DateTime> createdAt,
+  required int defaultNotebook,
 });
 typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
   Value<int> id,
   Value<bool> hasSeenOnboarding,
   Value<DateTime> createdAt,
+  Value<int> defaultNotebook,
 });
+
+final class $$UsersTableReferences
+    extends BaseReferences<_$AppDatabase, $UsersTable, User> {
+  $$UsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $NotebooksTable _defaultNotebookTable(_$AppDatabase db) =>
+      db.notebooks.createAlias(
+          $_aliasNameGenerator(db.users.defaultNotebook, db.notebooks.id));
+
+  $$NotebooksTableProcessedTableManager get defaultNotebook {
+    final $_column = $_itemColumn<int>('default_notebook')!;
+
+    final manager = $$NotebooksTableTableManager($_db, $_db.notebooks)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_defaultNotebookTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
@@ -3719,6 +3860,26 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  $$NotebooksTableFilterComposer get defaultNotebook {
+    final $$NotebooksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.defaultNotebook,
+        referencedTable: $db.notebooks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$NotebooksTableFilterComposer(
+              $db: $db,
+              $table: $db.notebooks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$UsersTableOrderingComposer
@@ -3739,6 +3900,26 @@ class $$UsersTableOrderingComposer
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  $$NotebooksTableOrderingComposer get defaultNotebook {
+    final $$NotebooksTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.defaultNotebook,
+        referencedTable: $db.notebooks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$NotebooksTableOrderingComposer(
+              $db: $db,
+              $table: $db.notebooks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$UsersTableAnnotationComposer
@@ -3758,6 +3939,26 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$NotebooksTableAnnotationComposer get defaultNotebook {
+    final $$NotebooksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.defaultNotebook,
+        referencedTable: $db.notebooks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$NotebooksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.notebooks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$UsersTableTableManager extends RootTableManager<
@@ -3769,9 +3970,9 @@ class $$UsersTableTableManager extends RootTableManager<
     $$UsersTableAnnotationComposer,
     $$UsersTableCreateCompanionBuilder,
     $$UsersTableUpdateCompanionBuilder,
-    (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+    (User, $$UsersTableReferences),
     User,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool defaultNotebook})> {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
       : super(TableManagerState(
           db: db,
@@ -3786,26 +3987,65 @@ class $$UsersTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<bool> hasSeenOnboarding = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<int> defaultNotebook = const Value.absent(),
           }) =>
               UsersCompanion(
             id: id,
             hasSeenOnboarding: hasSeenOnboarding,
             createdAt: createdAt,
+            defaultNotebook: defaultNotebook,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<bool> hasSeenOnboarding = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            required int defaultNotebook,
           }) =>
               UsersCompanion.insert(
             id: id,
             hasSeenOnboarding: hasSeenOnboarding,
             createdAt: createdAt,
+            defaultNotebook: defaultNotebook,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) =>
+                  (e.readTable(table), $$UsersTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({defaultNotebook = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (defaultNotebook) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.defaultNotebook,
+                    referencedTable:
+                        $$UsersTableReferences._defaultNotebookTable(db),
+                    referencedColumn:
+                        $$UsersTableReferences._defaultNotebookTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ));
 }
 
@@ -3818,9 +4058,9 @@ typedef $$UsersTableProcessedTableManager = ProcessedTableManager<
     $$UsersTableAnnotationComposer,
     $$UsersTableCreateCompanionBuilder,
     $$UsersTableUpdateCompanionBuilder,
-    (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+    (User, $$UsersTableReferences),
     User,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool defaultNotebook})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;

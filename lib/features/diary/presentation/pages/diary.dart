@@ -5,6 +5,7 @@ import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/domain/diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
+import 'package:the_notebook/shared/widgets/app_drawer.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../widgets/diary_timeline_widget.dart';
@@ -167,7 +168,12 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
               )),
         ],
       ),
+      drawer: AppDrawer(
+        currentPage: 'notebook',
+      ),
       body: Stack(
+
+        // Fast learner, he can learn as much as he can, quick research and problem solving, he solve problem with win-win strategy, Will continue his master degree in technology field,
         children: [
           ScrollConfiguration(
             behavior: ScrollConfiguration.of(
