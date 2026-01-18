@@ -52,22 +52,22 @@ class NotebookTile extends StatelessWidget {
         return confirm;
       },
       onDismissed: (direction) => onDismissed(),
-      child: Container(
-        padding: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-            color: notebook.color,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.grey.shade400, width: 1.0)),
+      // child: Container(
+      //   padding: EdgeInsets.all(5),
+      //   decoration: BoxDecoration(
+      //       color: notebook.color,
+      //       borderRadius: BorderRadius.circular(15),
+      //       border: Border.all(color: Colors.grey.shade400, width: 1.0)),
         child: ListTile(
-          title: Text(notebook.title,
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          title:
+              Text(notebook.title),
           leading: Container(
             width: 40,
             height: 40,
             padding: EdgeInsets.all(5),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: notebook.getSecondaryColor(notebook.color),
+              //color: notebook.getSecondaryColor(notebook.color),
             ),
             child: Image.asset(notebook.icon, fit: BoxFit.cover),
           ),
@@ -75,7 +75,7 @@ class NotebookTile extends StatelessWidget {
           onTap: openDiary,
           onLongPress: onEdit,
         ),
-      ),
+      //),
     );
   }
 }

@@ -5,17 +5,17 @@ import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/features/notebook/model/notebook.dart';
 import 'package:the_notebook/features/notebook/presentation/notebook_form.dart';
 import 'package:the_notebook/features/notebook/widgets/notebook_tile.dart';
-import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
-class NotebookPage extends ConsumerStatefulWidget {
-  const NotebookPage({super.key});
+class NotebookDrawer extends ConsumerStatefulWidget {
+  const NotebookDrawer({super.key});
 
   @override
-  ConsumerState<NotebookPage> createState() => _NotebookPageState();
+  ConsumerState<NotebookDrawer> createState() => _NotebookDrawerState();
 }
 
-class _NotebookPageState extends ConsumerState<NotebookPage> {
-  List<Notebook> notebookList = [];
+class _NotebookDrawerState extends ConsumerState<NotebookDrawer> {
+  List<Notebook> notebooks = [];
+  bool isLoading = true;
   late final notebookRepo = ref.read(notebookRepositoryProvider);
 
   @override
@@ -25,9 +25,10 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
   }
 
   Future<void> loadNotebooks() async {
-    final notebooks = await notebookRepo.getNotebooks();
+    final data = await notebookRepo.getNotebooks();
     setState(() {
-      notebookList = notebooks;
+      notebooks = data;
+      isLoading = false;
     });
   }
 
@@ -42,8 +43,8 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
     if (newNotebook != null) {
       final newId = await notebookRepo.insertNotebook(newNotebook);
       setState(() {
-        notebookList.insert(
-            notebookList.length,
+        notebooks.insert(
+            notebooks.length,
             Notebook(
                 id: newId,
                 title: newNotebook.title,
@@ -64,22 +65,22 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
     if (updated != null && updated.id != null) {
       await notebookRepo.updateNotebook(updated);
       setState(() {
-        final index = notebookList.indexWhere((n) => n.id == updated.id);
+        final index = notebooks.indexWhere((n) => n.id == updated.id);
         if (index != -1) {
-          notebookList[index] = updated;
+          notebooks[index] = updated;
         }
       });
     }
   }
 
   void onDelete(Notebook notebook) async {
-    final index = notebookList.indexOf(notebook);
+    final index = notebooks.indexOf(notebook);
     if (index == -1) return;
 
     try {
       await notebookRepo.deleteNotebook(notebook.id!);
       setState(() {
-        notebookList.removeAt(index);
+        notebooks.removeAt(index);
       });
     } catch (error) {
       if (mounted) {
@@ -90,27 +91,31 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
     }
   }
 
-  void openDiary(int notebookId) {
+  void openNotebook(int notebookId) {
+    Navigator.pop(context);
+    Navigator.pop(context);
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => DiaryPage(notebookId: notebookId)));
+      context,
+      MaterialPageRoute(
+        builder: (context) => DiaryPage(notebookId: notebookId),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     Widget content;
 
-    if (notebookList.isNotEmpty) {
+    if (notebooks.isNotEmpty) {
       content = ListView.builder(
-        itemCount: notebookList.length,
+        itemCount: notebooks.length,
         itemBuilder: (context, index) {
-          final notebook = notebookList[index];
+          final notebook = notebooks[index];
           return Column(
             children: [
               NotebookTile(
                 notebook: notebook,
-                openDiary: () => openDiary(notebook.id!),
+                openDiary: () => openNotebook(notebook.id!),
                 onDismissed: () => onDelete(notebook),
                 onEdit: () => onEdit(notebook),
               ),
@@ -127,34 +132,30 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        surfaceTintColor: Colors.transparent,
-        leading: Builder(builder: (context) {
-          return IconButton(
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-            icon: const Icon(Icons.menu_rounded),
-          );
-        }),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text("The Notebook"),
-            IconButton(
-              onPressed: onAddNotebook,
-              icon: Icon(Icons.add, size: 26),
+    return Drawer(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(width: 10),
+                const Text('Notebooks', style: TextStyle(fontSize: 20)),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: onAddNotebook,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : content
+          ),
+        ],
       ),
-      drawer: AppDrawer(
-        currentPage: 'notebook',
-      ),
-      body: Padding(padding: EdgeInsets.all(20), child: content),
     );
   }
 }
