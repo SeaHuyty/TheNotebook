@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
-import 'package:the_notebook/features/notebook/widgets/notebook_drawer.dart';
+import 'package:the_notebook/features/notebook/presentation/notebook_drawer.dart';
 import 'package:the_notebook/features/setting/presentation/pages/setting.dart';
 
 class AppDrawer extends ConsumerStatefulWidget {

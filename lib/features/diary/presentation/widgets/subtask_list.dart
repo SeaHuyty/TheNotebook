@@ -80,7 +80,7 @@ class SubtaskTile extends StatelessWidget {
       ),
       title: Text(
         task.title,
-        style: const TextStyle(fontSize: 16),
+        style: const TextStyle(fontSize: 14),
       ),
       trailing: onDelete != null
           ? IconButton(
