@@ -6,6 +6,12 @@ class UserRepository {
 
   UserRepository();
 
+  Future<void> setOnboarding() async {
+    await (_db.update(_db.users)).write(const UsersCompanion(
+      hasSeenOnboarding: Value(true)
+    ));
+  }
+
   Future<bool> hasSeenOnboarding() async {
     final users = await _db.select(_db.users).get();
     if (users.isEmpty) {

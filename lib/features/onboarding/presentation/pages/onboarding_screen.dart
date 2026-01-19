@@ -33,6 +33,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     defaultNotebook = await userRepo.getDefaultNotebook();
   }
 
+  void setSeenOnboarding() async {
+    await userRepo.setOnboarding();
+  }
+
   void nextPage() async {
     if (_currentPage < _totalPage - 1) {
       _pageController.nextPage(
@@ -40,6 +44,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
+      setSeenOnboarding();
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -54,6 +59,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void onSkipped() async {
+    setSeenOnboarding();
     if (mounted) {
       Navigator.pushReplacement(
         context,
