@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/notebook/model/notebook.dart';
-import 'package:the_notebook/features/notebook/widgets/color_block.dart';
-import 'package:the_notebook/features/notebook/widgets/form_button.dart';
-import 'package:the_notebook/features/notebook/widgets/icon_picker.dart';
+import 'package:the_notebook/core/models/notebook.dart';
+import 'package:the_notebook/features/notebook/presentation/widgets/color_block.dart';
+import 'package:the_notebook/features/notebook/presentation/widgets/form_button.dart';
+import 'package:the_notebook/features/notebook/presentation/widgets/icon_picker.dart';
 
 class NotebookForm extends StatefulWidget {
-  final Notebook? notebook;
+  final NotebookModel? notebook;
   final bool isEdited;
 
   const NotebookForm({super.key, this.notebook, required this.isEdited});
@@ -80,7 +80,7 @@ class _NotebookFormState extends State<NotebookForm> {
 
     final title = titleController.text;
 
-    Notebook newNotebook = Notebook(
+    NotebookModel newNotebook = NotebookModel(
         id: widget.notebook?.id,
         title: title,
         icon: selectedIcon,

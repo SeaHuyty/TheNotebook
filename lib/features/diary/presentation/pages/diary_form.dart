@@ -7,10 +7,10 @@ import 'package:path/path.dart' as path;
 import 'dart:ui' as ui;
 import 'package:path_provider/path_provider.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
-import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
-import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
-import 'package:the_notebook/features/diary/domain/tag.dart';
-import 'package:the_notebook/features/diary/domain/task.dart';
+import 'package:the_notebook/core/models/diary.dart';
+import 'package:the_notebook/core/models/diary_image.dart';
+import 'package:the_notebook/core/models/tag.dart';
+import 'package:the_notebook/core/models/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_gallery.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/tag_drawer.dart';
@@ -18,7 +18,7 @@ import 'package:universal_io/universal_io.dart';
 
 class DiaryFormPage extends ConsumerStatefulWidget {
   final int? notebookId; // For create mode
-  final domain.Diary? diary; // For edit mode
+  final DiaryModel? diary; // For edit mode
 
   const DiaryFormPage({
     super.key,
@@ -46,10 +46,10 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
   late TimeOfDay selectedTime;
   List<XFile> selectedImages = [];
   List<bool> isLandscape = [];
-  List<Tag> tags = [];
+  List<TagModel> tags = [];
 
-  Task? mainTask;
-  List<Task> subtasks = [];
+  TaskModel? mainTask;
+  List<TaskModel> subtasks = [];
 
   bool get isEditMode => widget.diary != null;
 
@@ -119,13 +119,13 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
     }
   }
 
-  Future<List<domain.DiaryImage>?> diaryImages() async {
+  Future<List<DiaryImageModel>?> diaryImages() async {
     if (selectedImages.isNotEmpty) {
-      final List<domain.DiaryImage> images = [];
+      final List<DiaryImageModel> images = [];
       for (var entry in selectedImages.asMap().entries) {
         final index = entry.key;
         final image = entry.value;
-        images.add(domain.DiaryImage(
+        images.add(DiaryImageModel(
             imagePath: await saveImagePermanently(image),
             isLandscape: isLandscape[index]));
       }
@@ -164,14 +164,14 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
   Future<void> createDiary() async {
     // Assign subtasks to main task if it exists
     if (mainTask != null) {
-      mainTask = Task(
+      mainTask = TaskModel(
         title: mainTask!.title,
         isCompleted: false,
         subtasks: subtasks,
       );
     }
 
-    final diary = domain.Diary(
+    final diary = DiaryModel(
         id: isEditMode ? widget.diary!.id : null,
         notebookId: isEditMode ? widget.diary!.notebookId : widget.notebookId!,
         date: selectedDate,
@@ -402,7 +402,7 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
                       onPressed: () {
                         if (taskController.text.isEmpty) return;
                         setState(() {
-                          mainTask = Task(
+                          mainTask = TaskModel(
                               title: taskController.text, isCompleted: false);
                           taskController.clear();
                         });
@@ -447,7 +447,7 @@ class _DiaryFormPageState extends ConsumerState<DiaryFormPage> {
                       onPressed: () {
                         if (subtaskController.text.isEmpty) return;
                         setState(() {
-                          subtasks.add(Task(
+                          subtasks.add(TaskModel(
                               title: subtaskController.text,
                               isCompleted: false));
                           subtaskController.clear();

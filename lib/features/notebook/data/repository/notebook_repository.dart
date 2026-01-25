@@ -1,19 +1,19 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/painting.dart';
 import 'package:the_notebook/core/database/database.dart';
-import 'package:the_notebook/features/notebook/model/notebook.dart' as domain;
+import 'package:the_notebook/core/models/notebook.dart';
 
 class NotebookRepository {
   final AppDatabase _db = AppDatabase();
 
   NotebookRepository();
 
-  Future<List<domain.Notebook>> getNotebooks() async {
+  Future<List<NotebookModel>> getNotebooks() async {
     final notebooks = await _db.select(_db.notebooks).get();
 
     return notebooks
         .map(
-          (n) => domain.Notebook(
+          (n) => NotebookModel(
             id: n.id,
             title: n.title,
             icon: n.icon,
@@ -23,7 +23,7 @@ class NotebookRepository {
         .toList();
   }
 
-  Future<int> insertNotebook(domain.Notebook notebook) {
+  Future<int> insertNotebook(NotebookModel notebook) {
     return _db.into(_db.notebooks).insert(
           NotebooksCompanion(
             title: Value(notebook.title),
@@ -33,7 +33,7 @@ class NotebookRepository {
         );
   }
 
-  Future<void> updateNotebook(domain.Notebook notebook) {
+  Future<void> updateNotebook(NotebookModel notebook) {
     return (_db.update(_db.notebooks)..where((n) => n.id.equals(notebook.id!)))
         .write(
       NotebooksCompanion(

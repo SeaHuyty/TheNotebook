@@ -1,13 +1,13 @@
 import 'package:drift/drift.dart';
 import 'package:the_notebook/core/database/database.dart';
-import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
+import 'package:the_notebook/core/models/diary_image.dart';
 
 class DiaryImageRepository {
   final AppDatabase _db = AppDatabase();
 
   DiaryImageRepository();
 
-  Future<int> insertImage(domain.DiaryImage image, int diaryId) async {
+  Future<int> insertImage(DiaryImageModel image, int diaryId) async {
     return await _db.into(_db.diaryImages).insert(
           DiaryImagesCompanion.insert(
             imagePath: image.imagePath,
@@ -17,8 +17,8 @@ class DiaryImageRepository {
         );
   }
 
-  Future<List<domain.DiaryImage>?> getImagesByDiaryId(int diaryId) async {
-    final List<domain.DiaryImage> diaryImages = [];
+  Future<List<DiaryImageModel>?> getImagesByDiaryId(int diaryId) async {
+    final List<DiaryImageModel> diaryImages = [];
     final query = _db.select(_db.diaryImages)
       ..where((tbl) => tbl.diaryId.equals(diaryId));
 
@@ -26,7 +26,7 @@ class DiaryImageRepository {
     if (images.isEmpty) return null;
 
     for (var image in images) {
-      diaryImages.add(domain.DiaryImage(
+      diaryImages.add(DiaryImageModel(
           id: image.id,
           diaryId: image.diaryId,
           imagePath: image.imagePath,

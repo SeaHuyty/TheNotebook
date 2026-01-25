@@ -1,12 +1,12 @@
-class Task {
+class TaskModel {
   final int? id;
   final String title;
   final bool isCompleted;
   final int? diaryId;
   final int? parentTaskId;
-  final List<Task>? subtasks;
+  final List<TaskModel>? subtasks;
 
-  Task({
+  TaskModel({
     this.id,
     required this.title,
     required this.isCompleted,

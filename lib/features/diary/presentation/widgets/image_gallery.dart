@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:the_notebook/features/diary/domain/diary_image.dart' as domain;
+import 'package:the_notebook/core/models/diary_image.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_widget.dart';
 
 class ImageGalleryWidget extends StatelessWidget {
@@ -39,7 +39,7 @@ class ImageGalleryWidget extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(15),
                   child: ImageWidget(
-                    image: domain.DiaryImage(
+                    image: DiaryImageModel(
                       imagePath: images[index].path,
                       isLandscape: isLandscape[index],
                     ),

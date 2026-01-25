@@ -1,10 +1,10 @@
-class User {
+class UserModel {
   final int? id;
   final bool hasSeenOnboarding;
   final DateTime? createdAt;
   final int? defaultNotebook;
 
-  User({
+  UserModel({
     this.id,
     required this.hasSeenOnboarding,
     this.createdAt,
