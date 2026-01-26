@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/database/seed/seed_index.dart';
-import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/core/providers/theme_provider.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_screen.dart';
+import 'package:the_notebook/features/setting/data/repositories/user_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

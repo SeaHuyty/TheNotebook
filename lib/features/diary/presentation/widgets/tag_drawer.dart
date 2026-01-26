@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_tag_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/tag_repository.dart';
 import 'package:the_notebook/core/models/tag.dart';

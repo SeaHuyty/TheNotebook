@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/models/task.dart';
 import 'package:the_notebook/core/database/database.dart';
 
@@ -82,3 +83,7 @@ class TaskRepository {
     _db.close();
   }
 }
+
+final taskRepositoryProvider = Provider<TaskRepository>((ref) {
+  return TaskRepository();
+});

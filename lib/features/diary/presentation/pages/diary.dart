@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/core/models/diary.dart';
+import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
 import 'package:the_notebook/features/diary/presentation/pages/tag_diaries.dart';
@@ -262,6 +262,36 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
                         width: 44,
                         height: 44,
                         child: FloatingActionButton(
+                          heroTag: 'view',
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => TagDiaries()));
+                          },
+                          backgroundColor:
+                              Theme.of(context).scaffoldBackgroundColor,
+                          elevation: 0,
+                          hoverElevation: 0,
+                          focusElevation: 0,
+                          highlightElevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              side: BorderSide(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  width: 0.5)),
+                          child: Icon(
+                            Icons.format_list_bulleted_outlined,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: FloatingActionButton(
                           heroTag: 'search',
                           onPressed: () {
                             Navigator.push(
@@ -284,7 +314,7 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
                           child: Icon(
                             Icons.search,
                             color: Theme.of(context).colorScheme.onSurface,
-                            size: 24,
+                            size: 22,
                           ),
                         ),
                       ),
@@ -309,7 +339,7 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
                           child: Icon(
                             Icons.calendar_month,
                             color: Theme.of(context).colorScheme.onSurface,
-                            size: 20,
+                            size: 22,
                           ),
                         ),
                       ),

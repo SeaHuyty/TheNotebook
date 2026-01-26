@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/database/database.dart';
 import 'package:the_notebook/core/models/notebook.dart';
 
@@ -52,3 +53,7 @@ class NotebookRepository {
     _db.close();
   }
 }
+
+final notebookRepositoryProvider = Provider<NotebookRepository>((ref) {
+  return NotebookRepository();
+});

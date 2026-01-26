@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/database/database.dart';
 import 'package:the_notebook/core/models/tag.dart';
 
@@ -41,3 +42,7 @@ class TagRepository {
     _db.close();
   }
 }
+
+final tagRepositoryProvider = Provider<TagRepository>((ref) {
+  return TagRepository();
+});

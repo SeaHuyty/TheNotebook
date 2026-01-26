@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/features/diary/data/repositories/tag_repository.dart';
 import 'package:the_notebook/core/models/diary.dart';
 import 'package:the_notebook/core/database/database.dart';
@@ -256,3 +257,7 @@ class DiaryRepository {
     _tagRepo.dispose();
   }
 }
+
+final diaryRepositoryProvider = Provider<DiaryRepository>((ref) {
+  return DiaryRepository();
+});

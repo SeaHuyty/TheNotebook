@@ -49,7 +49,7 @@ class SettingPage extends ConsumerWidget {
             subtitle: Text('English'),
           ),
           ListTile(
-            leading: Icon(Icons.light_mode_outlined),
+            leading: Icon(isDarkMode ? Icons.dark_mode_outlined : Icons.light_mode_outlined),
             title: Text('Theme Mode'),
             subtitle: Text(isDarkMode ? 'Dark mode' : 'Light mode'),
             onTap: () {

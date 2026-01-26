@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/core/models/notebook.dart';
+import 'package:the_notebook/features/notebook/data/repositories/notebook_repository.dart';
 import 'package:the_notebook/features/notebook/presentation/pages/notebook_form.dart';
 import 'package:the_notebook/features/notebook/presentation/widgets/notebook_tile.dart';
 
