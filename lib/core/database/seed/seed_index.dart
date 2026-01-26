@@ -1,9 +1,9 @@
 import 'package:the_notebook/core/database/seed/diary_data.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/tag_repository.dart';
-import 'package:the_notebook/features/diary/domain/tag.dart' as domain;
-import 'package:the_notebook/features/notebook/model/notebook.dart' as domain;
-import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
+import 'package:the_notebook/core/models/tag.dart';
+import 'package:the_notebook/core/models/notebook.dart';
+import 'package:the_notebook/core/models/diary.dart';
 import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
 import 'package:the_notebook/features/setting/data/repositories/user_repository.dart';
 
@@ -14,7 +14,7 @@ class SeedIndex {
   final UserRepository _userRepo = UserRepository();
 
   final notebook =
-      domain.Notebook(title: 'Starter', icon: 'assets/images/home.png');
+      NotebookModel(title: 'Starter', icon: 'assets/images/home.png');
 
   Future<void> seedIfEmpty() async {
     final notebooks = await _noteRepo.getNotebooks();
@@ -36,20 +36,20 @@ class SeedIndex {
     }
 
     for (var tagName in allTagNames) {
-      final tagId = await _tagRepo.insertTag(domain.Tag(name: tagName));
+      final tagId = await _tagRepo.insertTag(TagModel(name: tagName));
       tagNameToId[tagName] = tagId;
     }
 
     for (var diary in sampleDiaries) {
-      List<domain.Tag>? tagsWithIds;
+      List<TagModel>? tagsWithIds;
 
       if (diary.tags != null) {
         tagsWithIds = diary.tags!.map((tag) {
-          return domain.Tag(name: tag.name, id: tagNameToId[tag.name]);
+          return TagModel(name: tag.name, id: tagNameToId[tag.name]);
         }).toList();
       }
 
-      final updatedDiary = domain.Diary(
+      final updatedDiary = DiaryModel(
           content: diary.content,
           title: diary.title,
           time: diary.time,

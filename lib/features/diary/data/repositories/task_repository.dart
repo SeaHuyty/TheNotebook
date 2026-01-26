@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:the_notebook/features/diary/domain/task.dart' as domain;
+import 'package:the_notebook/core/models/task.dart';
 import 'package:the_notebook/core/database/database.dart';
 
 class TaskRepository {
@@ -7,24 +7,24 @@ class TaskRepository {
 
   TaskRepository();
 
-  Future<int> insertTask(domain.Task task, int diaryId) async {
+  Future<int> insertTask(TaskModel task, int diaryId) async {
     return await _db.into(_db.tasks).insert(TasksCompanion.insert(
         title: task.title,
         isCompleted: Value(task.isCompleted),
         diaryId: Value(diaryId)));
   }
 
-  Future<List<domain.Task>> getTasksForDiary(int diaryId) async {
+  Future<List<TaskModel>> getTasksForDiary(int diaryId) async {
     final dbTasks = await (_db.select(_db.tasks)
           ..where((t) => t.diaryId.equals(diaryId)))
         .get();
     final parentTasks = dbTasks.where((t) => t.parentTaskId == null).toList();
-    final result = <domain.Task>[];
+    final result = <TaskModel>[];
 
     for (var task in parentTasks) {
       final subtasks = await getSubtasksForTask(task.id);
       result.add(
-        domain.Task(
+        TaskModel(
           id: task.id,
           title: task.title,
           isCompleted: task.isCompleted,
@@ -37,13 +37,13 @@ class TaskRepository {
     return result;
   }
 
-  Future<List<domain.Task>> getSubtasksForTask(int parentTaskId) async {
+  Future<List<TaskModel>> getSubtasksForTask(int parentTaskId) async {
     final dbSubtasks = await (_db.select(_db.tasks)
           ..where((t) => t.parentTaskId.equals(parentTaskId)))
         .get();
     return dbSubtasks
         .map(
-          (st) => domain.Task(
+          (st) => TaskModel(
             id: st.id,
             title: st.title,
             isCompleted: st.isCompleted,
@@ -54,7 +54,7 @@ class TaskRepository {
         .toList();
   }
 
-  Future<bool> updateTask(domain.Task task) async {
+  Future<bool> updateTask(TaskModel task) async {
     final rowsAffected = await (_db.update(_db.tasks)
           ..where((t) => t.id.equals(task.id!)))
         .write(TasksCompanion(

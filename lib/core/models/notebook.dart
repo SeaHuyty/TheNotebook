@@ -8,13 +8,13 @@ const food = "assets/images/food.png";
 const gym = "assets/images/gym.png";
 const journal = "assets/images/journal.png";
 
-class Notebook {
+class NotebookModel {
   final int? id;
   final String title;
   final String icon;
   final Color? color;
 
-  Notebook({
+  NotebookModel({
     this.id,
     required this.title,
     required this.icon,

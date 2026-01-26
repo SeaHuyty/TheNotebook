@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/database/seed/seed_index.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/core/providers/theme_provider.dart';
-import 'package:the_notebook/features/notebook/presentation/notebook_page.dart';
+import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_screen.dart';
 
 void main() async {
@@ -13,16 +13,36 @@ void main() async {
 
   await seedRepo.seedIfEmpty();
 
-  runApp(ProviderScope(
-    child: const MyApp(),
-  ));
+  runApp(
+    ProviderScope(
+      child: const MyApp(),
+    ),
+  );
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  late final userRepo = ref.read(userRepositoryProvider);
+  late int? defaultNotebook;
+
+  @override
+  void initState() {
+    loadDefaultNotebook();
+    super.initState();
+  }
+
+  void loadDefaultNotebook() async {
+    defaultNotebook = await userRepo.getDefaultNotebook();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
@@ -47,10 +67,12 @@ class MyApp extends ConsumerWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          
+
           final hasUser = snapshot.data ?? false;
-          
-          return hasUser ? const NotebookPage() : const OnboardingScreen();
+
+          return hasUser ? DiaryPage(
+            notebookId: defaultNotebook!,
+          ) : const OnboardingScreen();
         },
       ),
     );

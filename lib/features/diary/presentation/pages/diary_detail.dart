@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
-import 'package:the_notebook/features/diary/domain/diary.dart';
-import 'package:the_notebook/features/diary/domain/task.dart';
+import 'package:the_notebook/core/models/diary.dart';
+import 'package:the_notebook/core/models/task.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_gallery.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/label_chip.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryDetailPage extends ConsumerStatefulWidget {
-  final Diary diary;
+  final DiaryModel diary;
 
   const DiaryDetailPage({
     super.key,
@@ -27,7 +27,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
   late final taskRepository = ref.read(taskRepositoryProvider);
 
   late List<bool> expanded;
-  late Diary currentDiary;
+  late DiaryModel currentDiary;
   bool wasEdited = false;
 
   @override
@@ -44,12 +44,12 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
     final bool newState = !task.isCompleted;
 
     setState(() {
-      currentDiary.tasks![index] = Task(
+      currentDiary.tasks![index] = TaskModel(
         id: task.id,
         title: task.title,
         isCompleted: newState,
         subtasks: task.subtasks
-            ?.map((sub) => Task(
+            ?.map((sub) => TaskModel(
                   id: sub.id,
                   title: sub.title,
                   isCompleted: newState,
@@ -64,7 +64,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
     final parent = currentDiary.tasks![parentIndex];
     final subtasks = [...parent.subtasks!];
 
-    subtasks[subIndex] = Task(
+    subtasks[subIndex] = TaskModel(
       id: subtasks[subIndex].id,
       title: subtasks[subIndex].title,
       isCompleted: !subtasks[subIndex].isCompleted,
@@ -74,7 +74,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
     final allCompleted = subtasks.every((t) => t.isCompleted);
 
     setState(() {
-      currentDiary.tasks![parentIndex] = Task(
+      currentDiary.tasks![parentIndex] = TaskModel(
         id: parent.id,
         title: parent.title,
         isCompleted: allCompleted,
@@ -93,7 +93,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
         final updatedTasks = [...currentDiary.tasks!];
         updatedTasks.removeAt(index);
         expanded.removeAt(index);
-        currentDiary = Diary(
+        currentDiary = DiaryModel(
           id: currentDiary.id,
           notebookId: currentDiary.notebookId,
           time: currentDiary.time,
@@ -118,7 +118,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
       setState(() {
         final updatedSubtasks = [...parent.subtasks!];
         updatedSubtasks.removeAt(subIndex);
-        currentDiary.tasks![parentIndex] = Task(
+        currentDiary.tasks![parentIndex] = TaskModel(
           id: parent.id,
           title: parent.title,
           isCompleted: parent.isCompleted,
@@ -164,7 +164,10 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                     onPressed: () {
                       Navigator.pop(context, false);
                     },
-                    child: Text('Cancel', style: TextStyle(color: Colors.black),)),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.black),
+                    )),
                 TextButton(
                     onPressed: () {
                       Navigator.pop(context, true);
@@ -314,7 +317,7 @@ class _DiaryDetailPageState extends ConsumerState<DiaryDetailPage> {
                 ),
                 ...currentDiary.tasks!.asMap().entries.map((entry) {
                   int index = entry.key;
-                  Task task = entry.value;
+                  TaskModel task = entry.value;
                   return TaskCard(
                     task: task,
                     onToggleParentTask: () => onToggleParentTask(index),

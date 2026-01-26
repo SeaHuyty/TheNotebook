@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_tag_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/tag_repository.dart';
-import 'package:the_notebook/features/diary/domain/tag.dart';
+import 'package:the_notebook/core/models/tag.dart';
 
 class TagDrawer extends ConsumerStatefulWidget {
   final int? diaryId;
-  final List<Tag>? tags;
-  final Function(List<Tag>)? onTagsChanged;
+  final List<TagModel>? tags;
+  final Function(List<TagModel>)? onTagsChanged;
 
   const TagDrawer({super.key, this.diaryId, this.tags, this.onTagsChanged});
 
@@ -19,7 +19,7 @@ class TagDrawer extends ConsumerStatefulWidget {
 class _TagDrawerState extends ConsumerState<TagDrawer> {
   final TagRepository _tagRepo = TagRepository();
   final DiaryTagRepository _diaryTagRepo = DiaryTagRepository();
-  List<Tag> tags = [];
+  List<TagModel> tags = [];
   Set<int> selectedTagIds = {};
   bool isLoading = true;
 
@@ -74,8 +74,9 @@ class _TagDrawerState extends ConsumerState<TagDrawer> {
     if (tagName != null && tagName.trim().isNotEmpty) {
       try {
         final tagRepo = ref.read(tagRepositoryProvider);
-        final newTagId = await tagRepo.insertTag(Tag(name: tagName.trim()));
-        final Tag tag = Tag(name: tagName, id: newTagId);
+        final newTagId =
+            await tagRepo.insertTag(TagModel(name: tagName.trim()));
+        final TagModel tag = TagModel(name: tagName, id: newTagId);
         setState(() {
           tags.add(tag);
         });
@@ -96,7 +97,7 @@ class _TagDrawerState extends ConsumerState<TagDrawer> {
     }
   }
 
-  Future<void> toggleTag(Tag tag) async {
+  Future<void> toggleTag(TagModel tag) async {
     if (tag.id == null) return;
 
     setState(() {

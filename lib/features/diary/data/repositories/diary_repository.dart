@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:the_notebook/features/diary/data/repositories/tag_repository.dart';
-import 'package:the_notebook/features/diary/domain/diary.dart' as domain;
+import 'package:the_notebook/core/models/diary.dart';
 import 'package:the_notebook/core/database/database.dart';
 import 'package:the_notebook/features/diary/data/repositories/task_repository.dart';
 import 'package:the_notebook/features/diary/data/repositories/diary_image_repository.dart';
@@ -14,9 +14,9 @@ class DiaryRepository {
 
   DiaryRepository();
 
-  Future<List<domain.Diary>> getDiaryEntries() async {
+  Future<List<DiaryModel>> getDiaryEntries() async {
     final diaries = await _db.select(_db.diaries).get();
-    final result = <domain.Diary>[];
+    final result = <DiaryModel>[];
 
     for (var diary in diaries) {
       final tasks = await _taskRepo.getTasksForDiary(diary.id);
@@ -26,7 +26,7 @@ class DiaryRepository {
       final parts = diary.time.split(':');
 
       result.add(
-        domain.Diary(
+        DiaryModel(
           notebookId: diary.notebookId,
           id: diary.id,
           title: diary.title,
@@ -45,7 +45,7 @@ class DiaryRepository {
     return result;
   }
 
-  Future<int> insertDiary(domain.Diary diary) async {
+  Future<int> insertDiary(DiaryModel diary) async {
     final timeString =
         '${diary.time.hour.toString().padLeft(2, '0')}:${diary.time.minute.toString().padLeft(2, '0')}';
     final diaryId = await _db.into(_db.diaries).insert(
@@ -95,7 +95,7 @@ class DiaryRepository {
     return diaryId;
   }
 
-  Future<void> updateDiary(domain.Diary diary,
+  Future<void> updateDiary(DiaryModel diary,
       {bool contentChanged = false,
       bool timeChanged = false,
       bool tagChanged = false,
@@ -156,7 +156,7 @@ class DiaryRepository {
     }
   }
 
-  Future<domain.Diary?> getDiaryById(int diaryId) async {
+  Future<DiaryModel?> getDiaryById(int diaryId) async {
     final tasks = await _taskRepo.getTasksForDiary(diaryId);
     final image = await _imageRepo.getImagesByDiaryId(diaryId);
     final tags = await _tagRepo.getTagsForDiary(diaryId);
@@ -169,7 +169,7 @@ class DiaryRepository {
 
     final parts = diary.time.split(':');
 
-    return domain.Diary(
+    return DiaryModel(
       id: diary.id,
       notebookId: diary.notebookId,
       title: diary.title,
@@ -182,7 +182,7 @@ class DiaryRepository {
     );
   }
 
-  Future<List<domain.Diary>> getDiaryEntriesByYear(
+  Future<List<DiaryModel>> getDiaryEntriesByYear(
       int year, int notebookId) async {
     final startOfYear = DateTime(year, 1, 1);
     final endOfYear = DateTime(year, 12, 31, 23, 59, 59);
@@ -194,7 +194,7 @@ class DiaryRepository {
           tbl.notebookId.equals(notebookId));
 
     final result = await query.get();
-    final diaries = <domain.Diary>[];
+    final diaries = <DiaryModel>[];
 
     for (var diary in result) {
       final tasks = await _taskRepo.getTasksForDiary(diary.id);
@@ -204,7 +204,7 @@ class DiaryRepository {
       final parts = diary.time.split(':');
 
       diaries.add(
-        domain.Diary(
+        DiaryModel(
             id: diary.id,
             notebookId: diary.notebookId,
             date: diary.date,

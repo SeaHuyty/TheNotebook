@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/diary/domain/task.dart';
+import 'package:the_notebook/core/models/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/custom_radio.dart';
 
 class SubTaskList extends StatelessWidget {
-  final List<Task> subtasks;
+  final List<TaskModel> subtasks;
   final Function(int) onToggle;
   final Function(int)? onDelete;
 
@@ -39,7 +39,7 @@ class SubTaskList extends StatelessWidget {
             child: Column(
               children: subtasks.asMap().entries.map((entry) {
                 int index = entry.key;
-                Task task = entry.value;
+                TaskModel task = entry.value;
                 return Padding(
                   padding: EdgeInsets.only(top: 5),
                   child: SubtaskTile(
@@ -57,9 +57,8 @@ class SubTaskList extends StatelessWidget {
   }
 }
 
-
 class SubtaskTile extends StatelessWidget {
-  final Task task;
+  final TaskModel task;
   final VoidCallback onToggle;
   final VoidCallback? onDelete;
 

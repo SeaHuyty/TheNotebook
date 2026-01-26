@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/notebook/model/notebook.dart';
+import 'package:the_notebook/core/models/notebook.dart';
 
 class NotebookTile extends StatelessWidget {
-  final Notebook notebook;
+  final NotebookModel notebook;
   final VoidCallback openDiary;
   final VoidCallback onDismissed;
   final VoidCallback onEdit;
@@ -36,7 +36,7 @@ class NotebookTile extends StatelessWidget {
               return AlertDialog(
                 title: const Text("Delete Notebook"),
                 content: const Text(
-                    "Are you sure you want to delete this notebook?"),
+                    "Are you sure you want to delete this NotebookModel?"),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.of(context).pop(false),

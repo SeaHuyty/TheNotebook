@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
-import 'package:the_notebook/features/diary/domain/diary.dart';
+import 'package:the_notebook/core/models/diary.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_detail.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary_form.dart';
+import 'package:the_notebook/features/diary/presentation/pages/tag_diaries.dart';
 import 'package:the_notebook/shared/widgets/app_drawer.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -30,7 +31,7 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
   int selectedYear = DateTime.now().year;
   List<int> availableYears = [];
   Set<String> availableMonths = {};
-  List<Diary> sortedEntries = [];
+  List<DiaryModel> sortedEntries = [];
   late final diaryRepository = ref.read(diaryRepositoryProvider);
 
   @override
@@ -148,6 +149,7 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         surfaceTintColor: Colors.transparent,
+        title: Text('Default Notebook Name'),
         actions: [
           TextButton(
               onPressed: () {
@@ -172,8 +174,6 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
         currentPage: 'notebook',
       ),
       body: Stack(
-
-        // Fast learner, he can learn as much as he can, quick research and problem solving, he solve problem with win-win strategy, Will continue his master degree in technology field,
         children: [
           ScrollConfiguration(
             behavior: ScrollConfiguration.of(
@@ -248,33 +248,72 @@ class _DiaryPageState extends ConsumerState<DiaryPage> {
           ),
           Positioned(
             bottom: 16,
-            left: 20,
+            left: 18,
             right: 20,
             child: SafeArea(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: FloatingActionButton(
-                      heroTag: 'filter',
-                      onPressed: showYearFilter,
-                      backgroundColor:
-                          Theme.of(context).scaffoldBackgroundColor,
-                      elevation: 0,
-                      hoverElevation: 0,
-                      focusElevation: 0,
-                      highlightElevation: 0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          side: BorderSide(color: Theme.of(context).colorScheme.onSurface, width: 0.5)),
-                      child: Icon(
-                        Icons.tune,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        size: 20,
+                  Column(
+                    spacing: 10,
+                    children: [
+                      SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: FloatingActionButton(
+                          heroTag: 'search',
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => TagDiaries()));
+                          },
+                          backgroundColor:
+                              Theme.of(context).scaffoldBackgroundColor,
+                          elevation: 0,
+                          hoverElevation: 0,
+                          focusElevation: 0,
+                          highlightElevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              side: BorderSide(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  width: 0.5)),
+                          child: Icon(
+                            Icons.search,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            size: 24,
+                          ),
+                        ),
                       ),
-                    ),
+                      SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: FloatingActionButton(
+                          heroTag: 'year',
+                          onPressed: showYearFilter,
+                          backgroundColor:
+                              Theme.of(context).scaffoldBackgroundColor,
+                          elevation: 0,
+                          hoverElevation: 0,
+                          focusElevation: 0,
+                          highlightElevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              side: BorderSide(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  width: 0.5)),
+                          child: Icon(
+                            Icons.calendar_month,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(
                     width: 44,

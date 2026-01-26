@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:the_notebook/features/diary/domain/diary.dart';
-import 'package:the_notebook/features/diary/domain/task.dart';
+import 'package:the_notebook/core/models/diary.dart';
+import 'package:the_notebook/core/models/task.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/image_gallery.dart';
 import 'package:the_notebook/features/diary/presentation/widgets/task_card.dart';
 
 class DiaryEntryContent extends StatefulWidget {
-  final Diary diary;
+  final DiaryModel diary;
 
   const DiaryEntryContent({
     super.key,
@@ -43,12 +43,12 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
     final bool newState = !task.isCompleted;
 
     setState(() {
-      widget.diary.tasks![index] = Task(
+      widget.diary.tasks![index] = TaskModel(
         id: task.id,
         title: task.title,
         isCompleted: newState,
         subtasks: task.subtasks
-            ?.map((sub) => Task(
+            ?.map((sub) => TaskModel(
                   id: sub.id,
                   title: sub.title,
                   isCompleted: newState,
@@ -63,7 +63,7 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
     final parent = widget.diary.tasks![parentIndex];
     final subtasks = [...parent.subtasks!];
 
-    subtasks[subIndex] = Task(
+    subtasks[subIndex] = TaskModel(
       id: subtasks[subIndex].id,
       title: subtasks[subIndex].title,
       isCompleted: !subtasks[subIndex].isCompleted,
@@ -73,7 +73,7 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
     final allCompleted = subtasks.every((t) => t.isCompleted);
 
     setState(() {
-      widget.diary.tasks![parentIndex] = Task(
+      widget.diary.tasks![parentIndex] = TaskModel(
         id: parent.id,
         title: parent.title,
         isCompleted: allCompleted,
@@ -113,7 +113,7 @@ class _DiaryEntryContentState extends State<DiaryEntryContent> {
           if (widget.diary.tasks != null) ...[
             ...widget.diary.tasks!.asMap().entries.map((entry) {
               int index = entry.key;
-              Task task = entry.value;
+              TaskModel task = entry.value;
               return TaskCard(
                 task: task,
                 onToggleParentTask: () => onToggleParentTask(index),

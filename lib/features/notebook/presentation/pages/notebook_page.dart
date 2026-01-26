@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
-import 'package:the_notebook/features/notebook/model/notebook.dart';
-import 'package:the_notebook/features/notebook/presentation/notebook_form.dart';
-import 'package:the_notebook/features/notebook/widgets/notebook_tile.dart';
+import 'package:the_notebook/core/models/notebook.dart';
+import 'package:the_notebook/features/notebook/presentation/pages/notebook_form.dart';
+import 'package:the_notebook/features/notebook/presentation/widgets/notebook_tile.dart';
 import 'package:the_notebook/shared/widgets/app_drawer.dart';
 
 class NotebookPage extends ConsumerStatefulWidget {
@@ -15,7 +15,7 @@ class NotebookPage extends ConsumerStatefulWidget {
 }
 
 class _NotebookPageState extends ConsumerState<NotebookPage> {
-  List<Notebook> notebookList = [];
+  List<NotebookModel> notebookList = [];
   late final notebookRepo = ref.read(notebookRepositoryProvider);
 
   @override
@@ -32,7 +32,7 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
   }
 
   void onAddNotebook() async {
-    final newNotebook = await Navigator.push<Notebook>(
+    final newNotebook = await Navigator.push<NotebookModel>(
       context,
       MaterialPageRoute(
         builder: (context) => const NotebookForm(isEdited: false),
@@ -44,7 +44,7 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
       setState(() {
         notebookList.insert(
             notebookList.length,
-            Notebook(
+            NotebookModel(
                 id: newId,
                 title: newNotebook.title,
                 icon: newNotebook.icon,
@@ -53,8 +53,8 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
     }
   }
 
-  void onEdit(Notebook notebook) async {
-    final updated = await Navigator.push<Notebook>(
+  void onEdit(NotebookModel notebook) async {
+    final updated = await Navigator.push<NotebookModel>(
       context,
       MaterialPageRoute(
         builder: (context) => NotebookForm(notebook: notebook, isEdited: true),
@@ -72,7 +72,7 @@ class _NotebookPageState extends ConsumerState<NotebookPage> {
     }
   }
 
-  void onDelete(Notebook notebook) async {
+  void onDelete(NotebookModel notebook) async {
     final index = notebookList.indexOf(notebook);
     if (index == -1) return;
 

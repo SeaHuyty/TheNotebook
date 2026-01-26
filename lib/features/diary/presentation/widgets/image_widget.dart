@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:the_notebook/features/diary/domain/diary_image.dart';
+import 'package:the_notebook/core/models/diary_image.dart';
 
 class ImageWidget extends StatefulWidget {
-  final DiaryImage image;
+  final DiaryImageModel image;
   final double? height;
 
   const ImageWidget({super.key, required this.image, this.height});
@@ -24,7 +24,8 @@ class _ImageWidgetState extends State<ImageWidget> {
     final isLandscape = widget.image.isLandscape;
 
     final double imageHeight = widget.height ?? (isLandscape ? 170 : 220);
-    final double? imageWidth = isLandscape ? null : (widget.height != null ? null : 170);
+    final double? imageWidth =
+        isLandscape ? null : (widget.height != null ? null : 170);
 
     if (widget.image.imagePath.startsWith('/images/')) {
       return SizedBox(
