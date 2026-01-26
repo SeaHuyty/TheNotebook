@@ -19,7 +19,7 @@ class TagRepository {
     final result = <TagModel>[];
 
     for (var tag in tags) {
-      result.add(TagModel(name: tag.title, id: tag.id));
+      result.add(TagModel.fromDrift(tag));
     }
 
     return result;
@@ -34,7 +34,7 @@ class TagRepository {
 
     return results.map((row) {
       final tag = row.readTable(_db.tags);
-      return TagModel(name: tag.title, id: tag.id);
+      return TagModel.fromDrift(tag);
     }).toList();
   }
 

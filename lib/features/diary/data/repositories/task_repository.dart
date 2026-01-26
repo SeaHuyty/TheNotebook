@@ -24,15 +24,7 @@ class TaskRepository {
 
     for (var task in parentTasks) {
       final subtasks = await getSubtasksForTask(task.id);
-      result.add(
-        TaskModel(
-          id: task.id,
-          title: task.title,
-          isCompleted: task.isCompleted,
-          diaryId: task.diaryId,
-          subtasks: subtasks.isEmpty ? null : subtasks,
-        ),
-      );
+      result.add(TaskModel.fromDrift(task, subtasks));
     }
 
     return result;

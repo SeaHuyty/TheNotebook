@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:the_notebook/core/database/database.dart';
 import 'package:the_notebook/core/models/diary_image.dart';
 import 'package:the_notebook/core/models/tag.dart';
 import 'package:the_notebook/core/models/task.dart';
@@ -27,4 +28,21 @@ class DiaryModel {
     this.createdAt,
     List<TaskModel>? tasks,
   }) : tasks = tasks ?? <TaskModel>[];
+
+  factory DiaryModel.fromDrift(Diary diary, List<TagModel> tags,
+      List<DiaryImageModel>? images, List<TaskModel> tasks) {
+    final parts = diary.time.split(':');
+
+    return DiaryModel(
+      id: diary.id,
+      notebookId: diary.notebookId,
+      title: diary.title,
+      time: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+      tags: tags,
+      date: diary.date,
+      content: diary.content,
+      images: images,
+      tasks: tasks,
+    );
+  }
 }
