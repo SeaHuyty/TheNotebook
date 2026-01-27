@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/database/database.dart';
 import 'package:the_notebook/core/models/tag.dart';
 
@@ -18,7 +19,7 @@ class TagRepository {
     final result = <TagModel>[];
 
     for (var tag in tags) {
-      result.add(TagModel(name: tag.title, id: tag.id));
+      result.add(TagModel.fromDrift(tag));
     }
 
     return result;
@@ -33,7 +34,7 @@ class TagRepository {
 
     return results.map((row) {
       final tag = row.readTable(_db.tags);
-      return TagModel(name: tag.title, id: tag.id);
+      return TagModel.fromDrift(tag);
     }).toList();
   }
 
@@ -41,3 +42,7 @@ class TagRepository {
     _db.close();
   }
 }
+
+final tagRepositoryProvider = Provider<TagRepository>((ref) {
+  return TagRepository();
+});

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:the_notebook/core/providers/repository_providers.dart';
 import 'package:the_notebook/features/diary/presentation/pages/diary.dart';
 
 import 'package:the_notebook/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:the_notebook/features/setting/data/repositories/user_repository.dart';
 
 const asset1 = "assets/images/open-book.svg";
 const asset2 = "assets/images/education-note.svg";

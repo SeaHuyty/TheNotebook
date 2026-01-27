@@ -26,19 +26,13 @@ class DiaryImageRepository {
     if (images.isEmpty) return null;
 
     for (var image in images) {
-      diaryImages.add(DiaryImageModel(
-          id: image.id,
-          diaryId: image.diaryId,
-          imagePath: image.imagePath,
-          isLandscape: image.isLandscape!));
+      diaryImages.add(DiaryImageModel.fromDrift(image));
     }
 
     return diaryImages;
   }
 
   Future<void> deleteImageByDiaryId(int diaryId) async {
-    // .go() - Execute the delete
-
     await (_db.delete(_db.diaryImages)
           ..where((tbl) => tbl.diaryId.equals(diaryId)))
         .go();

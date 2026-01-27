@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/database/database.dart';
 
 class UserRepository {
@@ -33,3 +34,7 @@ class UserRepository {
     return users.first.defaultNotebook;
   }
 }
+
+final userRepositoryProvider = Provider<UserRepository>((ref) {
+  return UserRepository();
+});

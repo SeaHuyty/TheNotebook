@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/models/task.dart';
 import 'package:the_notebook/core/database/database.dart';
 
@@ -23,15 +24,7 @@ class TaskRepository {
 
     for (var task in parentTasks) {
       final subtasks = await getSubtasksForTask(task.id);
-      result.add(
-        TaskModel(
-          id: task.id,
-          title: task.title,
-          isCompleted: task.isCompleted,
-          diaryId: task.diaryId,
-          subtasks: subtasks.isEmpty ? null : subtasks,
-        ),
-      );
+      result.add(TaskModel.fromDrift(task, subtasks));
     }
 
     return result;
@@ -82,3 +75,7 @@ class TaskRepository {
     _db.close();
   }
 }
+
+final taskRepositoryProvider = Provider<TaskRepository>((ref) {
+  return TaskRepository();
+});

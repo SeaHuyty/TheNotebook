@@ -4,7 +4,7 @@ import 'package:the_notebook/features/diary/data/repositories/tag_repository.dar
 import 'package:the_notebook/core/models/tag.dart';
 import 'package:the_notebook/core/models/notebook.dart';
 import 'package:the_notebook/core/models/diary.dart';
-import 'package:the_notebook/features/notebook/data/repository/notebook_repository.dart';
+import 'package:the_notebook/features/notebook/data/repositories/notebook_repository.dart';
 import 'package:the_notebook/features/setting/data/repositories/user_repository.dart';
 
 class SeedIndex {

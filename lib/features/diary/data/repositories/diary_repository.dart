@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/features/diary/data/repositories/tag_repository.dart';
 import 'package:the_notebook/core/models/diary.dart';
 import 'package:the_notebook/core/database/database.dart';
@@ -20,25 +20,10 @@ class DiaryRepository {
 
     for (var diary in diaries) {
       final tasks = await _taskRepo.getTasksForDiary(diary.id);
-      final image = await _imageRepo.getImagesByDiaryId(diary.id);
+      final images = await _imageRepo.getImagesByDiaryId(diary.id);
       final tags = await _tagRepo.getTagsForDiary(diary.id);
 
-      final parts = diary.time.split(':');
-
-      result.add(
-        DiaryModel(
-          notebookId: diary.notebookId,
-          id: diary.id,
-          title: diary.title,
-          time:
-              TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
-          tags: tags,
-          date: diary.date,
-          content: diary.content,
-          images: image,
-          tasks: tasks,
-        ),
-      );
+      result.add(DiaryModel.fromDrift(diary, tags, images, tasks));
     }
 
     result.sort((a, b) => a.date.compareTo(b.date));
@@ -158,7 +143,7 @@ class DiaryRepository {
 
   Future<DiaryModel?> getDiaryById(int diaryId) async {
     final tasks = await _taskRepo.getTasksForDiary(diaryId);
-    final image = await _imageRepo.getImagesByDiaryId(diaryId);
+    final images = await _imageRepo.getImagesByDiaryId(diaryId);
     final tags = await _tagRepo.getTagsForDiary(diaryId);
 
     final query = _db.select(_db.diaries)
@@ -167,19 +152,7 @@ class DiaryRepository {
     final diary = await query.getSingleOrNull();
     if (diary == null) return null;
 
-    final parts = diary.time.split(':');
-
-    return DiaryModel(
-      id: diary.id,
-      notebookId: diary.notebookId,
-      title: diary.title,
-      time: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
-      tags: tags,
-      date: diary.date,
-      content: diary.content,
-      images: image,
-      tasks: tasks,
-    );
+    return DiaryModel.fromDrift(diary, tags, images, tasks);
   }
 
   Future<List<DiaryModel>> getDiaryEntriesByYear(
@@ -198,24 +171,10 @@ class DiaryRepository {
 
     for (var diary in result) {
       final tasks = await _taskRepo.getTasksForDiary(diary.id);
-      final image = await _imageRepo.getImagesByDiaryId(diary.id);
+      final images = await _imageRepo.getImagesByDiaryId(diary.id);
       final tags = await _tagRepo.getTagsForDiary(diary.id);
 
-      final parts = diary.time.split(':');
-
-      diaries.add(
-        DiaryModel(
-            id: diary.id,
-            notebookId: diary.notebookId,
-            date: diary.date,
-            title: diary.title,
-            time: TimeOfDay(
-                hour: int.parse(parts[0]), minute: int.parse(parts[1])),
-            content: diary.content,
-            tags: tags,
-            images: image,
-            tasks: tasks),
-      );
+      diaries.add(DiaryModel.fromDrift(diary, tags, images, tasks));
     }
 
     diaries.sort((a, b) => a.date.compareTo(b.date));
@@ -256,3 +215,7 @@ class DiaryRepository {
     _tagRepo.dispose();
   }
 }
+
+final diaryRepositoryProvider = Provider<DiaryRepository>((ref) {
+  return DiaryRepository();
+});

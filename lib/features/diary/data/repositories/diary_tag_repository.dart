@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:the_notebook/core/database/database.dart';
 
 class DiaryTagRepository {
@@ -23,3 +24,7 @@ class DiaryTagRepository {
     _db.close();
   }
 }
+
+final diaryTagRepositoryProvider = Provider<DiaryTagRepository>((ref) {
+  return DiaryTagRepository();
+});
